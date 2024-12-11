@@ -1,0 +1,13 @@
+services:
+  postgres:
+    container_name: my_project
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: my_project
+      PGDATA: /data/pgdata
+    volumes:
+      - .data/pg:/data/postgres
