@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { User } from '../entities/User';
+import { User } from '../entities/Member';
 import { NickNameAlreadyExistsError } from '../errors/NickNameAlreadyExistsError';
 import { UserNotFoundError } from '../errors/UserNotFoundError';
 import { UserRepository } from '../repositories/contracts/UserRepository';

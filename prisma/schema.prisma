@@ -7,16 +7,116 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+enum PlanType {
+  FREE
+  PREMIUM
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  FAILED
+}
+
+enum SupportTier {
+  STANDARD
+  PRIORITY
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Member {
   id        Int       @id @unique @default(autoincrement())
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   name      String    @unique
+  email     String    @unique
+  phone     String?
   password  String    @map("password")
 
-  RefreshToken RefreshToken[]
+  plan          PlanType      @default(FREE)
+  planStartDate DateTime?
+  planEndDate   DateTime?
+  paymentStatus PaymentStatus @default(PAID)
+  renewalDate   DateTime?
 
-  @@map("users")
+  timezone String? @default("America/Sao_Paulo")
+  language String? @default("pt-BR")
+  currency String? @default("BRL")
+
+  supportTier SupportTier @default(STANDARD)
+
+  RefreshToken   RefreshToken[]
+  Transaction    Transaction[]
+  Goal           Goal[]
+  PaymentHistory PaymentHistory[]
+  Notification   Notification[]
+
+  @@index([planStartDate, planEndDate])
+  @@map("members")
+}
+
+model PaymentHistory {
+  id            Int           @id @unique @default(autoincrement())
+  memberId      Int           @map("member_id")
+  amount        Float
+  paymentDate   DateTime      @map("payment_date")
+  paymentMethod String?
+  paymentStatus PaymentStatus
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([paymentDate])
+  @@map("payment_history")
+}
+
+model Transaction {
+  id          Int             @id @unique @default(autoincrement())
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  memberId    Int             @map("member_id")
+  type        TransactionType
+  description String?
+  category    String
+  amount      Float
+  date        DateTime
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId, type, date])
+  @@map("transactions")
+}
+
+model Goal {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  memberId   Int      @map("member_id")
+  category   String
+  percentage Float
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@map("goals")
+}
+
+model Notification {
+  id        Int      @id @unique @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  memberId  Int      @map("member_id")
+  type      String
+  message   String
+  read      Boolean  @default(false)
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId, read])
+  @@map("notifications")
 }
 
 model RefreshToken {
@@ -24,9 +124,9 @@ model RefreshToken {
   token     String
   expiresIn DateTime @map("expires_in")
   createdAt DateTime @default(now()) @map("created_at")
-  userId    Int      @map("user_id")
+  memberId  Int      @map("member_id")
 
-  User User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("refresh_tokens")
 }

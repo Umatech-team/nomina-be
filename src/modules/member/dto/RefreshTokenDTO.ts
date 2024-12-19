@@ -11,5 +11,5 @@ export class RefreshTokenDTO {
   expiresIn!: Date;
 
   @IsNumber()
-  userId!: number;
+  memberId!: number;
 }

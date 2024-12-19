@@ -3,7 +3,7 @@ import { HashGenerator } from '@providers/cryptography/contracts/HashGenerator';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { CreateUserDTO } from '../dto/CreateUserDTO';
-import { User } from '../entities/User';
+import { User } from '../entities/Member';
 import { NickNameAlreadyExistsError } from '../errors/NickNameAlreadyExistsError';
 import { UserRepository } from '../repositories/contracts/UserRepository';
 

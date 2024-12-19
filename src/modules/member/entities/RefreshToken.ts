@@ -24,7 +24,7 @@ export class RefreshToken extends AggregateRoot<RefreshTokenDTO> {
     return this.props.createdAt;
   }
 
-  get userId() {
-    return this.props.userId;
+  get memberId() {
+    return this.props.memberId;
   }
 }

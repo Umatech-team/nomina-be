@@ -6,20 +6,20 @@ import { DateVerification } from '../contracts/DateVerification';
 @Injectable()
 export class DayJs implements DateAddition, DateVerification {
   addDaysInCurrentDate(days: number): Date {
-    return dayjs().add(days, 'days').toDate()
+    return dayjs().add(days, 'days').toDate();
   }
 
-  addDayInCurrentDate(): Date {
-    return this.addDaysInCurrentDate(1)
+  addYearsInCurrentDate(years: number): Date {
+    return dayjs().add(years, 'days').toDate();
   }
 
   isBefore({
     startDate = new Date(),
     endDate,
   }: {
-    startDate?: Date
-    endDate: Date
+    startDate?: Date;
+    endDate: Date;
   }): boolean {
-    return dayjs(startDate).isBefore(endDate)
+    return dayjs(startDate).isBefore(endDate);
   }
 }

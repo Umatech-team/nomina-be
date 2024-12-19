@@ -1,4 +1,4 @@
-import { User } from '../entities/User';
+import { User } from '../entities/Member';
 
 export class UserPresenter {
   static toHTTP(user: User) {

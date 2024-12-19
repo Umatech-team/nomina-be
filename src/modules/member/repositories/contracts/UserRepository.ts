@@ -1,4 +1,4 @@
-import { User } from '../../entities/User';
+import { User } from '../../entities/Member';
 
 export abstract class UserRepository {
   abstract findUniqueById(id: number): Promise<User | null>;

@@ -1,5 +1,5 @@
-import { RefreshToken } from '@modules/user/entities/RefreshToken';
-import { RefreshTokensRepository } from '@modules/user/repositories/contracts/RefreshTokenRepository';
+import { RefreshToken } from '@modules/member/entities/RefreshToken';
+import { RefreshTokensRepository } from '@modules/member/repositories/contracts/RefreshTokenRepository';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { RefreshTokensPrismaMapper } from './RefreshTokensPrismaMapper';
@@ -16,13 +16,13 @@ export class RefreshTokensRepositoryImplementation
     });
   }
 
-  async findUniqueByUserIdAndToken(
-    userId: number,
+  async findUniqueBymemberIdAndToken(
+    memberId: number,
     token: string,
   ): Promise<RefreshToken | null> {
     const refreshToken = await this.prisma.refreshToken.findFirst({
       where: {
-        userId,
+        memberId,
         token,
       },
     });

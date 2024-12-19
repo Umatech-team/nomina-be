@@ -1,11 +1,11 @@
-import { RefreshToken } from '@modules/user/entities/RefreshToken';
+import { RefreshToken } from '@modules/member/entities/RefreshToken';
 import { Prisma, RefreshToken as RefreshTokenPrisma } from '@prisma/client';
 
 export class RefreshTokensPrismaMapper {
   static toEntity(raw: RefreshTokenPrisma): RefreshToken {
     return new RefreshToken(
       {
-        userId: raw.userId,
+        memberId: raw.memberId,
         token: raw.token,
         expiresIn: raw.expiresIn,
         createdAt: raw.createdAt,
@@ -19,7 +19,7 @@ export class RefreshTokensPrismaMapper {
   ): Prisma.RefreshTokenUncheckedCreateInput {
     return {
       expiresIn: refreshToken.expiresIn,
-      userId: refreshToken.userId,
+      memberId: refreshToken.memberId,
       token: refreshToken.token,
       createdAt: refreshToken.createdAt,
     };

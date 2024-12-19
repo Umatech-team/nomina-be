@@ -1,9 +1,9 @@
-import { RefreshTokensRepository } from '@modules/user/repositories/contracts/RefreshTokenRepository';
-import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
+import { RefreshTokensRepository } from '@modules/member/repositories/contracts/RefreshTokenRepository';
+import { UserRepository } from '@modules/member/repositories/contracts/UserRepository';
 import { Module } from '@nestjs/common';
+import { RefreshTokensRepositoryImplementation } from './prisma/member/RefreshTokensRepositoryImplementation';
+import { UserRepositoryImplementation } from './prisma/member/UserRepository';
 import { PrismaService } from './prisma/prisma.service';
-import { RefreshTokensRepositoryImplementation } from './prisma/user/RefreshTokensRepositoryImplementation';
-import { UserRepositoryImplementation } from './prisma/user/UserRepository';
 
 @Module({
   providers: [
