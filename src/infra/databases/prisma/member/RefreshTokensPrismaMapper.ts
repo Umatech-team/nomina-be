@@ -18,9 +18,9 @@ export class RefreshTokensPrismaMapper {
     refreshToken: RefreshToken,
   ): Prisma.RefreshTokenUncheckedCreateInput {
     return {
-      expiresIn: refreshToken.expiresIn,
       memberId: refreshToken.memberId,
       token: refreshToken.token,
+      expiresIn: refreshToken.expiresIn,
       createdAt: refreshToken.createdAt,
     };
   }
