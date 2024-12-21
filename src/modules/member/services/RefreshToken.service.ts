@@ -5,15 +5,15 @@ import { Encrypter } from '@providers/cryptography/contracts/Encrypter';
 import { DateAddition } from '@providers/date/contracts/DateAddition';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
+import { SessionExpiredError } from '../../../shared/errors/SessionExpiredError';
 import { RefreshToken } from '../entities/RefreshToken';
-import { SessionExpiredError } from '../errors/SessionExpiredError';
-import { UserNotFoundError } from '../errors/UserNotFoundError';
+import { MemberNotFoundError } from '../errors/MemberNotFoundError';
+import { MemberRepository } from '../repositories/contracts/MemberRepository';
 import { RefreshTokensRepository } from '../repositories/contracts/RefreshTokenRepository';
-import { UserRepository } from '../repositories/contracts/UserRepository';
 
 type Request = string;
 
-type Errors = UserNotFoundError | SessionExpiredError;
+type Errors = MemberNotFoundError | SessionExpiredError;
 
 type Response = {
   accessToken: string;
@@ -23,7 +23,7 @@ type Response = {
 @Injectable()
 export class RefreshTokenService implements Service<Request, Errors, Response> {
   constructor(
-    private readonly playerRepository: UserRepository,
+    private readonly memberRepository: MemberRepository,
     private readonly refreshTokensRepository: RefreshTokensRepository,
     private readonly decrypter: Decoder,
     private readonly encrypter: Encrypter,
@@ -42,14 +42,14 @@ export class RefreshTokenService implements Service<Request, Errors, Response> {
 
     const id = payload.sub;
 
-    const player = await this.playerRepository.findUniqueById(Number(id));
+    const member = await this.memberRepository.findUniqueById(Number(id));
 
-    if (!player) {
-      return left(new UserNotFoundError());
+    if (!member) {
+      return left(new MemberNotFoundError());
     }
 
     const lastRefreshTokenSaved =
-      await this.refreshTokensRepository.findUniqueByUserIdAndToken(
+      await this.refreshTokensRepository.findUniqueByMemberIdAndToken(
         Number(id),
         refreshTokenReceived,
       );
@@ -62,27 +62,27 @@ export class RefreshTokenService implements Service<Request, Errors, Response> {
 
     const accessToken = await this.encrypter.encrypt(
       {
-        sub: player.id.toString(),
+        sub: member.id.toString(),
       },
       {
-        expiresIn: env.JWT_USER_ACCESS_EXPIRES_IN,
+        expiresIn: env.JWT_MEMBER_ACCESS_EXPIRES_IN,
       },
     );
 
     const _refreshToken = await this.encrypter.encrypt(
       {
-        sub: player.id.toString(),
+        sub: member.id.toString(),
       },
       {
-        expiresIn: env.JWT_USER_REFRESH_EXPIRES_IN,
+        expiresIn: env.JWT_MEMBER_REFRESH_EXPIRES_IN,
       },
     );
 
     const refreshToken = new RefreshToken({
-      userId: player.id,
+      memberId: member.id,
       token: _refreshToken,
       expiresIn: this.dateAddition.addDaysInCurrentDate(
-        env.PLAYER_REFRESH_EXPIRES_IN,
+        env.MEMBER_REFRESH_EXPIRES_IN,
       ),
     });
 
