@@ -4,11 +4,11 @@ import { ApiTags } from '@nestjs/swagger';
 import { Public } from '@providers/auth/decorators/IsPublic.decorator';
 import { RefreshToken } from '@providers/auth/decorators/refreshToken.decorator';
 import { statusCode } from '@shared/core/types/statusCode';
-import { TokensPresenter } from '../presenters/LoginUser.presenter';
+import { TokensPresenter } from '../presenters/Tokens.presenter';
 import { RefreshTokenService } from '../services/RefreshToken.service';
 
-@ApiTags('Token')
-@Controller('refresh')
+@ApiTags('Auth')
+@Controller('refresh_token')
 export class RefreshTokenController {
   constructor(private readonly refreshTokenService: RefreshTokenService) {}
 
