@@ -33,8 +33,8 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('My project')
-    .setDescription('The My project API description')
+    .setTitle('Nomina')
+    .setDescription('The Nomina API description')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
