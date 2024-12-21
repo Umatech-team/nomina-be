@@ -3,7 +3,7 @@ import { RefreshToken } from '@modules/member/entities/RefreshToken';
 export abstract class RefreshTokensRepository {
   abstract create(refreshToken: RefreshToken): Promise<void>;
 
-  abstract findUniqueBymemberIdAndToken(
+  abstract findUniqueByMemberIdAndToken(
     memberId: number,
     token: string,
   ): Promise<RefreshToken | null>;
