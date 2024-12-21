@@ -35,19 +35,19 @@ model Member {
   name      String    @unique
   email     String    @unique
   phone     String?
-  password  String    @map("password")
+  password  String
 
   plan          PlanType      @default(FREE)
-  planStartDate DateTime?
-  planEndDate   DateTime?
-  paymentStatus PaymentStatus @default(PAID)
-  renewalDate   DateTime?
+  planStartDate DateTime      @default(now()) @map("plan_start_date")
+  planEndDate   DateTime?     @map("plan_end_date")
+  paymentStatus PaymentStatus @default(PAID) @map("payment_status")
+  renewalDate   DateTime?     @map("renewal_date")
 
-  timezone String? @default("America/Sao_Paulo")
-  language String? @default("pt-BR")
-  currency String? @default("BRL")
+  timezone String @default("America/Sao_Paulo")
+  language String @default("pt-BR")
+  currency String @default("BRL")
 
-  supportTier SupportTier @default(STANDARD)
+  supportTier SupportTier @default(STANDARD) @map("support_tier")
 
   RefreshToken   RefreshToken[]
   Transaction    Transaction[]
@@ -64,8 +64,8 @@ model PaymentHistory {
   memberId      Int           @map("member_id")
   amount        Float
   paymentDate   DateTime      @map("payment_date")
-  paymentMethod String?
-  paymentStatus PaymentStatus
+  paymentMethod String        @map("payment_method")
+  paymentStatus PaymentStatus @map("payment_status")
 
   member Member @relation(fields: [memberId], references: [id])
 
