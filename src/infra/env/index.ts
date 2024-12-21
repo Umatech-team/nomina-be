@@ -11,9 +11,9 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['dev', 'production']).default('production'),
   JWT_PRIVATE_KEY: z.string(),
   JWT_PUBLIC_KEY: z.string(),
-  JWT_USER_ACCESS_EXPIRES_IN: z.string(),
-  JWT_USER_REFRESH_EXPIRES_IN: z.string(),
-  PLAYER_REFRESH_EXPIRES_IN: z.coerce.number(),
+  JWT_MEMBER_ACCESS_EXPIRES_IN: z.string(),
+  JWT_MEMBER_REFRESH_EXPIRES_IN: z.string(),
+  MEMBER_REFRESH_EXPIRES_IN: z.coerce.number(),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;
