@@ -16,7 +16,7 @@ export class RefreshTokensRepositoryImplementation
     });
   }
 
-  async findUniqueBymemberIdAndToken(
+  async findUniqueByMemberIdAndToken(
     memberId: number,
     token: string,
   ): Promise<RefreshToken | null> {
