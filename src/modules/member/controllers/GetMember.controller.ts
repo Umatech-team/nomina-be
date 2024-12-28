@@ -7,7 +7,7 @@ import { statusCode } from '@shared/core/types/statusCode';
 import { MemberPresenter } from '../presenters/Member.presenter';
 import { FindMemberByIdService } from '../services/FindMemberById.service';
 
-@ApiTags('Auth')
+@ApiTags('Member')
 @Controller('member')
 export class GetMemberController {
   constructor(private readonly findMemberByIdService: FindMemberByIdService) {}
