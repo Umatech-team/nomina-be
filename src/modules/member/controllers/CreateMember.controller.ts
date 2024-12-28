@@ -7,7 +7,7 @@ import { CreateMemberDTO } from '../dto/CreateMemberDTO';
 import { CreateMemberGateway } from '../gateways/CreateMember.gateway';
 import { CreateMemberService } from '../services/CreateMember.service';
 
-@ApiTags('Auth')
+@ApiTags('Member')
 @Controller('member')
 export class CreateMemberController {
   constructor(private readonly createMemberService: CreateMemberService) {}
