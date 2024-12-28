@@ -34,6 +34,8 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Nomina')
+    .setVersion('0.2.0')
+    .addTag('Nomina')
     .setDescription('The Nomina API description')
     .addBearerAuth()
     .build();
