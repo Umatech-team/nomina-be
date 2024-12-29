@@ -12,15 +12,12 @@ import { JwtStrategy } from './strategys/jwtStrategy';
     JwtModule.registerAsync({
       global: true,
       useFactory() {
-        const privateKey = env.JWT_PRIVATE_KEY;
-        const publicKey = env.JWT_PUBLIC_KEY;
-
         return {
           signOptions: {
             algorithm: 'RS256',
           },
-          privateKey: Buffer.from(privateKey, 'base64'),
-          publicKey: Buffer.from(publicKey, 'base64'),
+          privateKey: env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n'),
+          publicKey: env.JWT_PUBLIC_KEY.replace(/\\n/g, '\n'),
         };
       },
     }),
