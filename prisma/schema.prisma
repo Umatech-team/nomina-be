@@ -28,6 +28,12 @@ enum TransactionType {
   EXPENSE
 }
 
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model Member {
   id        Int       @id @unique @default(autoincrement())
   createdAt DateTime  @default(now()) @map("created_at")
@@ -36,6 +42,8 @@ model Member {
   email     String    @unique
   phone     String?
   password  String
+
+  balance Float @default(0)
 
   plan          PlanType      @default(FREE)
   planStartDate DateTime      @default(now()) @map("plan_start_date")
@@ -66,6 +74,7 @@ model PaymentHistory {
   paymentDate   DateTime      @map("payment_date")
   paymentMethod String        @map("payment_method")
   paymentStatus PaymentStatus @map("payment_status")
+  externalId    String?       @map("external_id") // ID do gateway de pagamento
 
   member Member @relation(fields: [memberId], references: [id])
 
@@ -82,6 +91,7 @@ model Transaction {
   description String?
   category    String
   amount      Float
+  currency    String
   date        DateTime
 
   member Member @relation(fields: [memberId], references: [id])
@@ -91,12 +101,13 @@ model Transaction {
 }
 
 model Goal {
-  id         Int      @id @default(autoincrement())
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  memberId   Int      @map("member_id")
-  category   String
-  percentage Float
+  id            Int      @id @default(autoincrement())
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  memberId      Int      @map("member_id")
+  category      String
+  targetAmount  Float    @map("target_amount")
+  currentAmount Float    @default(0) @map("current_amount")
 
   member Member @relation(fields: [memberId], references: [id])
 
@@ -105,13 +116,14 @@ model Goal {
 }
 
 model Notification {
-  id        Int      @id @unique @default(autoincrement())
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  memberId  Int      @map("member_id")
+  id        Int                  @id @unique @default(autoincrement())
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
+  memberId  Int                  @map("member_id")
   type      String
   message   String
-  read      Boolean  @default(false)
+  read      Boolean              @default(false)
+  priority  NotificationPriority @default(LOW)
 
   member Member @relation(fields: [memberId], references: [id])
 
