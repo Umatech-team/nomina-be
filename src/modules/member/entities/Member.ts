@@ -166,7 +166,7 @@ export class Member extends AggregateRoot<MemberDTO> {
     this.touch();
   }
 
-  touch() {
+  private touch() {
     this.props.updatedAt = new Date();
   }
 }
