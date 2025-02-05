@@ -26,7 +26,7 @@ export class CreateMemberService implements Service<Request, Errors, Response> {
     name,
     email,
     password,
-  }: CreateMemberDTO): Promise<Either<Errors, Response>> {
+  }: Request): Promise<Either<Errors, Response>> {
     const emailAlreadyExists =
       await this.memberRepository.findUniqueByEmail(email);
 
