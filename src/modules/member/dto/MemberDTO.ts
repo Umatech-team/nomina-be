@@ -1,5 +1,5 @@
 import { PaymentStatus, PlanType, SupportTier } from '@constants/enums';
-import { IsDate, IsString } from 'class-validator';
+import { IsDate, IsNumber, IsString } from 'class-validator';
 
 export class MemberDTO {
   @IsDate()
@@ -19,6 +19,9 @@ export class MemberDTO {
 
   @IsString()
   password!: string;
+
+  @IsNumber()
+  balance!: number;
 
   @IsString()
   plan!: PlanType;
