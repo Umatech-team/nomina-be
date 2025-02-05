@@ -19,6 +19,7 @@ export class Member extends AggregateRoot<MemberDTO> {
       | 'supportTier'
       | 'timezone'
       | 'currency'
+      | 'balance'
     >,
     id?: number,
   ) {
@@ -36,6 +37,7 @@ export class Member extends AggregateRoot<MemberDTO> {
       timezone: props.timezone ?? 'America/Sao_Paulo',
       currency: props.currency ?? 'BRL',
       supportTier: props.supportTier ?? SupportTier.STANDARD,
+      balance: props.balance ?? 0,
     };
 
     super(userProps, id);
@@ -82,6 +84,15 @@ export class Member extends AggregateRoot<MemberDTO> {
 
   set password(password: string) {
     this.props.password = password;
+    this.touch();
+  }
+
+  get balance() {
+    return this.props.balance;
+  }
+
+  set balance(balance: number) {
+    this.props.balance = balance;
     this.touch();
   }
 
