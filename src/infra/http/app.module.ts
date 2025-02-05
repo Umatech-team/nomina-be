@@ -1,4 +1,5 @@
 import { MemberModule } from '@modules/member/Member.module';
+import { TransactionModule } from '@modules/transaction/Transaction.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from '@providers/auth/Auth.module';
@@ -10,6 +11,7 @@ import { CryptographyModule } from '@providers/cryptography/Cryptography.module'
     AuthModule,
     CryptographyModule,
     MemberModule,
+    TransactionModule,
   ],
 })
 export class AppModule {}
