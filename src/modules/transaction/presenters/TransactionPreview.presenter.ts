@@ -1,0 +1,13 @@
+import { Transaction } from '../entities/Transaction';
+
+export class TransactionPreviewPresenter {
+  static toHTTP(transaction: Transaction) {
+    return {
+      id: transaction.id,
+      type: transaction.type,
+      category: transaction.category,
+      amount: transaction.amount,
+      date: transaction.date,
+    };
+  }
+}
