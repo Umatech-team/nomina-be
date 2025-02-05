@@ -85,7 +85,7 @@ model PaymentHistory {
 model Transaction {
   id          Int             @id @unique @default(autoincrement())
   createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
+  updatedAt   DateTime?       @updatedAt @map("updated_at")
   memberId    Int             @map("member_id")
   type        TransactionType
   description String?
