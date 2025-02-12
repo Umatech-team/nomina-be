@@ -18,3 +18,9 @@ export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE',
 }
+
+export enum TransactionMethod {
+  CASH = 'CASH',
+  CARD = 'CARD',
+  PIX = 'PIX',
+}
