@@ -3,9 +3,9 @@ import { z } from 'zod';
 
 const listTransactionsSchema = z.object({
   page: z.number(),
-  pageSIze: z.number(),
-  startDate: z.date(),
-  endDate: z.date(),
+  pageSize: z.number(),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
 });
 
 export const ListTransactionsGateway = new ZodValidationPipe(
