@@ -3,7 +3,6 @@ import { CreateTransactionDTO } from '@modules/transaction/dto/CreateTransaction
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
-import { Public } from '@providers/auth/decorators/IsPublic.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { CreateTransactionGateway } from '../gateways/CreateTransaction.gateway';
@@ -17,13 +16,14 @@ export class CreateTransactionController {
     private readonly createTransactionService: CreateTransactionService,
   ) {}
 
-  @Public()
   @Post('create')
   @HttpCode(statusCode.CREATED)
   async handle(
     @CurrentLoggedMember() { sub }: TokenPayloadSchema,
     @Body(CreateTransactionGateway) body: CreateTransactionDTO,
   ) {
+    console.log({ sub });
+
     const result = await this.createTransactionService.execute({
       ...body,
       sub,
@@ -33,11 +33,11 @@ export class CreateTransactionController {
       return ErrorPresenter.toHTTP(result.value);
     }
 
-    const { transaction, newBalance } = result.value;
+    const { transaction, newSummary } = result.value;
 
     return {
       transaction: TransactionPreviewPresenter.toHTTP(transaction),
-      newBalance,
+      newSummary,
     };
   }
 }
