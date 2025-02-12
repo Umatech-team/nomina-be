@@ -36,6 +36,7 @@ export class UpdateTransactionService
     date,
     description,
     type,
+    method,
   }: Request): Promise<Either<Errors, Response>> {
     const member = await this.memberRepository.findUniqueById(sub);
 
@@ -64,6 +65,7 @@ export class UpdateTransactionService
     transaction.date = date;
     transaction.description = description as string;
     transaction.type = type;
+    transaction.method = method;
 
     await this.transactionRepository.update(transaction);
 
