@@ -7,6 +7,7 @@ export class TransactionPreviewPresenter {
       type: transaction.type,
       category: transaction.category,
       amount: transaction.amount,
+      method: transaction.method,
       date: transaction.date,
     };
   }
