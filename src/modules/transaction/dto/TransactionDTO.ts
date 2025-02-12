@@ -1,4 +1,4 @@
-import { TransactionType } from '@constants/enums';
+import { TransactionMethod, TransactionType } from '@constants/enums';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDate, IsNumber, IsString } from 'class-validator';
 
@@ -17,7 +17,15 @@ export class TransactionDTO {
 
   @ApiProperty()
   @IsString()
+  title!: string;
+
+  @ApiProperty()
+  @IsString()
   type!: TransactionType;
+
+  @ApiProperty()
+  @IsString()
+  method!: TransactionMethod;
 
   @ApiProperty()
   @IsString()
@@ -26,6 +34,10 @@ export class TransactionDTO {
   @ApiProperty()
   @IsString()
   category!: string;
+
+  @ApiProperty()
+  @IsString()
+  subCategory!: string;
 
   @ApiProperty()
   @IsNumber()
