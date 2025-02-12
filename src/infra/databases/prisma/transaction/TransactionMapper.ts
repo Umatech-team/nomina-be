@@ -1,5 +1,6 @@
-import { TransactionType } from '@constants/enums';
+import { TransactionMethod, TransactionType } from '@constants/enums';
 import { Transaction } from '@modules/transaction/entities/Transaction';
+import { TransactionSummary } from '@modules/transaction/valueObjects/TransactionSummary';
 import { Prisma, Transaction as TransactionPrisma } from '@prisma/client';
 
 export class TransactionMapper {
@@ -11,10 +12,13 @@ export class TransactionMapper {
         updatedAt: raw.updatedAt,
         type: raw.type as TransactionType,
         category: raw.category,
+        subCategory: raw.subCategory,
         currency: raw.currency,
         amount: raw.amount,
         date: raw.date,
         description: raw.description,
+        method: raw.method as TransactionMethod,
+        title: raw.title,
       },
       raw.id,
     );
@@ -27,10 +31,21 @@ export class TransactionMapper {
       memberId: entity.memberId,
       type: entity.type as TransactionType,
       category: entity.category,
+      subCategory: entity.subCategory,
       currency: entity.currency,
       amount: entity.amount,
       date: entity.date,
       description: entity.description,
+      method: entity.method as TransactionMethod,
+      title: entity.title,
     };
+  }
+
+  static toTransactionSummary(entity: TransactionSummary): TransactionSummary {
+    return new TransactionSummary({
+      date: entity.date,
+      income: entity.income,
+      expense: entity.expense,
+    });
   }
 }
