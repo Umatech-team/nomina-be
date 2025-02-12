@@ -42,10 +42,10 @@ export class ListTransactionByIdService
     const transaction =
       await this.transactionRepository.listTransactionsByMemberId(
         sub,
-        startDate,
-        endDate,
         page,
         pageSize,
+        startDate,
+        endDate,
       );
 
     if (!transaction) {
