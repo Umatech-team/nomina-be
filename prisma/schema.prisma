@@ -28,6 +28,12 @@ enum TransactionType {
   EXPENSE
 }
 
+enum TransactionMethod {
+  CASH
+  CARD
+  PIX
+}
+
 enum NotificationPriority {
   LOW
   MEDIUM
@@ -38,12 +44,10 @@ model Member {
   id        Int       @id @unique @default(autoincrement())
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
-  name      String    @unique
+  name      String
   email     String    @unique
   phone     String?
   password  String
-
-  balance Float @default(0)
 
   plan          PlanType      @default(FREE)
   planStartDate DateTime      @default(now()) @map("plan_start_date")
@@ -57,14 +61,31 @@ model Member {
 
   supportTier SupportTier @default(STANDARD) @map("support_tier")
 
-  RefreshToken   RefreshToken[]
-  Transaction    Transaction[]
-  Goal           Goal[]
-  PaymentHistory PaymentHistory[]
-  Notification   Notification[]
+  RefreshToken         RefreshToken[]
+  Transaction          Transaction[]
+  Goal                 Goal[]
+  PaymentHistory       PaymentHistory[]
+  Notification         Notification[]
+  MemberMonthlySummary MemberMonthlySummary[]
 
   @@index([planStartDate, planEndDate])
   @@map("members")
+}
+
+model MemberMonthlySummary {
+  id               Int      @id @default(autoincrement())
+  memberId         Int      @map("member_id")
+  month            DateTime
+  totalIncome      Float    @default(0) @map("total_income")
+  totalExpense     Float    @default(0) @map("total_expense")
+  totalInvestments Float    @default(0) @map("total_investments")
+  balance          Float    @default(0)
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@unique([memberId, month])
+  @@index([month])
+  @@map("member_monthly_summary")
 }
 
 model PaymentHistory {
@@ -83,13 +104,16 @@ model PaymentHistory {
 }
 
 model Transaction {
-  id          Int             @id @unique @default(autoincrement())
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime?       @updatedAt @map("updated_at")
-  memberId    Int             @map("member_id")
+  id          Int               @id @unique @default(autoincrement())
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime?         @updatedAt @map("updated_at")
+  memberId    Int               @map("member_id")
   type        TransactionType
+  method      TransactionMethod
+  title       String
   description String?
   category    String
+  subCategory String
   amount      Float
   currency    String
   date        DateTime
