@@ -1,4 +1,4 @@
-import { TransactionType } from '@constants/enums';
+import { TransactionMethod, TransactionType } from '@constants/enums';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Optional } from '@shared/core/types/Optional';
 import { TransactionDTO } from '../dto/TransactionDTO';
@@ -14,11 +14,14 @@ export class Transaction extends AggregateRoot<TransactionDTO> {
       updatedAt: props.updatedAt ?? null,
       description: props.description ?? null,
       category: props.category,
+      subCategory: props.subCategory,
       amount: props.amount,
       currency: props.currency,
       date: props.date,
       memberId: props.memberId,
       type: props.type,
+      method: props.method,
+      title: props.title,
     };
 
     super(transactionProps, id);
@@ -34,6 +37,15 @@ export class Transaction extends AggregateRoot<TransactionDTO> {
 
   get memberId() {
     return this.props.memberId;
+  }
+
+  get title() {
+    return this.props.title;
+  }
+
+  set title(title: string) {
+    this.props.title = title;
+    this.touch();
   }
 
   set memberId(memberId: number) {
@@ -56,6 +68,24 @@ export class Transaction extends AggregateRoot<TransactionDTO> {
 
   set category(category: string) {
     this.props.category = category;
+    this.touch();
+  }
+
+  get subCategory() {
+    return this.props.subCategory;
+  }
+
+  set subCategory(subCategory: string) {
+    this.props.subCategory = subCategory;
+    this.touch();
+  }
+
+  get method() {
+    return this.props.method;
+  }
+
+  set method(method: string) {
+    this.props.method = method as TransactionMethod;
     this.touch();
   }
 
