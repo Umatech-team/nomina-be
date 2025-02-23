@@ -40,8 +40,6 @@ export class FindMonthlySummaryWithPercentageService
       currentMonth,
     );
 
-    console.log({ monthSummary });
-
     return right({
       monthSummary,
     });
