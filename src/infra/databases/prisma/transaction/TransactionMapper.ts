@@ -1,5 +1,10 @@
 import { TransactionMethod, TransactionType } from '@constants/enums';
 import { Transaction } from '@modules/transaction/entities/Transaction';
+import {
+  MonthSumarryWithPercentage,
+  MonthSumarryWithPercentageType,
+} from '@modules/transaction/valueObjects/MonthSumarryWithPercentage';
+import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpensesByCategory';
 import { TransactionSummary } from '@modules/transaction/valueObjects/TransactionSummary';
 import { Prisma, Transaction as TransactionPrisma } from '@prisma/client';
 
@@ -46,6 +51,24 @@ export class TransactionMapper {
       date: entity.date,
       income: entity.income,
       expense: entity.expense,
+    });
+  }
+
+  static toMonthSummaryWithPercentage(
+    entity: MonthSumarryWithPercentageType,
+  ): MonthSumarryWithPercentage {
+    return new MonthSumarryWithPercentage({
+      ...entity,
+      percentageChanges: entity.percentageChanges,
+    });
+  }
+
+  static toTopExpensesByCategory(
+    entity: TopExpensesByCategory,
+  ): TopExpensesByCategory {
+    return new TopExpensesByCategory({
+      category: entity.category,
+      total: entity.total,
     });
   }
 }
