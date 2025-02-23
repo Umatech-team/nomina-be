@@ -6,11 +6,13 @@ import { FindMonthlySummaryWithPercentageController } from './controllers/FindMo
 import { FindTransactionController } from './controllers/FindTransaction.controller';
 import { FindTransactionSummaryByMemberIdController } from './controllers/FindTransactionSummaryByMemberId.controller';
 import { ListTransactionController } from './controllers/ListTransaction.controller';
+import { TopExpensesByCategoryController } from './controllers/ListTransaction.controller copy';
 import { UpdateTransactionController } from './controllers/UpdateMemberGeneralInfos';
 import { CreateTransactionService } from './services/CreateTransaction.service';
 import { FindMonthlySummaryWithPercentageService } from './services/FindMonthSummary.service';
 import { FindTransactionByIdService } from './services/FindTransactionById.service';
 import { FindTransactionSummaryByMemberIdService } from './services/FindTransactionSummaryByMemberId.service';
+import { ListTopExpensesByCategoryService } from './services/ListTopExpensesByCategory.service';
 import { ListTransactionByIdService } from './services/ListTransactionById.service';
 import { UpdateTransactionService } from './services/UpdateTransaction.service';
 
@@ -19,6 +21,7 @@ import { UpdateTransactionService } from './services/UpdateTransaction.service';
     CreateTransactionController,
     FindMonthlySummaryWithPercentageController,
     FindTransactionSummaryByMemberIdController,
+    TopExpensesByCategoryController,
     FindTransactionController,
     ListTransactionController,
     UpdateTransactionController,
@@ -28,6 +31,7 @@ import { UpdateTransactionService } from './services/UpdateTransaction.service';
     CreateTransactionService,
     FindMonthlySummaryWithPercentageService,
     FindTransactionSummaryByMemberIdService,
+    ListTopExpensesByCategoryService,
     FindTransactionByIdService,
     ListTransactionByIdService,
     UpdateTransactionService,
