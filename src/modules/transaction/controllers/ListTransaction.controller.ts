@@ -23,8 +23,6 @@ export class ListTransactionController {
     @Query('startDate') startDate: Date,
     @Query('endDate') endDate: Date,
   ) {
-    console.log({ sub });
-
     const result = await this.listTransactionByIdService.execute({
       page: parseInt(page),
       pageSize: parseInt(pageSize),
@@ -38,8 +36,6 @@ export class ListTransactionController {
     }
 
     const { transaction } = result.value;
-
-    console.log({ transaction });
 
     return transaction.map(TransactionPreviewPresenter.toHTTP);
   }
