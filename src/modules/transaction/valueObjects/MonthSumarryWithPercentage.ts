@@ -1,6 +1,6 @@
 import { ValueObject } from '@shared/core/Entities/ValueObject';
 
-type MonthSumarryWithPercentageType = {
+export type MonthSumarryWithPercentageType = {
   memberId: number;
   id: number;
   month: Date;
