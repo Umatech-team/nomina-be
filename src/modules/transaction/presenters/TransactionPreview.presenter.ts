@@ -5,6 +5,7 @@ export class TransactionPreviewPresenter {
     return {
       id: transaction.id,
       type: transaction.type,
+      title: transaction.title,
       category: transaction.category,
       amount: transaction.amount,
       method: transaction.method,
