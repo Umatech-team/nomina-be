@@ -1,3 +1,5 @@
+import { MonthSumarryWithPercentage } from '@modules/transaction/valueObjects/MonthSumarryWithPercentage';
+import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpensesByCategory';
 import { TransactionSummary } from '@modules/transaction/valueObjects/TransactionSummary';
 import { Repository } from '@shared/core/contracts/Repository';
 import { Transaction } from '../../entities/Transaction';
@@ -19,13 +21,13 @@ export abstract class TransactionRepository implements Repository<Transaction> {
     memberId: number,
     startDate: Date,
     endDate: Date,
-    limit?: number,
-  ): Promise<Map<string, number>>;
+    pageSize: number,
+  ): Promise<TopExpensesByCategory[]>;
 
   abstract getMonthlySummary(
     memberId: number,
     currentMonth: Date,
-  ): Promise<any>;
+  ): Promise<MonthSumarryWithPercentage>;
 
   abstract findTransactionSummaryByMemberId(
     memberId: number,
