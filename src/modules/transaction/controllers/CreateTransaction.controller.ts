@@ -22,8 +22,6 @@ export class CreateTransactionController {
     @CurrentLoggedMember() { sub }: TokenPayloadSchema,
     @Body(CreateTransactionGateway) body: CreateTransactionDTO,
   ) {
-    console.log({ sub });
-
     const result = await this.createTransactionService.execute({
       ...body,
       sub,
