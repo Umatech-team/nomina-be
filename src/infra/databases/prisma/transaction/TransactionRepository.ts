@@ -1,5 +1,7 @@
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
+import { MonthSumarryWithPercentage } from '@modules/transaction/valueObjects/MonthSumarryWithPercentage';
+import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpensesByCategory';
 import { TransactionSummary } from '@modules/transaction/valueObjects/TransactionSummary';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
@@ -55,11 +57,23 @@ export class TransactionRepositoryImplementation
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - (period === '7d' ? 7 : 30));
+
+    const startDateUTC = new Date(
+      Date.UTC(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate(),
+      ),
+    );
+    const endDateUTC = new Date(
+      Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()),
+    );
+
     const transactions = await this.prisma.transaction.groupBy({
-      by: ['createdAt', 'type'],
+      by: ['date', 'type'],
       where: {
         memberId,
-        createdAt: { gte: startDate, lte: endDate },
+        date: { gte: startDateUTC, lte: endDateUTC },
       },
       _sum: {
         amount: true,
@@ -67,7 +81,7 @@ export class TransactionRepositoryImplementation
       _count: {
         id: true,
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { date: 'asc' },
     });
 
     return transactions.map((transaction) => {
@@ -77,7 +91,7 @@ export class TransactionRepositoryImplementation
         transaction.type === 'EXPENSE' ? (transaction._sum.amount ?? 0) : 0;
       return TransactionMapper.toTransactionSummary(
         new TransactionSummary({
-          date: transaction.createdAt,
+          date: transaction.date,
           income,
           expense,
         }),
@@ -122,8 +136,8 @@ export class TransactionRepositoryImplementation
     memberId: number,
     startDate: Date,
     endDate: Date,
-    limit = 9,
-  ): Promise<Map<string, number>> {
+    pageSize = 9,
+  ): Promise<TopExpensesByCategory[]> {
     const expenses = await this.prisma.transaction.groupBy({
       by: ['category'],
       _sum: { amount: true },
@@ -133,19 +147,24 @@ export class TransactionRepositoryImplementation
         date: { gte: startDate, lte: endDate },
       },
       orderBy: { _sum: { amount: 'desc' } },
-      take: limit,
+      take: pageSize,
     });
 
-    return new Map(
-      expenses.map((exp) => [
-        exp.category,
-        exp._sum.amount ? parseFloat(exp._sum.amount.toFixed(2)) : 0,
-      ]),
+    return expenses.map((expense) =>
+      TransactionMapper.toTopExpensesByCategory(
+        new TopExpensesByCategory({
+          category: expense.category,
+          total: expense._sum.amount ?? 0,
+        }),
+      ),
     );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getMonthlySummary(memberId: number, currentMonth: Date): Promise<any> {
+  async getMonthlySummary(
+    memberId: number,
+    currentMonth: Date,
+  ): Promise<MonthSumarryWithPercentage> {
     const currentMonthFormatted = new Date(currentMonth);
     currentMonthFormatted.setDate(1);
     currentMonthFormatted.setHours(0, 0, 0, 0);
@@ -167,7 +186,14 @@ export class TransactionRepositoryImplementation
       });
 
     if (!previousMonthSummary) {
-      return { ...currentMonthSummary, percentageChanges: null };
+      return {
+        ...currentMonthSummary,
+        percentageChanges: {
+          income: 0,
+          expense: 0,
+          balance: 0,
+        },
+      } as MonthSumarryWithPercentage;
     }
 
     const calculatePercentage = (current: number, previous: number): number => {
@@ -175,31 +201,27 @@ export class TransactionRepositoryImplementation
       return ((current - previous) / previous) * 100;
     };
 
-    if (!currentMonthSummary) {
-      return { percentageChanges: null };
-    }
-
     const incomeChangePercentage = calculatePercentage(
-      currentMonthSummary.totalIncome,
+      currentMonthSummary!.totalIncome,
       previousMonthSummary.totalIncome,
     );
     const expenseChangePercentage = calculatePercentage(
-      currentMonthSummary.totalExpense,
+      currentMonthSummary!.totalExpense,
       previousMonthSummary.totalExpense,
     );
     const balanceChangePercentage = calculatePercentage(
-      currentMonthSummary.balance,
+      currentMonthSummary!.balance,
       previousMonthSummary.balance,
     );
 
-    return {
-      ...currentMonthSummary,
+    return TransactionMapper.toMonthSummaryWithPercentage({
+      ...currentMonthSummary!,
       percentageChanges: {
         income: incomeChangePercentage,
         expense: expenseChangePercentage,
         balance: balanceChangePercentage,
       },
-    };
+    }) as MonthSumarryWithPercentage;
   }
 
   async updateMonthlySummary(
