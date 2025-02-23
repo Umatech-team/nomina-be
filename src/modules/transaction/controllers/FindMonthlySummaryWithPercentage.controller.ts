@@ -27,8 +27,6 @@ export class FindMonthlySummaryWithPercentageController {
 
     const { monthSummary } = result.value;
 
-    console.log({ monthSummary });
-
     return MonthlySummaryPresenter.toHTTP(monthSummary);
   }
 }
