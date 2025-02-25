@@ -68,7 +68,27 @@ export class CreateTransactionService
     });
 
     await this.transactionRepository.create(transaction);
-    await this.updateMonthlySummaryIncrementally(member.id, amount, type);
+    if (type === 'EXPENSE' && category === 'INVESTMENT') {
+      const investmentIncomeTransaction = new Transaction({
+        memberId: sub,
+        amount,
+        category,
+        subCategory,
+        date,
+        description,
+        currency,
+        type: 'INCOME' as TransactionType,
+        method,
+        title,
+      });
+
+      await this.transactionRepository.create(investmentIncomeTransaction);
+    }
+    await this.updateMonthlySummaryIncrementally(
+      member.id,
+      amount,
+      category === 'INVESTMENT' ? ('INVESTMENT' as TransactionType) : type,
+    );
 
     const newSummary = await this.transactionRepository.getMonthlySummary(
       member.id,
