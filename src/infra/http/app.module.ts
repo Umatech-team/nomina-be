@@ -1,3 +1,4 @@
+import { GoalMapper } from '@infra/databases/prisma/goal/GoalMapper';
 import { MemberModule } from '@modules/member/Member.module';
 import { TransactionModule } from '@modules/transaction/Transaction.module';
 import { Module } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { CryptographyModule } from '@providers/cryptography/Cryptography.module'
     CryptographyModule,
     MemberModule,
     TransactionModule,
+    GoalMapper,
   ],
 })
 export class AppModule {}
