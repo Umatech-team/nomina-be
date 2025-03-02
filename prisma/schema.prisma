@@ -125,13 +125,14 @@ model Transaction {
 }
 
 model Goal {
-  id            Int      @id @default(autoincrement())
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  memberId      Int      @map("member_id")
-  category      String
-  targetAmount  Float    @map("target_amount")
-  currentAmount Float    @default(0) @map("current_amount")
+  id                  Int       @id @default(autoincrement())
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime? @updatedAt @map("updated_at")
+  memberId            Int       @map("member_id")
+  title               String
+  targetAmount        Float     @map("target_amount")
+  currentAmount       Float     @default(0) @map("current_amount")
+  monthlyContribution Float     @default(0) @map("monthly_contribution")
 
   member Member @relation(fields: [memberId], references: [id])
 
