@@ -54,6 +54,10 @@ export class TransactionRepositoryImplementation
     memberId: number,
     period: '7d' | '30d',
   ): Promise<TransactionSummary[]> => {
+    console.log(
+      `Starting findTransactionSummaryByMemberId with memberId: ${memberId} and period: ${period}`,
+    );
+
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - (period === '7d' ? 7 : 30));
@@ -68,6 +72,8 @@ export class TransactionRepositoryImplementation
     const endDateUTC = new Date(
       Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()),
     );
+
+    console.log(`Querying transactions from ${startDateUTC} to ${endDateUTC}`);
 
     const transactions = await this.prisma.transaction.groupBy({
       by: ['date', 'type'],
@@ -84,7 +90,11 @@ export class TransactionRepositoryImplementation
       orderBy: { date: 'asc' },
     });
 
-    return transactions.map((transaction) => {
+    console.log(
+      `Transactions grouped by date and type: ${JSON.stringify(transactions)}`,
+    );
+
+    const result = transactions.map((transaction) => {
       const income =
         transaction.type === 'INCOME' ? (transaction._sum.amount ?? 0) : 0;
       const expense =
@@ -97,6 +107,9 @@ export class TransactionRepositoryImplementation
         }),
       );
     });
+
+    console.log(`Transaction summaries: ${JSON.stringify(result)}`);
+    return result;
   };
 
   async findUniqueById(id: number): Promise<Transaction | null> {
@@ -160,7 +173,6 @@ export class TransactionRepositoryImplementation
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getMonthlySummary(
     memberId: number,
     currentMonth: Date,
@@ -168,14 +180,16 @@ export class TransactionRepositoryImplementation
     const currentMonthFormatted = new Date(currentMonth);
     currentMonthFormatted.setDate(1);
     currentMonthFormatted.setHours(0, 0, 0, 0);
-    const currentMonthSummary =
-      await this.prisma.memberMonthlySummary.findUnique({
+
+    let currentMonthSummary = await this.prisma.memberMonthlySummary.findUnique(
+      {
         where: {
           memberId_month: { memberId, month: currentMonthFormatted },
         },
-      });
+      },
+    );
 
-    const previousMonth = new Date(currentMonth);
+    const previousMonth = new Date(currentMonthFormatted);
     previousMonth.setMonth(previousMonth.getMonth() - 1);
 
     const previousMonthSummary =
@@ -185,43 +199,50 @@ export class TransactionRepositoryImplementation
         },
       });
 
-    if (!previousMonthSummary) {
-      return {
-        ...currentMonthSummary,
-        percentageChanges: {
-          income: 0,
-          expense: 0,
-          balance: 0,
+    if (!currentMonthSummary) {
+      currentMonthSummary = await this.prisma.memberMonthlySummary.create({
+        data: {
+          memberId,
+          month: currentMonthFormatted,
+          totalIncome: 0,
+          totalExpense: 0,
+          totalInvestments: previousMonthSummary?.totalInvestments ?? 0,
+          balance: previousMonthSummary?.balance ?? 0,
         },
-      } as MonthSumarryWithPercentage;
+      });
     }
 
     const calculatePercentage = (current: number, previous: number): number => {
-      if (previous === 0) return current > 0 ? 100 : -100;
+      if (previous === 0 || current === 0) {
+        return 0;
+      }
+
       return ((current - previous) / previous) * 100;
     };
 
     const incomeChangePercentage = calculatePercentage(
-      currentMonthSummary!.totalIncome,
-      previousMonthSummary.totalIncome,
+      currentMonthSummary.totalIncome,
+      previousMonthSummary ? previousMonthSummary.totalIncome : 0,
     );
     const expenseChangePercentage = calculatePercentage(
-      currentMonthSummary!.totalExpense,
-      previousMonthSummary.totalExpense,
+      currentMonthSummary.totalExpense,
+      previousMonthSummary ? previousMonthSummary.totalExpense : 0,
     );
     const balanceChangePercentage = calculatePercentage(
-      currentMonthSummary!.balance,
-      previousMonthSummary.balance,
+      currentMonthSummary.balance,
+      previousMonthSummary ? previousMonthSummary.balance : 0,
     );
 
-    return TransactionMapper.toMonthSummaryWithPercentage({
-      ...currentMonthSummary!,
+    const result = TransactionMapper.toMonthSummaryWithPercentage({
+      ...currentMonthSummary,
       percentageChanges: {
         income: incomeChangePercentage,
         expense: expenseChangePercentage,
         balance: balanceChangePercentage,
       },
     }) as MonthSumarryWithPercentage;
+
+    return result;
   }
 
   async updateMonthlySummary(
