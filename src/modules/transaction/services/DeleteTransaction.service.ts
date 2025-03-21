@@ -1,3 +1,4 @@
+import { TransactionType } from '@constants/enums';
 import { MemberRepository } from '@modules/member/repositories/contracts/MemberRepository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
@@ -50,8 +51,57 @@ export class DeleteTransactionService
 
     await this.transactionRepository.delete(transactionId);
 
+    await this.updateMonthlySummaryDecrementally(
+      member.id,
+      transaction.amount,
+      transaction.category === 'INVESTMENT'
+        ? ('INVESTMENT' as TransactionType)
+        : (transaction.type as TransactionType),
+    );
+
     return right({
       transaction,
     });
+  }
+
+  private async updateMonthlySummaryDecrementally(
+    memberId: number,
+    amount: number,
+    type: TransactionType,
+  ): Promise<void> {
+    console.log('updateMonthlySummaryDecrementally');
+    console.log('type', type);
+    const month = new Date();
+    const currentMonth = new Date(month.getFullYear(), month.getMonth(), 1);
+
+    const currentSummary = await this.transactionRepository.getMonthlySummary(
+      memberId,
+      currentMonth,
+    );
+
+    let totalIncome = currentSummary.totalIncome;
+    let totalExpense = currentSummary.totalExpense;
+    let totalInvestments = currentSummary.totalInvestments;
+    let balance = currentSummary.balance;
+
+    if (type === 'INCOME') {
+      totalIncome -= amount;
+      balance -= amount;
+    } else if (type === 'EXPENSE') {
+      totalExpense -= amount;
+      balance += amount;
+    } else if (type === 'INVESTMENT') {
+      totalInvestments -= amount;
+      balance += amount;
+    }
+
+    await this.transactionRepository.updateMonthlySummary(
+      memberId,
+      currentMonth,
+      totalIncome,
+      totalExpense,
+      totalInvestments,
+      balance,
+    );
   }
 }
