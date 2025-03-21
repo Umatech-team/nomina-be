@@ -68,22 +68,22 @@ export class CreateTransactionService
     });
 
     await this.transactionRepository.create(transaction);
-    if (type === 'EXPENSE' && category === 'INVESTMENT') {
-      const investmentIncomeTransaction = new Transaction({
-        memberId: sub,
-        amount,
-        category,
-        subCategory,
-        date,
-        description,
-        currency,
-        type: 'INCOME' as TransactionType,
-        method,
-        title,
-      });
+    // if (type === 'EXPENSE' && category === 'INVESTMENT') {
+    //   const investmentIncomeTransaction = new Transaction({
+    //     memberId: sub,
+    //     amount,
+    //     category,
+    //     subCategory,
+    //     date,
+    //     description,
+    //     currency,
+    //     type: 'INCOME' as TransactionType,
+    //     method,
+    //     title,
+    //   });
 
-      await this.transactionRepository.create(investmentIncomeTransaction);
-    }
+    //   await this.transactionRepository.create(investmentIncomeTransaction);
+    // }
     await this.updateMonthlySummaryIncrementally(
       member.id,
       amount,
