@@ -19,6 +19,10 @@ export class GoalDTO {
   title!: string;
 
   @ApiProperty()
+  @IsString()
+  category!: string;
+
+  @ApiProperty()
   @IsNumber()
   targetAmount!: number;
 
