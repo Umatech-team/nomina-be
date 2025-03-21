@@ -29,6 +29,7 @@ export class CreateGoalService implements Service<Request, Errors, Response> {
     currentAmount,
     monthlyContribution,
     targetAmount,
+    category,
   }: Request): Promise<Either<Errors, Response>> {
     const member = await this.memberRepository.findUniqueById(sub);
 
@@ -42,6 +43,7 @@ export class CreateGoalService implements Service<Request, Errors, Response> {
 
     const goal = new Goal({
       memberId: sub,
+      category,
       title,
       currentAmount,
       monthlyContribution,
