@@ -7,6 +7,125 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Member {
+  id                   Int                    @id @unique @default(autoincrement())
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime?              @updatedAt @map("updated_at")
+  name                 String
+  password             String
+  plan                 PlanType               @default(FREE)
+  timezone             String                 @default("America/Sao_Paulo")
+  language             String                 @default("pt-BR")
+  phone                String?
+  currency             String                 @default("BRL")
+  email                String                 @unique
+  paymentStatus        PaymentStatus          @default(PAID) @map("payment_status")
+  planEndDate          DateTime?              @map("plan_end_date")
+  planStartDate        DateTime               @default(now()) @map("plan_start_date")
+  renewalDate          DateTime?              @map("renewal_date")
+  supportTier          SupportTier            @default(STANDARD) @map("support_tier")
+  Goal                 Goal[]
+  MemberMonthlySummary MemberMonthlySummary[]
+  Notification         Notification[]
+  PaymentHistory       PaymentHistory[]
+  RefreshToken         RefreshToken[]
+  Transaction          Transaction[]
+
+  @@index([planStartDate, planEndDate])
+  @@map("members")
+}
+
+model MemberMonthlySummary {
+  id               Int      @id @default(autoincrement())
+  memberId         Int      @map("member_id")
+  totalIncome      Float    @default(0) @map("total_income")
+  totalExpense     Float    @default(0) @map("total_expense")
+  totalInvestments Float    @default(0) @map("total_investments")
+  balance          Float    @default(0)
+  month            DateTime
+  member           Member   @relation(fields: [memberId], references: [id])
+
+  @@unique([memberId, month])
+  @@index([month])
+  @@map("member_monthly_summary")
+}
+
+model PaymentHistory {
+  id            Int           @id @unique @default(autoincrement())
+  memberId      Int           @map("member_id")
+  amount        Float
+  paymentDate   DateTime      @map("payment_date")
+  paymentMethod String        @map("payment_method")
+  paymentStatus PaymentStatus @map("payment_status")
+  externalId    String?       @map("external_id")
+  member        Member        @relation(fields: [memberId], references: [id])
+
+  @@index([paymentDate])
+  @@map("payment_history")
+}
+
+model Transaction {
+  id          Int               @id @unique @default(autoincrement())
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime?         @updatedAt @map("updated_at")
+  memberId    Int               @map("member_id")
+  type        TransactionType
+  description String?
+  category    String
+  amount      Float
+  date        DateTime
+  currency    String
+  method      TransactionMethod
+  title       String
+  subCategory String
+  member      Member            @relation(fields: [memberId], references: [id])
+
+  @@index([memberId, type, date])
+  @@map("transactions")
+}
+
+model Goal {
+  id                  Int       @id @default(autoincrement())
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime? @updatedAt @map("updated_at")
+  memberId            Int       @map("member_id")
+  title               String
+  category            String
+  currentAmount       Float     @default(0) @map("current_amount")
+  monthlyContribution Float     @map("montly_contribution")
+  targetAmount        Float     @map("target_amount")
+  member              Member    @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@map("goals")
+}
+
+model Notification {
+  id        Int                  @id @unique @default(autoincrement())
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
+  memberId  Int                  @map("member_id")
+  type      String
+  message   String
+  read      Boolean              @default(false)
+  priority  NotificationPriority @default(LOW)
+  member    Member               @relation(fields: [memberId], references: [id])
+
+  @@index([memberId, read])
+  @@map("notifications")
+}
+
+model RefreshToken {
+  id        Int      @id @unique @default(autoincrement())
+  token     String
+  expiresIn DateTime @map("expires_in")
+  createdAt DateTime @default(now()) @map("created_at")
+  memberId  Int      @map("member_id")
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
 enum PlanType {
   FREE
   PREMIUM
@@ -38,132 +157,4 @@ enum NotificationPriority {
   LOW
   MEDIUM
   HIGH
-}
-
-model Member {
-  id        Int       @id @unique @default(autoincrement())
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-  name      String
-  email     String    @unique
-  phone     String?
-  password  String
-
-  plan          PlanType      @default(FREE)
-  planStartDate DateTime      @default(now()) @map("plan_start_date")
-  planEndDate   DateTime?     @map("plan_end_date")
-  paymentStatus PaymentStatus @default(PAID) @map("payment_status")
-  renewalDate   DateTime?     @map("renewal_date")
-
-  timezone String @default("America/Sao_Paulo")
-  language String @default("pt-BR")
-  currency String @default("BRL")
-
-  supportTier SupportTier @default(STANDARD) @map("support_tier")
-
-  RefreshToken         RefreshToken[]
-  Transaction          Transaction[]
-  Goal                 Goal[]
-  PaymentHistory       PaymentHistory[]
-  Notification         Notification[]
-  MemberMonthlySummary MemberMonthlySummary[]
-
-  @@index([planStartDate, planEndDate])
-  @@map("members")
-}
-
-model MemberMonthlySummary {
-  id               Int      @id @default(autoincrement())
-  memberId         Int      @map("member_id")
-  month            DateTime
-  totalIncome      Float    @default(0) @map("total_income")
-  totalExpense     Float    @default(0) @map("total_expense")
-  totalInvestments Float    @default(0) @map("total_investments")
-  balance          Float    @default(0)
-
-  member Member @relation(fields: [memberId], references: [id])
-
-  @@unique([memberId, month])
-  @@index([month])
-  @@map("member_monthly_summary")
-}
-
-model PaymentHistory {
-  id            Int           @id @unique @default(autoincrement())
-  memberId      Int           @map("member_id")
-  amount        Float
-  paymentDate   DateTime      @map("payment_date")
-  paymentMethod String        @map("payment_method")
-  paymentStatus PaymentStatus @map("payment_status")
-  externalId    String?       @map("external_id") // ID do gateway de pagamento
-
-  member Member @relation(fields: [memberId], references: [id])
-
-  @@index([paymentDate])
-  @@map("payment_history")
-}
-
-model Transaction {
-  id          Int               @id @unique @default(autoincrement())
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime?         @updatedAt @map("updated_at")
-  memberId    Int               @map("member_id")
-  type        TransactionType
-  method      TransactionMethod
-  title       String
-  description String?
-  category    String
-  subCategory String
-  amount      Float
-  currency    String
-  date        DateTime
-
-  member Member @relation(fields: [memberId], references: [id])
-
-  @@index([memberId, type, date])
-  @@map("transactions")
-}
-
-model Goal {
-  id                  Int       @id @default(autoincrement())
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime? @updatedAt @map("updated_at")
-  memberId            Int       @map("member_id")
-  title               String
-  targetAmount        Float     @map("target_amount")
-  currentAmount       Float     @default(0) @map("current_amount")
-  monthlyContribution Float     @default(0) @map("monthly_contribution")
-
-  member Member @relation(fields: [memberId], references: [id])
-
-  @@index([memberId])
-  @@map("goals")
-}
-
-model Notification {
-  id        Int                  @id @unique @default(autoincrement())
-  createdAt DateTime             @default(now()) @map("created_at")
-  updatedAt DateTime             @updatedAt @map("updated_at")
-  memberId  Int                  @map("member_id")
-  type      String
-  message   String
-  read      Boolean              @default(false)
-  priority  NotificationPriority @default(LOW)
-
-  member Member @relation(fields: [memberId], references: [id])
-
-  @@index([memberId, read])
-  @@map("notifications")
-}
-
-model RefreshToken {
-  id        Int      @id @unique @default(autoincrement())
-  token     String
-  expiresIn DateTime @map("expires_in")
-  createdAt DateTime @default(now()) @map("created_at")
-  memberId  Int      @map("member_id")
-
-  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@map("refresh_tokens")
 }
