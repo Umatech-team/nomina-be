@@ -74,6 +74,15 @@ export class Goal extends AggregateRoot<GoalDTO> {
     this.touch();
   }
 
+  get category() {
+    return this.props.category;
+  }
+
+  set category(category: string) {
+    this.props.category = category;
+    this.touch();
+  }
+
   private touch() {
     this.props.updatedAt = new Date();
   }
