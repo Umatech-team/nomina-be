@@ -16,6 +16,7 @@ export class RefreshTokenController {
   @Get()
   @HttpCode(statusCode.OK)
   async handle(@RefreshToken() refreshToken: string) {
+    console.log('refreshToken', refreshToken);
     const result = await this.refreshTokenService.execute(refreshToken);
 
     if (result.isLeft()) {
