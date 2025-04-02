@@ -1,11 +1,9 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
-import { Body, Controller, Get, HttpCode } from '@nestjs/common';
+import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
-import { FindTransactionDTO } from '../dto/FindTransactionDTO';
-import { CreateTransactionGateway } from '../gateways/CreateTransaction.gateway';
 import { TransactionPresenter } from '../presenters/Transaction.presenter';
 import { FindTransactionByIdService } from '../services/FindTransactionById.service';
 
@@ -20,10 +18,10 @@ export class FindTransactionController {
   @HttpCode(statusCode.OK)
   async handle(
     @CurrentLoggedMember() { sub }: TokenPayloadSchema,
-    @Body(CreateTransactionGateway) body: FindTransactionDTO,
+    @Query('id') id: string,
   ) {
     const result = await this.findTransactionByIdService.execute({
-      ...body,
+      transactionId: parseInt(id),
       sub,
     });
 
