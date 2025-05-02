@@ -54,10 +54,6 @@ export class TransactionRepositoryImplementation
     memberId: number,
     period: '7d' | '30d',
   ): Promise<TransactionSummary[]> => {
-    console.log(
-      `Starting findTransactionSummaryByMemberId with memberId: ${memberId} and period: ${period}`,
-    );
-
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - (period === '7d' ? 7 : 30));
@@ -72,8 +68,6 @@ export class TransactionRepositoryImplementation
     const endDateUTC = new Date(
       Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()),
     );
-
-    console.log(`Querying transactions from ${startDateUTC} to ${endDateUTC}`);
 
     const transactions = await this.prisma.transaction.groupBy({
       by: ['date', 'type'],
@@ -90,10 +84,6 @@ export class TransactionRepositoryImplementation
       orderBy: { date: 'asc' },
     });
 
-    console.log(
-      `Transactions grouped by date and type: ${JSON.stringify(transactions)}`,
-    );
-
     const result = transactions.map((transaction) => {
       const income =
         transaction.type === 'INCOME' ? (transaction._sum.amount ?? 0) : 0;
@@ -108,7 +98,6 @@ export class TransactionRepositoryImplementation
       );
     });
 
-    console.log(`Transaction summaries: ${JSON.stringify(result)}`);
     return result;
   };
 
@@ -129,6 +118,8 @@ export class TransactionRepositoryImplementation
   }
 
   async update(transaction: Transaction): Promise<void> {
+    console.log('transaction', transaction);
+    console.log('transaction.id', transaction.id);
     await this.prisma.transaction.update({
       where: {
         id: transaction.id as number,
