@@ -30,13 +30,14 @@ export class UpdateTransactionService
   async execute({
     sub,
     transactionId,
-    currency,
-    amount,
-    category,
-    date,
-    description,
+    title,
     type,
     method,
+    description,
+    category,
+    amount,
+    currency,
+    date,
   }: Request): Promise<Either<Errors, Response>> {
     const member = await this.memberRepository.findUniqueById(sub);
 
@@ -59,6 +60,7 @@ export class UpdateTransactionService
       return left(new InvalidAmountError());
     }
 
+    transaction.title = title;
     transaction.amount = amount;
     transaction.category = category;
     transaction.currency = currency;
