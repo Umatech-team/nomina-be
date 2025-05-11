@@ -12,6 +12,7 @@ export type MonthSumarryWithPercentageType = {
     income: number;
     expense: number;
     balance: number;
+    investments: number;
   };
 };
 
