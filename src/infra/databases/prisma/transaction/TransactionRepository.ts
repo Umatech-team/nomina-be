@@ -204,7 +204,7 @@ export class TransactionRepositoryImplementation
     }
 
     const calculatePercentage = (current: number, previous: number): number => {
-      if (previous === 0 || current === 0) {
+      if (current === 0 || previous === 0) {
         return 0;
       }
 
@@ -219,6 +219,10 @@ export class TransactionRepositoryImplementation
       currentMonthSummary.totalExpense,
       previousMonthSummary ? previousMonthSummary.totalExpense : 0,
     );
+    const investmentsChangePercentage = calculatePercentage(
+      currentMonthSummary.totalInvestments,
+      previousMonthSummary ? previousMonthSummary.totalInvestments : 0,
+    );
     const balanceChangePercentage = calculatePercentage(
       currentMonthSummary.balance,
       previousMonthSummary ? previousMonthSummary.balance : 0,
@@ -230,6 +234,7 @@ export class TransactionRepositoryImplementation
         income: incomeChangePercentage,
         expense: expenseChangePercentage,
         balance: balanceChangePercentage,
+        investments: investmentsChangePercentage,
       },
     }) as MonthSumarryWithPercentage;
 
