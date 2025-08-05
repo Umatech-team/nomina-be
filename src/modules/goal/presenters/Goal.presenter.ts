@@ -9,9 +9,11 @@ export class GoalPresenter {
       updatedAt: goal.updatedAt,
       memberId: goal.memberId,
       title: goal.title,
-      currentAmount: MoneyUtils.centsToDecimal(goal.currentAmount),
-      targetAmount: MoneyUtils.centsToDecimal(goal.targetAmount),
-      monthlyContribution: MoneyUtils.centsToDecimal(goal.monthlyContribution),
+      currentAmount: MoneyUtils.centsToDecimal(goal.currentAmount ?? 0),
+      targetAmount: MoneyUtils.centsToDecimal(goal.targetAmount ?? 0),
+      monthlyContribution: MoneyUtils.centsToDecimal(
+        goal.monthlyContribution ?? 0,
+      ),
     };
   }
 }

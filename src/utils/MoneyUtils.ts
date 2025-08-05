@@ -20,11 +20,16 @@ export class MoneyUtils {
    * Converte centavos para decimal
    */
   static centsToDecimal(cents: number): number {
-    if (!Number.isInteger(cents)) {
-      throw new Error('Centavos devem ser um número inteiro');
+    // Verifica se o valor é um número válido
+    if (typeof cents !== 'number' || isNaN(cents)) {
+      console.warn('MoneyUtils.centsToDecimal: Valor inválido recebido:', cents);
+      return 0; // Retorna 0 ao invés de NaN
     }
 
-    return cents / 100;
+    // Converte para inteiro se necessário (arredonda)
+    const integerCents = Math.round(cents);
+    
+    return integerCents / 100;
   }
 
   /**

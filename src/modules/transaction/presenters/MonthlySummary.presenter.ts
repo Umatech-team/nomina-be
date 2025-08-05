@@ -7,12 +7,12 @@ export class MonthlySummaryPresenter {
       id: monthSummary.id,
       memberId: monthSummary.memberId,
       month: monthSummary.month,
-      totalIncome: MoneyUtils.centsToDecimal(monthSummary.totalIncome),
-      totalExpense: MoneyUtils.centsToDecimal(monthSummary.totalExpense),
+      totalIncome: MoneyUtils.centsToDecimal(monthSummary.totalIncome ?? 0),
+      totalExpense: MoneyUtils.centsToDecimal(monthSummary.totalExpense ?? 0),
       totalInvestments: MoneyUtils.centsToDecimal(
-        monthSummary.totalInvestments,
+        monthSummary.totalInvestments ?? 0,
       ),
-      balance: MoneyUtils.centsToDecimal(monthSummary.balance),
+      balance: MoneyUtils.centsToDecimal(monthSummary.balance ?? 0),
       percentageChanges: monthSummary.percentageChanges,
     };
   }

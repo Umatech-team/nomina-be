@@ -5,8 +5,8 @@ export class TransactionSummaryPresenter {
   static toHTTP(transaction: TransactionSummary) {
     return {
       date: transaction.date,
-      income: MoneyUtils.centsToDecimal(transaction.income),
-      expense: MoneyUtils.centsToDecimal(transaction.expense),
+      income: MoneyUtils.centsToDecimal(transaction.income ?? 0),
+      expense: MoneyUtils.centsToDecimal(transaction.expense ?? 0),
     };
   }
 }
