@@ -25,10 +25,11 @@ describe('Money', () => {
       );
     });
 
-    it('deve lançar erro para valores negativos', () => {
-      expect(() => new Money(-100, 'BRL')).toThrow(
-        'Valor não pode ser negativo',
-      );
+    it('deve permitir valores negativos no construtor', () => {
+      // O construtor permite valores negativos para permitir débitos/créditos
+      const negativeMoney = new Money(-100, 'BRL');
+      expect(negativeMoney.cents).toBe(-100);
+      expect(negativeMoney.decimal).toBe(-1);
     });
 
     it('deve lançar erro para moeda inválida', () => {

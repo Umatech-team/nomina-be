@@ -28,10 +28,25 @@ describe('MoneyUtils', () => {
       expect(MoneyUtils.centsToDecimal(10000)).toBe(100);
     });
 
-    it('deve lançar erro para centavos não inteiros', () => {
-      expect(() => MoneyUtils.centsToDecimal(10.5)).toThrow(
-        'Centavos devem ser um número inteiro',
-      );
+    it('deve arredondar valores não inteiros', () => {
+      expect(MoneyUtils.centsToDecimal(10.7)).toBe(0.11); // Arredondado para 11 centavos
+      expect(MoneyUtils.centsToDecimal(10.3)).toBe(0.1); // Arredondado para 10 centavos
+    });
+
+    it('deve retornar 0 para valores inválidos', () => {
+      expect(MoneyUtils.centsToDecimal(NaN)).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(MoneyUtils.centsToDecimal(undefined as any)).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(MoneyUtils.centsToDecimal(null as any)).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(MoneyUtils.centsToDecimal('invalid' as any)).toBe(0);
+    });
+
+    it('deve lidar com valores BigInt convertidos', () => {
+      // Simula valores que vêm do banco de dados como BigInt
+      expect(MoneyUtils.centsToDecimal(Number(BigInt(1050)))).toBe(10.5);
+      expect(MoneyUtils.centsToDecimal(0)).toBe(0);
     });
   });
 
