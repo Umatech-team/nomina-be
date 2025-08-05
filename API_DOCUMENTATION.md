@@ -3,6 +3,7 @@
 Esta documentação detalha todos os endpoints da API Nomina, incluindo formatos de request/response, autenticação e exemplos práticos.
 
 ## 🔗 Base URL
+
 ```
 http://localhost:8080
 ```
@@ -16,6 +17,7 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### Token Response Format
+
 ```json
 {
   "access_token": "eyJhbGciOiJSUzI1Ni...",
@@ -28,9 +30,11 @@ Authorization: Bearer <jwt_token>
 ## 👤 **MEMBER ENDPOINTS**
 
 ### 1. **POST** `/member/create` (Público)
+
 Criar novo membro na plataforma.
 
 **Request Body:**
+
 ```json
 {
   "name": "Victor Marques",
@@ -41,6 +45,7 @@ Criar novo membro na plataforma.
 ```
 
 **Response (201):**
+
 ```json
 {
   "message": "Membro criado com sucesso"
@@ -48,6 +53,7 @@ Criar novo membro na plataforma.
 ```
 
 **Validações:**
+
 - `name`: String obrigatória, mínimo 2 caracteres
 - `email`: Email válido e único
 - `password`: String obrigatória, mínimo 6 caracteres
@@ -56,9 +62,11 @@ Criar novo membro na plataforma.
 ---
 
 ### 2. **POST** `/member/login` (Público)
+
 Autenticar membro existente.
 
 **Request Body:**
+
 ```json
 {
   "email": "victor@exemplo.com",
@@ -67,6 +75,7 @@ Autenticar membro existente.
 ```
 
 **Response (200):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJSUzI1Ni...",
@@ -77,9 +86,11 @@ Autenticar membro existente.
 ---
 
 ### 3. **GET** `/member` (Autenticado)
+
 Obter dados do membro logado.
 
 **Response (200):**
+
 ```json
 {
   "id": 1,
@@ -95,9 +106,11 @@ Obter dados do membro logado.
 ---
 
 ### 4. **PATCH** `/member/update/general-infos` (Autenticado)
+
 Atualizar informações gerais do membro.
 
 **Request Body:**
+
 ```json
 {
   "name": "Victor Silva Marques"
@@ -105,6 +118,7 @@ Atualizar informações gerais do membro.
 ```
 
 **Response (200):**
+
 ```json
 {
   "message": "Informações atualizadas com sucesso"
@@ -114,9 +128,11 @@ Atualizar informações gerais do membro.
 ---
 
 ### 5. **PATCH** `/member/update/password` (Autenticado)
+
 Atualizar senha do membro.
 
 **Request Body:**
+
 ```json
 {
   "currentPassword": "senhaAtual123",
@@ -125,6 +141,7 @@ Atualizar senha do membro.
 ```
 
 **Response (200):**
+
 ```json
 {
   "message": "Senha atualizada com sucesso"
@@ -134,14 +151,17 @@ Atualizar senha do membro.
 ---
 
 ### 6. **GET** `/refresh_token` (Público)
+
 Renovar token de acesso.
 
 **Headers:**
+
 ```http
 Authorization: Bearer <refresh_token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJSUzI1Ni..."
@@ -153,9 +173,11 @@ Authorization: Bearer <refresh_token>
 ## 💸 **TRANSACTION ENDPOINTS**
 
 ### 7. **POST** `/transaction/create` (Autenticado)
+
 Criar nova transação.
 
 **Request Body:**
+
 ```json
 {
   "title": "Compra Supermercado",
@@ -171,6 +193,7 @@ Criar nova transação.
 ```
 
 **Response (201):**
+
 ```json
 {
   "transaction": {
@@ -194,10 +217,12 @@ Criar nova transação.
 ```
 
 **Enums:**
+
 - `type`: "INCOME" | "EXPENSE"
 - `method`: "CASH" | "CARD" | "PIX"
 
 **Validações:**
+
 - `amount`: Número decimal positivo (ex: 150.75)
 - `date`: String no formato "YYYY-MM-DD"
 - Todos os campos são obrigatórios exceto `description`
@@ -205,9 +230,11 @@ Criar nova transação.
 ---
 
 ### 8. **GET** `/transaction/find` (Autenticado)
+
 Buscar transações com filtros.
 
 **Query Parameters:**
+
 - `page`: número (default: 1)
 - `limit`: número (default: 20)
 - `type`: "INCOME" | "EXPENSE" (opcional)
@@ -216,11 +243,13 @@ Buscar transações com filtros.
 - `endDate`: "YYYY-MM-DD" (opcional)
 
 **Exemplo:**
+
 ```
 GET /transaction/find?page=1&limit=10&type=EXPENSE&category=FOOD
 ```
 
 **Response (200):**
+
 ```json
 {
   "transactions": [
@@ -250,16 +279,18 @@ GET /transaction/find?page=1&limit=10&type=EXPENSE&category=FOOD
 ---
 
 ### 9. **GET** `/transaction/list` (Autenticado)
+
 Listar todas as transações do usuário.
 
 **Response (200):**
+
 ```json
 {
   "transactions": [
     {
       "id": 1,
       "title": "Salário",
-      "amount": 3000.00,
+      "amount": 3000.0,
       "type": "INCOME",
       "category": "SALARY",
       "method": "PIX",
@@ -272,26 +303,29 @@ Listar todas as transações do usuário.
 ---
 
 ### 10. **PATCH** `/transaction/update` (Autenticado)
+
 Atualizar transação existente.
 
 **Request Body:**
+
 ```json
 {
   "id": 1,
   "title": "Compra Supermercado Atualizada",
-  "amount": 175.50,
+  "amount": 175.5,
   "category": "FOOD"
 }
 ```
 
 **Response (200):**
+
 ```json
 {
   "message": "Transação atualizada com sucesso",
   "transaction": {
     "id": 1,
     "title": "Compra Supermercado Atualizada",
-    "amount": 175.50,
+    "amount": 175.5,
     "category": "FOOD",
     "type": "EXPENSE",
     "method": "CARD",
@@ -303,9 +337,11 @@ Atualizar transação existente.
 ---
 
 ### 11. **DELETE** `/transaction/delete` (Autenticado)
+
 Excluir transação.
 
 **Request Body:**
+
 ```json
 {
   "id": 1
@@ -313,6 +349,7 @@ Excluir transação.
 ```
 
 **Response (200):**
+
 ```json
 {
   "message": "Transação excluída com sucesso"
@@ -322,16 +359,18 @@ Excluir transação.
 ---
 
 ### 12. **GET** `/transaction/summary` (Autenticado)
+
 Obter resumo financeiro do usuário.
 
 **Response (200):**
+
 ```json
 {
-  "totalIncome": 5000.00,
+  "totalIncome": 5000.0,
   "totalExpenses": 3250.75,
   "balance": 1749.25,
   "transactionCount": 45,
-  "averageIncome": 1250.00,
+  "averageIncome": 1250.0,
   "averageExpense": 72.24
 }
 ```
@@ -339,24 +378,28 @@ Obter resumo financeiro do usuário.
 ---
 
 ### 13. **GET** `/transaction/monthly-summary-with-percentage` (Autenticado)
+
 Obter resumo mensal com percentuais.
 
 **Query Parameters:**
+
 - `month`: número (1-12)
 - `year`: número (ex: 2025)
 
 **Exemplo:**
+
 ```
 GET /transaction/monthly-summary-with-percentage?month=1&year=2025
 ```
 
 **Response (200):**
+
 ```json
 {
   "current": {
     "month": 1,
     "year": 2025,
-    "totalIncome": 3000.00,
+    "totalIncome": 3000.0,
     "totalExpenses": 1250.75,
     "balance": 1749.25,
     "transactionCount": 12
@@ -364,9 +407,9 @@ GET /transaction/monthly-summary-with-percentage?month=1&year=2025
   "previous": {
     "month": 12,
     "year": 2024,
-    "totalIncome": 2800.00,
-    "totalExpenses": 1100.50,
-    "balance": 1699.50,
+    "totalIncome": 2800.0,
+    "totalExpenses": 1100.5,
+    "balance": 1699.5,
     "transactionCount": 10
   },
   "percentageChange": {
@@ -380,14 +423,17 @@ GET /transaction/monthly-summary-with-percentage?month=1&year=2025
 ---
 
 ### 14. **GET** `/transaction/list/top-expenses-by-category` (Autenticado)
+
 Obter maiores gastos por categoria.
 
 **Query Parameters:**
+
 - `limit`: número (default: 5)
 - `month`: número (opcional)
 - `year`: número (opcional)
 
 **Response (200):**
+
 ```json
 {
   "categories": [
@@ -399,12 +445,12 @@ Obter maiores gastos por categoria.
     },
     {
       "category": "TRANSPORT",
-      "totalAmount": 320.00,
+      "totalAmount": 320.0,
       "transactionCount": 8,
       "percentage": 16.0
     }
   ],
-  "totalExpenses": 2000.00
+  "totalExpenses": 2000.0
 }
 ```
 
@@ -413,32 +459,35 @@ Obter maiores gastos por categoria.
 ## 🎯 **GOAL ENDPOINTS**
 
 ### 15. **POST** `/goal/create` (Autenticado)
+
 Criar nova meta financeira.
 
 **Request Body:**
+
 ```json
 {
   "title": "Viagem para Europa",
   "category": "TRAVEL",
-  "targetAmount": 8000.00,
-  "currentAmount": 1500.00,
-  "monthlyContribution": 500.00,
+  "targetAmount": 8000.0,
+  "currentAmount": 1500.0,
+  "monthlyContribution": 500.0,
   "currency": "BRL"
 }
 ```
 
 **Response (201):**
+
 ```json
 {
   "id": 1,
   "title": "Viagem para Europa",
   "category": "TRAVEL",
-  "targetAmount": 8000.00,
-  "currentAmount": 1500.00,
-  "monthlyContribution": 500.00,
+  "targetAmount": 8000.0,
+  "currentAmount": 1500.0,
+  "monthlyContribution": 500.0,
   "currency": "BRL",
   "progress": 18.75,
-  "remainingAmount": 6500.00,
+  "remainingAmount": 6500.0,
   "estimatedMonths": 13,
   "isCompleted": false,
   "createdAt": "2025-01-01T00:00:00.000Z"
@@ -448,13 +497,16 @@ Criar nova meta financeira.
 ---
 
 ### 16. **GET** `/goal/find` (Autenticado)
+
 Buscar metas do usuário.
 
 **Query Parameters:**
+
 - `category`: string (opcional)
 - `completed`: boolean (opcional)
 
 **Response (200):**
+
 ```json
 {
   "goals": [
@@ -462,11 +514,11 @@ Buscar metas do usuário.
       "id": 1,
       "title": "Viagem para Europa",
       "category": "TRAVEL",
-      "targetAmount": 8000.00,
-      "currentAmount": 1500.00,
-      "monthlyContribution": 500.00,
+      "targetAmount": 8000.0,
+      "currentAmount": 1500.0,
+      "monthlyContribution": 500.0,
       "progress": 18.75,
-      "remainingAmount": 6500.00,
+      "remainingAmount": 6500.0,
       "estimatedMonths": 13,
       "isCompleted": false
     }
@@ -477,29 +529,32 @@ Buscar metas do usuário.
 ---
 
 ### 17. **PATCH** `/goal/update` (Autenticado)
+
 Atualizar meta existente.
 
 **Request Body:**
+
 ```json
 {
   "id": 1,
-  "currentAmount": 2000.00,
-  "monthlyContribution": 600.00
+  "currentAmount": 2000.0,
+  "monthlyContribution": 600.0
 }
 ```
 
 **Response (200):**
+
 ```json
 {
   "message": "Meta atualizada com sucesso",
   "goal": {
     "id": 1,
     "title": "Viagem para Europa",
-    "targetAmount": 8000.00,
-    "currentAmount": 2000.00,
-    "monthlyContribution": 600.00,
+    "targetAmount": 8000.0,
+    "currentAmount": 2000.0,
+    "monthlyContribution": 600.0,
     "progress": 25.0,
-    "remainingAmount": 6000.00,
+    "remainingAmount": 6000.0,
     "estimatedMonths": 10,
     "isCompleted": false
   }
@@ -511,15 +566,18 @@ Atualizar meta existente.
 ## 📋 **FORMATOS DE DADOS**
 
 ### Valores Monetários
+
 - **Request**: Sempre enviar valores em **decimal** (ex: `150.75`)
 - **Response**: API retorna valores em **decimal** (ex: `150.75`)
 - **Moeda**: Padrão "BRL", aceita códigos ISO 4217
 
 ### Datas
+
 - **Request**: String no formato `"YYYY-MM-DD"` (ex: `"2025-01-15"`)
 - **Response**: String ISO 8601 (ex: `"2025-01-15T10:30:00.000Z"`)
 
 ### Paginação
+
 ```json
 {
   "page": 1,
@@ -534,6 +592,7 @@ Atualizar meta existente.
 ## ⚠️ **CÓDIGOS DE ERRO**
 
 ### Códigos HTTP
+
 - `200`: Sucesso
 - `201`: Criado com sucesso
 - `400`: Dados inválidos
@@ -543,6 +602,7 @@ Atualizar meta existente.
 - `500`: Erro interno do servidor
 
 ### Formato de Erro
+
 ```json
 {
   "message": "Descrição do erro",
@@ -556,6 +616,7 @@ Atualizar meta existente.
 ```
 
 ### Erros Comuns
+
 - **401 Unauthorized**: Token ausente ou inválido
 - **400 Bad Request**: Campos obrigatórios ausentes ou inválidos
 - **409 Conflict**: Email já cadastrado
@@ -566,62 +627,65 @@ Atualizar meta existente.
 ## 🧪 **EXEMPLOS DE USO**
 
 ### Fluxo de Autenticação
+
 ```javascript
 // 1. Criar conta
-const createResponse = await fetch('/member/create', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+const createResponse = await fetch("/member/create", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    name: 'Victor',
-    email: 'victor@test.com',
-    password: 'senha123',
-    planType: 'FREE'
-  })
+    name: "Victor",
+    email: "victor@test.com",
+    password: "senha123",
+    planType: "FREE",
+  }),
 });
 
 // 2. Fazer login
-const loginResponse = await fetch('/member/login', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+const loginResponse = await fetch("/member/login", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    email: 'victor@test.com',
-    password: 'senha123'
-  })
+    email: "victor@test.com",
+    password: "senha123",
+  }),
 });
 
 const { access_token } = await loginResponse.json();
 
 // 3. Usar token nas próximas requisições
 const headers = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${access_token}`
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${access_token}`,
 };
 ```
 
 ### Criar Transação
+
 ```javascript
-const transaction = await fetch('/transaction/create', {
-  method: 'POST',
+const transaction = await fetch("/transaction/create", {
+  method: "POST",
   headers,
   body: JSON.stringify({
-    title: 'Salário Janeiro',
-    description: 'Salário mensal',
-    amount: 3000.00,
-    type: 'INCOME',
-    category: 'SALARY',
-    subCategory: 'Work',
-    method: 'PIX',
-    currency: 'BRL',
-    date: '2025-01-01'
-  })
+    title: "Salário Janeiro",
+    description: "Salário mensal",
+    amount: 3000.0,
+    type: "INCOME",
+    category: "SALARY",
+    subCategory: "Work",
+    method: "PIX",
+    currency: "BRL",
+    date: "2025-01-01",
+  }),
 });
 ```
 
 ### Buscar Transações
+
 ```javascript
 const transactions = await fetch(
-  '/transaction/find?page=1&limit=10&type=EXPENSE&category=FOOD',
-  { headers }
+  "/transaction/find?page=1&limit=10&type=EXPENSE&category=FOOD",
+  { headers },
 );
 ```
 
@@ -630,6 +694,7 @@ const transactions = await fetch(
 ## 🔧 **CONFIGURAÇÃO DO PROJETO**
 
 ### Variáveis de Ambiente Necessárias
+
 ```env
 PORT=8080
 DATABASE_URL="postgresql://..."
@@ -639,6 +704,7 @@ JWT_PUBLIC_KEY="..."
 ```
 
 ### Banco de Dados
+
 - **PostgreSQL** com Prisma ORM
 - Valores monetários armazenados em **centavos** internamente
 - Conversão automática para decimais na API
@@ -648,11 +714,13 @@ JWT_PUBLIC_KEY="..."
 ## 📚 **SWAGGER UI**
 
 Para explorar a API interativamente, acesse:
+
 ```
 http://localhost:8080/docs
 ```
 
 A documentação Swagger oferece:
+
 - Interface para testar endpoints
 - Schemas detalhados
 - Exemplos de request/response
@@ -663,6 +731,7 @@ A documentação Swagger oferece:
 ## 🎯 **RESUMO PARA DESENVOLVEDORES FRONTEND**
 
 ### Principais Pontos de Atenção:
+
 1. **Autenticação**: Sempre incluir Bearer token (exceto endpoints públicos)
 2. **Valores Monetários**: Enviar e receber sempre em formato decimal
 3. **Datas**: Usar formato ISO para requests (`YYYY-MM-DD`)
@@ -671,6 +740,7 @@ A documentação Swagger oferece:
 6. **Refresh Token**: Renovar tokens automaticamente quando expiram
 
 ### Endpoints Mais Utilizados:
+
 - `POST /member/login` - Autenticação
 - `POST /transaction/create` - Criar transação
 - `GET /transaction/find` - Buscar transações
@@ -678,9 +748,10 @@ A documentação Swagger oferece:
 - `GET /goal/find` - Listar metas
 
 ### Headers Padrão:
+
 ```javascript
 const headers = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${access_token}`
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${access_token}`,
 };
 ```

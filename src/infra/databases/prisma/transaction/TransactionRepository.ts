@@ -58,22 +58,11 @@ export class TransactionRepositoryImplementation
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - (period === '7d' ? 7 : 30));
 
-    const startDateUTC = new Date(
-      Date.UTC(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate(),
-      ),
-    );
-    const endDateUTC = new Date(
-      Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()),
-    );
-
     const transactions = await this.prisma.transaction.groupBy({
       by: ['date', 'type'],
       where: {
         memberId,
-        date: { gte: startDateUTC, lte: endDateUTC },
+        date: { gte: startDate, lte: endDate },
       },
       _sum: {
         amount: true,
@@ -84,23 +73,41 @@ export class TransactionRepositoryImplementation
       orderBy: { date: 'asc' },
     });
 
-    const result = transactions.map((transaction) => {
-      const income =
-        transaction.type === 'INCOME'
-          ? Number(transaction._sum.amount ?? 0)
-          : 0; // Converte BigInt para number
-      const expense =
-        transaction.type === 'EXPENSE'
-          ? Number(transaction._sum.amount ?? 0)
-          : 0; // Converte BigInt para number
-      return TransactionMapper.toTransactionSummary(
-        new TransactionSummary({
+    // Agrupar os dados por data para combinar income e expense do mesmo dia
+    const dailySummaryMap = new Map<
+      string,
+      { income: number; expense: number; date: Date }
+    >();
+
+    transactions.forEach((transaction) => {
+      const dateKey = transaction.date.toISOString().split('T')[0]; // YYYY-MM-DD
+      const amount = Number(transaction._sum.amount ?? 0);
+
+      if (!dailySummaryMap.has(dateKey)) {
+        dailySummaryMap.set(dateKey, {
+          income: 0,
+          expense: 0,
           date: transaction.date,
-          income,
-          expense,
-        }),
-      );
+        });
+      }
+
+      const summary = dailySummaryMap.get(dateKey)!;
+      if (transaction.type === 'INCOME') {
+        summary.income += amount;
+      } else if (transaction.type === 'EXPENSE') {
+        summary.expense += amount;
+      }
     });
+
+    const result = Array.from(dailySummaryMap.values()).map((summary) =>
+      TransactionMapper.toTransactionSummary(
+        new TransactionSummary({
+          date: summary.date,
+          income: summary.income,
+          expense: summary.expense,
+        }),
+      ),
+    );
 
     return result;
   };
