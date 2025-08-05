@@ -1,6 +1,7 @@
 import { TransactionMethod, TransactionType } from '@constants/enums';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Optional } from '@shared/core/types/Optional';
+import { Money } from '@shared/valueObjects/Money';
 import { TransactionDTO } from '../dto/TransactionDTO';
 
 export class Transaction extends AggregateRoot<TransactionDTO> {
@@ -15,7 +16,7 @@ export class Transaction extends AggregateRoot<TransactionDTO> {
       description: props.description ?? null,
       category: props.category,
       subCategory: props.subCategory,
-      amount: props.amount,
+      amount: props.amount, // Agora em centavos
       currency: props.currency,
       date: props.date,
       memberId: props.memberId,
@@ -89,12 +90,57 @@ export class Transaction extends AggregateRoot<TransactionDTO> {
     this.touch();
   }
 
+  /**
+   * Retorna o valor em centavos (valor bruto do banco)
+   */
   get amount(): number {
     return this.props.amount;
   }
 
+  /**
+   * Define o valor em centavos
+   */
   set amount(amount: number) {
+    if (!Number.isInteger(amount) || amount < 0) {
+      throw new Error(
+        'Valor deve ser um número inteiro não negativo (centavos)',
+      );
+    }
     this.props.amount = amount;
+    this.touch();
+  }
+
+  /**
+   * Retorna o valor como objeto Money
+   */
+  get money(): Money {
+    return Money.fromCents(this.props.amount, this.props.currency);
+  }
+
+  /**
+   * Define o valor usando objeto Money
+   */
+  set money(money: Money) {
+    this.props.amount = money.cents;
+    this.props.currency = money.currency;
+    this.touch();
+  }
+
+  /**
+   * Retorna o valor em formato decimal (para exibição)
+   */
+  get amountDecimal(): number {
+    return this.props.amount / 100;
+  }
+
+  /**
+   * Define o valor a partir de um decimal (converte para centavos)
+   */
+  setAmountFromDecimal(decimal: number): void {
+    if (decimal < 0) {
+      throw new Error('Valor não pode ser negativo');
+    }
+    this.props.amount = Math.round(decimal * 100);
     this.touch();
   }
 

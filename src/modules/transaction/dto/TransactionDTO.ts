@@ -39,9 +39,9 @@ export class TransactionDTO {
   @IsString()
   subCategory!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Valor em centavos' })
   @IsNumber()
-  amount!: number;
+  amount!: number; // Agora representa centavos como número inteiro
 
   @ApiProperty()
   @IsString()

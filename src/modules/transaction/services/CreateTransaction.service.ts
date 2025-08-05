@@ -5,6 +5,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
+import { MoneyUtils } from '@utils/MoneyUtils';
 import { CreateTransactionDTO } from '../dto/CreateTransactionDTO';
 import { Transaction } from '../entities/Transaction';
 import { InsufficientBalanceError } from '../errors/InsufficientBalanceError';
@@ -50,13 +51,16 @@ export class CreateTransactionService
       return left(new InvalidAmountError());
     }
 
+    // Converte o valor decimal recebido para centavos
+    const amountInCents = MoneyUtils.decimalToCents(amount);
+
     // if (type === 'EXPENSE' && amount > member.balance) {
     //   return left(new InsufficientBalanceError());
     // }
 
     const transaction = new Transaction({
       memberId: sub,
-      amount,
+      amount: amountInCents, // Passa o valor em centavos
       category,
       subCategory,
       date,
@@ -86,7 +90,7 @@ export class CreateTransactionService
     // }
     await this.updateMonthlySummaryIncrementally(
       member.id,
-      amount,
+      amountInCents, // Usa centavos nos cálculos
       category === 'INVESTMENT' ? ('INVESTMENT' as TransactionType) : type,
     );
 
@@ -103,7 +107,7 @@ export class CreateTransactionService
 
   private async updateMonthlySummaryIncrementally(
     memberId: number,
-    amount: number,
+    amountInCents: number, // Agora trabalha com centavos
     type: TransactionType,
   ): Promise<void> {
     const month = new Date();
@@ -120,14 +124,14 @@ export class CreateTransactionService
     let balance = currentSummary.balance;
 
     if (type === 'INCOME') {
-      totalIncome += amount;
-      balance += amount;
+      totalIncome += amountInCents;
+      balance += amountInCents;
     } else if (type === 'EXPENSE') {
-      totalExpense += amount;
-      balance -= amount;
+      totalExpense += amountInCents;
+      balance -= amountInCents;
     } else if (type === 'INVESTMENT') {
-      totalInvestments += amount;
-      balance -= amount;
+      totalInvestments += amountInCents;
+      balance -= amountInCents;
     }
 
     await this.transactionRepository.updateMonthlySummary(

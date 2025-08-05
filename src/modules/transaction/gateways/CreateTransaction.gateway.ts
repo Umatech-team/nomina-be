@@ -9,7 +9,7 @@ const createTransactionSchema = z.object({
   description: z.string().nullable(),
   category: z.string(),
   subCategory: z.string(),
-  amount: z.number(),
+  amount: z.number().positive(), // Aceita valor decimal, será convertido para centavos
   currency: z.string(),
   date: z.string(),
 });
