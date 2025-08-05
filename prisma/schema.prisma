@@ -38,10 +38,10 @@ model Member {
 model MemberMonthlySummary {
   id               Int      @id @default(autoincrement())
   memberId         Int      @map("member_id")
-  totalIncome      BigInt   @default(0) @map("total_income") // Armazenado em centavos
-  totalExpense     BigInt   @default(0) @map("total_expense") // Armazenado em centavos
-  totalInvestments BigInt   @default(0) @map("total_investments") // Armazenado em centavos
-  balance          BigInt   @default(0) // Armazenado em centavos
+  totalIncome      BigInt   @default(0) @map("total_income")
+  totalExpense     BigInt   @default(0) @map("total_expense")
+  totalInvestments BigInt   @default(0) @map("total_investments")
+  balance          BigInt   @default(0)
   month            DateTime
   member           Member   @relation(fields: [memberId], references: [id])
 
@@ -53,7 +53,7 @@ model MemberMonthlySummary {
 model PaymentHistory {
   id            Int           @id @unique @default(autoincrement())
   memberId      Int           @map("member_id")
-  amount        BigInt        // Armazenado em centavos
+  amount        BigInt
   paymentDate   DateTime      @map("payment_date")
   paymentMethod String        @map("payment_method")
   paymentStatus PaymentStatus @map("payment_status")
@@ -72,7 +72,7 @@ model Transaction {
   type        TransactionType
   description String?
   category    String
-  amount      BigInt            // Armazenado em centavos
+  amount      BigInt
   date        DateTime
   currency    String
   method      TransactionMethod
@@ -91,9 +91,9 @@ model Goal {
   memberId            Int       @map("member_id")
   title               String
   category            String
-  currentAmount       BigInt    @default(0) @map("current_amount") // Armazenado em centavos
-  monthlyContribution BigInt    @map("montly_contribution") // Armazenado em centavos
-  targetAmount        BigInt    @map("target_amount") // Armazenado em centavos
+  currentAmount       BigInt    @default(0) @map("current_amount")
+  monthlyContribution BigInt    @map("montly_contribution")
+  targetAmount        BigInt    @map("target_amount")
   member              Member    @relation(fields: [memberId], references: [id])
 
   @@index([memberId])

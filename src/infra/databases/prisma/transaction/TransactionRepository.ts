@@ -86,9 +86,13 @@ export class TransactionRepositoryImplementation
 
     const result = transactions.map((transaction) => {
       const income =
-        transaction.type === 'INCOME' ? (transaction._sum.amount ?? 0) : 0;
+        transaction.type === 'INCOME'
+          ? Number(transaction._sum.amount ?? 0)
+          : 0; // Converte BigInt para number
       const expense =
-        transaction.type === 'EXPENSE' ? (transaction._sum.amount ?? 0) : 0;
+        transaction.type === 'EXPENSE'
+          ? Number(transaction._sum.amount ?? 0)
+          : 0; // Converte BigInt para number
       return TransactionMapper.toTransactionSummary(
         new TransactionSummary({
           date: transaction.date,
@@ -158,7 +162,7 @@ export class TransactionRepositoryImplementation
       TransactionMapper.toTopExpensesByCategory(
         new TopExpensesByCategory({
           category: expense.category,
-          total: expense._sum.amount ?? 0,
+          total: Number(expense._sum.amount ?? 0), // Converte BigInt para number
         }),
       ),
     );
@@ -212,24 +216,28 @@ export class TransactionRepositoryImplementation
     };
 
     const incomeChangePercentage = calculatePercentage(
-      currentMonthSummary.totalIncome,
-      previousMonthSummary ? previousMonthSummary.totalIncome : 0,
+      Number(currentMonthSummary.totalIncome), // Converte BigInt para number
+      previousMonthSummary ? Number(previousMonthSummary.totalIncome) : 0,
     );
     const expenseChangePercentage = calculatePercentage(
-      currentMonthSummary.totalExpense,
-      previousMonthSummary ? previousMonthSummary.totalExpense : 0,
+      Number(currentMonthSummary.totalExpense), // Converte BigInt para number
+      previousMonthSummary ? Number(previousMonthSummary.totalExpense) : 0,
     );
     const investmentsChangePercentage = calculatePercentage(
-      currentMonthSummary.totalInvestments,
-      previousMonthSummary ? previousMonthSummary.totalInvestments : 0,
+      Number(currentMonthSummary.totalInvestments), // Converte BigInt para number
+      previousMonthSummary ? Number(previousMonthSummary.totalInvestments) : 0,
     );
     const balanceChangePercentage = calculatePercentage(
-      currentMonthSummary.balance,
-      previousMonthSummary ? previousMonthSummary.balance : 0,
+      Number(currentMonthSummary.balance), // Converte BigInt para number
+      previousMonthSummary ? Number(previousMonthSummary.balance) : 0,
     );
 
     const result = TransactionMapper.toMonthSummaryWithPercentage({
       ...currentMonthSummary,
+      totalIncome: Number(currentMonthSummary.totalIncome), // Converte BigInt para number
+      totalExpense: Number(currentMonthSummary.totalExpense), // Converte BigInt para number
+      totalInvestments: Number(currentMonthSummary.totalInvestments), // Converte BigInt para number
+      balance: Number(currentMonthSummary.balance), // Converte BigInt para number
       percentageChanges: {
         income: incomeChangePercentage,
         expense: expenseChangePercentage,

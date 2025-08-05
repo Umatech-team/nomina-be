@@ -6,9 +6,9 @@ describe('Goal', () => {
     memberId: 1,
     title: 'Emergency Fund',
     category: 'Savings',
-    targetAmount: 100000, // R$ 1.000,00 em centavos
-    currentAmount: 25000, // R$ 250,00 em centavos
-    monthlyContribution: 10000, // R$ 100,00 em centavos
+    targetAmount: 100000,
+    currentAmount: 25000,
+    monthlyContribution: 10000,
   };
 
   describe('constructor', () => {
@@ -122,12 +122,11 @@ describe('Goal', () => {
     });
 
     it('deve calcular progresso em percentual', () => {
-      // 25000 / 100000 = 25%
       expect(goal.progressPercentage).toBe(25);
     });
 
     it('deve limitar progresso a 100%', () => {
-      goal.currentAmount = 150000; // Mais que o alvo
+      goal.currentAmount = 150000;
       expect(goal.progressPercentage).toBe(100);
     });
 
@@ -137,7 +136,6 @@ describe('Goal', () => {
     });
 
     it('deve calcular valor restante', () => {
-      // 100000 - 25000 = 75000
       expect(goal.remainingAmount).toBe(75000);
     });
 
@@ -154,7 +152,6 @@ describe('Goal', () => {
     });
 
     it('deve calcular meses estimados para completar', () => {
-      // 75000 / 10000 = 7.5, arredondado para 8 meses
       expect(goal.estimatedMonthsToComplete).toBe(8);
     });
 
@@ -165,11 +162,11 @@ describe('Goal', () => {
 
     it('deve verificar se meta foi atingida', () => {
       expect(goal.isCompleted).toBe(false);
-      
+
       goal.currentAmount = 100000;
       expect(goal.isCompleted).toBe(true);
-      
-      goal.currentAmount = 150000; // Mais que o alvo
+
+      goal.currentAmount = 150000;
       expect(goal.isCompleted).toBe(true);
     });
   });
@@ -183,7 +180,7 @@ describe('Goal', () => {
 
     it('deve adicionar contribuição', () => {
       const initialAmount = goal.currentAmount;
-      goal.addContribution(5000); // R$ 50,00
+      goal.addContribution(5000);
 
       expect(goal.currentAmount).toBe(initialAmount + 5000);
       expect(goal.updatedAt).toBeInstanceOf(Date);
@@ -246,15 +243,15 @@ describe('Goal', () => {
       expect(goal.progressPercentage).toBe(0);
       expect(goal.remainingAmount).toBe(0);
       expect(goal.estimatedMonthsToComplete).toBeNull();
-      expect(goal.isCompleted).toBe(true); // 0/0 é considerado completo
+      expect(goal.isCompleted).toBe(true);
     });
 
     it('deve trabalhar com valores grandes', () => {
       const goal = new Goal({
         ...baseProps,
-        targetAmount: 999999999, // R$ 9.999.999,99
-        currentAmount: 500000000, // R$ 5.000.000,00
-        monthlyContribution: 100000, // R$ 1.000,00
+        targetAmount: 999999999,
+        currentAmount: 500000000,
+        monthlyContribution: 100000,
       });
 
       expect(goal.targetAmountDecimal).toBe(9999999.99);
@@ -265,10 +262,9 @@ describe('Goal', () => {
 
     it('deve preservar precisão ao converter decimais', () => {
       const goal = new Goal(baseProps);
-      
-      // Testa problema comum de precisão
+
       goal.setTargetAmountFromDecimal(0.1 + 0.2);
-      expect(goal.targetAmount).toBe(30); // Deve ser exatamente 30 centavos
+      expect(goal.targetAmount).toBe(30);
       expect(goal.targetAmountDecimal).toBe(0.3);
     });
   });

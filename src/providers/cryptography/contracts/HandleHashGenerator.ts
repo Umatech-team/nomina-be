@@ -1,3 +1,3 @@
 export abstract class HandleHashGenerator {
-  abstract handleHash(): Promise<string>
+  abstract handleHash(): Promise<string>;
 }

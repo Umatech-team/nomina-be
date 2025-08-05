@@ -78,7 +78,7 @@ export class Money {
   subtract(other: Money): Money {
     this.validateSameCurrency(other);
     const result = this._cents - other._cents;
-    
+
     if (result < 0) {
       throw new Error('Resultado da subtração não pode ser negativo');
     }

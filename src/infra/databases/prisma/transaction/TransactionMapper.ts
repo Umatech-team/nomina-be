@@ -1,8 +1,8 @@
 import { TransactionMethod, TransactionType } from '@constants/enums';
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import {
-  MonthSumarryWithPercentage,
-  MonthSumarryWithPercentageType,
+    MonthSumarryWithPercentage,
+    MonthSumarryWithPercentageType,
 } from '@modules/transaction/valueObjects/MonthSumarryWithPercentage';
 import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpensesByCategory';
 import { TransactionSummary } from '@modules/transaction/valueObjects/TransactionSummary';
@@ -19,7 +19,7 @@ export class TransactionMapper {
         category: raw.category,
         subCategory: raw.subCategory,
         currency: raw.currency,
-        amount: raw.amount,
+        amount: Number(raw.amount), // Converte BigInt para number (centavos)
         date: raw.date,
         description: raw.description,
         method: raw.method as TransactionMethod,
@@ -38,7 +38,7 @@ export class TransactionMapper {
       category: entity.category,
       subCategory: entity.subCategory,
       currency: entity.currency,
-      amount: entity.amount,
+      amount: BigInt(entity.amount), // Converte number (centavos) para BigInt
       date: entity.date,
       description: entity.description,
       method: entity.method as TransactionMethod,

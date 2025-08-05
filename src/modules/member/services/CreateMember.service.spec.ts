@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
+import { Test, TestingModule } from '@nestjs/testing';
 import { HashGenerator } from '@providers/cryptography/contracts/HashGenerator';
 import { CreateMemberDTO } from '../dto/CreateMemberDTO';
 import { Member } from '../entities/Member';
@@ -65,8 +65,8 @@ describe('CreateMemberService', () => {
 
     jest
       .spyOn(memberRepository, 'findUniqueByEmail')
-      .mockResolvedValueOnce(null) // First call for email check
-      .mockResolvedValueOnce(createdMember); // Second call after creation
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(createdMember);
     jest.spyOn(hashGenerator, 'hash').mockResolvedValue('hashedPassword');
     jest.spyOn(memberRepository, 'create').mockResolvedValue(undefined);
     jest

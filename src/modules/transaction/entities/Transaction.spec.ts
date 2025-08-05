@@ -10,7 +10,7 @@ describe('Transaction', () => {
     method: TransactionMethod.CARD,
     category: 'Food',
     subCategory: 'Restaurant',
-    amount: 2500, // R$ 25,00 em centavos
+    amount: 2500,
     currency: 'BRL',
     date: new Date('2025-08-05'),
   };
@@ -185,7 +185,7 @@ describe('Transaction', () => {
     it('deve trabalhar com valores grandes', () => {
       const transaction = new Transaction({
         ...baseProps,
-        amount: 999999999, // R$ 9.999.999,99
+        amount: 999999999,
       });
 
       expect(transaction.amount).toBe(999999999);
@@ -194,10 +194,9 @@ describe('Transaction', () => {
 
     it('deve preservar precisão ao converter decimal para centavos', () => {
       const transaction = new Transaction(baseProps);
-      
-      // Testa problema comum de precisão: 0.1 + 0.2 = 0.30000000000000004
+
       transaction.setAmountFromDecimal(0.1 + 0.2);
-      expect(transaction.amount).toBe(30); // Deve ser exatamente 30 centavos
+      expect(transaction.amount).toBe(30);
       expect(transaction.amountDecimal).toBe(0.3);
     });
   });

@@ -96,7 +96,7 @@ export class MoneyUtils {
 
     const total = this.sum(amounts);
     const avgCents = Math.round(total.cents / amounts.length);
-    
+
     return Money.fromCents(avgCents, total.currency);
   }
 
