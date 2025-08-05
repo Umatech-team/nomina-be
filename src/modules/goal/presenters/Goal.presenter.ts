@@ -1,3 +1,4 @@
+import { MoneyUtils } from '@utils/MoneyUtils';
 import { Goal } from '../entities/Goal';
 
 export class GoalPresenter {
@@ -8,9 +9,15 @@ export class GoalPresenter {
       updatedAt: goal.updatedAt,
       memberId: goal.memberId,
       title: goal.title,
-      currentAmount: goal.currentAmount,
-      targetAmount: goal.targetAmount,
-      monthlyContribution: goal.monthlyContribution,
+      currentAmount: MoneyUtils.centsToDecimal(goal.currentAmount), // Valor em decimal
+      currentAmountFormatted: MoneyUtils.formatCents(goal.currentAmount, 'BRL'), // Valor formatado
+      targetAmount: MoneyUtils.centsToDecimal(goal.targetAmount), // Valor em decimal
+      targetAmountFormatted: MoneyUtils.formatCents(goal.targetAmount, 'BRL'), // Valor formatado
+      monthlyContribution: MoneyUtils.centsToDecimal(goal.monthlyContribution), // Valor em decimal
+      monthlyContributionFormatted: MoneyUtils.formatCents(
+        goal.monthlyContribution,
+        'BRL',
+      ), // Valor formatado
     };
   }
 }

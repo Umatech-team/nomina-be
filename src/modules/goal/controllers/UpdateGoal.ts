@@ -1,4 +1,5 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { MoneyUtils } from '@utils/MoneyUtils';
 import { Body, Controller, HttpCode, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
@@ -34,7 +35,8 @@ export class UpdateGoalController {
 
     return {
       goal: GoalPresenter.toHTTP(goal),
-      newGoal,
+      newBalance: MoneyUtils.centsToDecimal(newGoal), // Formatado de centavos para decimal
+      newBalanceFormatted: MoneyUtils.formatCents(newGoal, 'BRL'), // Formatado para exibição
     };
   }
 }

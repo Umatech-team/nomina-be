@@ -1,4 +1,5 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { MoneyUtils } from '@utils/MoneyUtils';
 import { Body, Controller, HttpCode, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
@@ -36,7 +37,8 @@ export class UpdateTransactionController {
 
     return {
       transaction: TransactionPreviewPresenter.toHTTP(transaction),
-      newBalance,
+      newBalance: MoneyUtils.centsToDecimal(newBalance), // Formatado de centavos para decimal
+      newBalanceFormatted: MoneyUtils.formatCents(newBalance, 'BRL'), // Formatado para exibição
     };
   }
 }

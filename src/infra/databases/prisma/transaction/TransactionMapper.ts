@@ -1,8 +1,8 @@
 import { TransactionMethod, TransactionType } from '@constants/enums';
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import {
-    MonthSumarryWithPercentage,
-    MonthSumarryWithPercentageType,
+  MonthSumarryWithPercentage,
+  MonthSumarryWithPercentageType,
 } from '@modules/transaction/valueObjects/MonthSumarryWithPercentage';
 import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpensesByCategory';
 import { TransactionSummary } from '@modules/transaction/valueObjects/TransactionSummary';

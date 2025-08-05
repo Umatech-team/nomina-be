@@ -188,5 +188,4 @@ jwt_public_key.pem
 private.key
 public.key
 
-# Copilot instructions (keep local only)
 .github/copilot-instructions.md
