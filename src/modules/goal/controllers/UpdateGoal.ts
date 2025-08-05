@@ -35,8 +35,7 @@ export class UpdateGoalController {
 
     return {
       goal: GoalPresenter.toHTTP(goal),
-      newBalance: MoneyUtils.centsToDecimal(newGoal), // Formatado de centavos para decimal
-      newBalanceFormatted: MoneyUtils.formatCents(newGoal, 'BRL'), // Formatado para exibição
+      newBalance: MoneyUtils.centsToDecimal(newGoal), // Apenas decimal, sem formatação
     };
   }
 }

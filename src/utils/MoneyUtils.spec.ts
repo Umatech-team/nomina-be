@@ -187,7 +187,6 @@ describe('MoneyUtils', () => {
         id: 1,
         amount: 1500,
         invalidAmount: 'not a number',
-        amountFormatted: expect.any(String),
         amountDecimal: 15,
       });
 

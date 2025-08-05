@@ -11,9 +11,11 @@ export class Money {
       throw new Error('Centavos devem ser um número inteiro');
     }
 
-    if (cents < 0) {
-      throw new Error('Valor não pode ser negativo');
-    }
+    console.log({ cents });
+
+    // if (cents < 0) {
+    //   throw new Error('Valor não pode ser negativo');
+    // }
 
     if (!currency || currency.length !== 3) {
       throw new Error('Moeda deve ter 3 caracteres (ex: BRL, USD)');

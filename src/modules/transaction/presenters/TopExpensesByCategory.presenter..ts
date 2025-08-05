@@ -5,8 +5,7 @@ export class TopExpensesByCategoryPresenter {
   static toHTTP(expense: TopExpensesByCategory) {
     return {
       category: expense.category,
-      total: MoneyUtils.centsToDecimal(expense.total), // Valor em decimal
-      totalFormatted: MoneyUtils.formatCents(expense.total, 'BRL'), // Valor formatado
+      total: MoneyUtils.centsToDecimal(expense.total),
     };
   }
 }

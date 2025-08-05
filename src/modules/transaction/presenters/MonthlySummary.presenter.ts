@@ -7,25 +7,12 @@ export class MonthlySummaryPresenter {
       id: monthSummary.id,
       memberId: monthSummary.memberId,
       month: monthSummary.month,
-      totalIncome: MoneyUtils.centsToDecimal(monthSummary.totalIncome), // Valor em decimal
-      totalIncomeFormatted: MoneyUtils.formatCents(
-        monthSummary.totalIncome,
-        'BRL',
-      ), // Valor formatado
-      totalExpense: MoneyUtils.centsToDecimal(monthSummary.totalExpense), // Valor em decimal
-      totalExpenseFormatted: MoneyUtils.formatCents(
-        monthSummary.totalExpense,
-        'BRL',
-      ), // Valor formatado
+      totalIncome: MoneyUtils.centsToDecimal(monthSummary.totalIncome),
+      totalExpense: MoneyUtils.centsToDecimal(monthSummary.totalExpense),
       totalInvestments: MoneyUtils.centsToDecimal(
         monthSummary.totalInvestments,
-      ), // Valor em decimal
-      totalInvestmentsFormatted: MoneyUtils.formatCents(
-        monthSummary.totalInvestments,
-        'BRL',
-      ), // Valor formatado
-      balance: MoneyUtils.centsToDecimal(monthSummary.balance), // Valor em decimal
-      balanceFormatted: MoneyUtils.formatCents(monthSummary.balance, 'BRL'), // Valor formatado
+      ),
+      balance: MoneyUtils.centsToDecimal(monthSummary.balance),
       percentageChanges: monthSummary.percentageChanges,
     };
   }
