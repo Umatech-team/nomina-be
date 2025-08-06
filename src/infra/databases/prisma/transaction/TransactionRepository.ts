@@ -26,8 +26,24 @@ export class TransactionRepositoryImplementation
             where: {
               memberId,
               date: {
-                gte: startDate,
-                lte: endDate,
+                gte: new Date(
+                  new Date(startDate).getUTCFullYear(),
+                  new Date(startDate).getMonth(),
+                  new Date(startDate).getDate(),
+                  0,
+                  0,
+                  0,
+                  0,
+                ),
+                lte: new Date(
+                  new Date(endDate).getFullYear(),
+                  new Date(endDate).getMonth(),
+                  new Date(endDate).getDate(),
+                  23,
+                  59,
+                  59,
+                  999,
+                ),
               },
             },
             skip: (page - 1) * pageSize,
@@ -73,14 +89,13 @@ export class TransactionRepositoryImplementation
       orderBy: { date: 'asc' },
     });
 
-    // Agrupar os dados por data para combinar income e expense do mesmo dia
     const dailySummaryMap = new Map<
       string,
       { income: number; expense: number; date: Date }
     >();
 
     transactions.forEach((transaction) => {
-      const dateKey = transaction.date.toISOString().split('T')[0]; // YYYY-MM-DD
+      const dateKey = transaction.date.toISOString().split('T')[0];
       const amount = Number(transaction._sum.amount ?? 0);
 
       if (!dailySummaryMap.has(dateKey)) {
@@ -153,13 +168,19 @@ export class TransactionRepositoryImplementation
     endDate: Date,
     pageSize = 9,
   ): Promise<TopExpensesByCategory[]> {
+    const normalizedStartDate = new Date(startDate);
+    normalizedStartDate.setHours(0, 0, 0, 0);
+
+    const normalizedEndDate = new Date(endDate);
+    normalizedEndDate.setHours(23, 59, 59, 999);
+
     const expenses = await this.prisma.transaction.groupBy({
       by: ['category'],
       _sum: { amount: true },
       where: {
         memberId,
         type: 'EXPENSE',
-        date: { gte: startDate, lte: endDate },
+        date: { gte: normalizedStartDate, lte: normalizedEndDate },
       },
       orderBy: { _sum: { amount: 'desc' } },
       take: pageSize,
@@ -169,7 +190,7 @@ export class TransactionRepositoryImplementation
       TransactionMapper.toTopExpensesByCategory(
         new TopExpensesByCategory({
           category: expense.category,
-          total: Number(expense._sum.amount ?? 0), // Converte BigInt para number
+          total: Number(expense._sum.amount ?? 0),
         }),
       ),
     );
@@ -223,28 +244,28 @@ export class TransactionRepositoryImplementation
     };
 
     const incomeChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.totalIncome), // Converte BigInt para number
+      Number(currentMonthSummary.totalIncome),
       previousMonthSummary ? Number(previousMonthSummary.totalIncome) : 0,
     );
     const expenseChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.totalExpense), // Converte BigInt para number
+      Number(currentMonthSummary.totalExpense),
       previousMonthSummary ? Number(previousMonthSummary.totalExpense) : 0,
     );
     const investmentsChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.totalInvestments), // Converte BigInt para number
+      Number(currentMonthSummary.totalInvestments),
       previousMonthSummary ? Number(previousMonthSummary.totalInvestments) : 0,
     );
     const balanceChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.balance), // Converte BigInt para number
+      Number(currentMonthSummary.balance),
       previousMonthSummary ? Number(previousMonthSummary.balance) : 0,
     );
 
     const result = TransactionMapper.toMonthSummaryWithPercentage({
       ...currentMonthSummary,
-      totalIncome: Number(currentMonthSummary.totalIncome), // Converte BigInt para number
-      totalExpense: Number(currentMonthSummary.totalExpense), // Converte BigInt para number
-      totalInvestments: Number(currentMonthSummary.totalInvestments), // Converte BigInt para number
-      balance: Number(currentMonthSummary.balance), // Converte BigInt para number
+      totalIncome: Number(currentMonthSummary.totalIncome),
+      totalExpense: Number(currentMonthSummary.totalExpense),
+      totalInvestments: Number(currentMonthSummary.totalInvestments),
+      balance: Number(currentMonthSummary.balance),
       percentageChanges: {
         income: incomeChangePercentage,
         expense: expenseChangePercentage,
@@ -264,7 +285,7 @@ export class TransactionRepositoryImplementation
     totalInvestments?: number,
     balance?: number,
   ): Promise<void> {
-    const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1); // primeiro dia do mês
+    const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
 
     await this.prisma.memberMonthlySummary.upsert({
       where: {
