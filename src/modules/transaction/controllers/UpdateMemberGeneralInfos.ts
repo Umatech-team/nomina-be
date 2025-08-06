@@ -4,6 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
+import { MoneyUtils } from '@utils/MoneyUtils';
 import { UpdateTransactionDTO } from '../dto/UpdateTransactionDTO';
 import { UpdateTransactionGateway } from '../gateways/UpdateTransaction.gateway';
 import { TransactionPreviewPresenter } from '../presenters/TransactionPreview.presenter';
@@ -36,7 +37,7 @@ export class UpdateTransactionController {
 
     return {
       transaction: TransactionPreviewPresenter.toHTTP(transaction),
-      newBalance,
+      newBalance: MoneyUtils.centsToDecimal(newBalance), // Apenas decimal, sem formatação
     };
   }
 }

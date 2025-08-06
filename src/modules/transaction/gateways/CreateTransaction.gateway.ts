@@ -9,9 +9,24 @@ const createTransactionSchema = z.object({
   description: z.string().nullable(),
   category: z.string(),
   subCategory: z.string(),
-  amount: z.number(),
+  amount: z.number().positive(), // Aceita valor decimal, será convertido para centavos
   currency: z.string(),
-  date: z.string(),
+  date: z
+    .string()
+    .refine(
+      (dateString) => {
+        // Valida se a string pode ser convertida para uma data válida
+        const date = new Date(dateString);
+        return !isNaN(date.getTime());
+      },
+      {
+        message: 'Data deve estar em um formato válido',
+      },
+    )
+    .transform((dateString) => {
+      // Converte a string para Date
+      return new Date(dateString);
+    }),
 });
 
 export const CreateTransactionGateway = new ZodValidationPipe(

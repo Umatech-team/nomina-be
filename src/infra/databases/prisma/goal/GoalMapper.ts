@@ -10,9 +10,9 @@ export class GoalMapper {
         updatedAt: raw.updatedAt,
         category: raw.category,
         title: raw.title,
-        currentAmount: raw.currentAmount,
-        monthlyContribution: raw.monthlyContribution,
-        targetAmount: raw.targetAmount,
+        currentAmount: Number(raw.currentAmount), // Converte BigInt para number (centavos)
+        monthlyContribution: Number(raw.monthlyContribution), // Converte BigInt para number (centavos)
+        targetAmount: Number(raw.targetAmount), // Converte BigInt para number (centavos)
       },
       raw.id,
     );
@@ -25,9 +25,9 @@ export class GoalMapper {
       memberId: entity.memberId,
       title: entity.title,
       category: entity.category,
-      currentAmount: entity.currentAmount,
-      monthlyContribution: entity.monthlyContribution,
-      targetAmount: entity.targetAmount,
+      currentAmount: BigInt(entity.currentAmount), // Converte number (centavos) para BigInt
+      monthlyContribution: BigInt(entity.monthlyContribution), // Converte number (centavos) para BigInt
+      targetAmount: BigInt(entity.targetAmount), // Converte number (centavos) para BigInt
     };
   }
 }

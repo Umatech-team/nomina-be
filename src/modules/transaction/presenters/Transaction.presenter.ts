@@ -11,7 +11,8 @@ export class TransactionPresenter {
       type: transaction.type,
       description: transaction.description,
       category: transaction.category,
-      amount: transaction.amount,
+      subCategory: transaction.subCategory,
+      amount: transaction.amountDecimal, // Valor em decimal
       method: transaction.method,
       currency: transaction.currency,
       date: transaction.date,

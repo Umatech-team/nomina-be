@@ -7,7 +7,7 @@ export class TransactionPreviewPresenter {
       type: transaction.type,
       title: transaction.title,
       category: transaction.category,
-      amount: transaction.amount,
+      amount: transaction.amountDecimal,
       method: transaction.method,
       date: transaction.date,
     };

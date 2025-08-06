@@ -39,9 +39,12 @@ export class TransactionDTO {
   @IsString()
   subCategory!: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description:
+      'Valor em decimal (será convertido para centavos internamente)',
+  })
   @IsNumber()
-  amount!: number;
+  amount!: number; // Recebe valor decimal, converte para centavos internamente
 
   @ApiProperty()
   @IsString()

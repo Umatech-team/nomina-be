@@ -1,3 +1,4 @@
+import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HashGenerator } from '@providers/cryptography/contracts/HashGenerator';
 import { CreateMemberDTO } from '../dto/CreateMemberDTO';
@@ -9,6 +10,7 @@ import { CreateMemberService } from './CreateMember.service';
 describe('CreateMemberService', () => {
   let service: CreateMemberService;
   let memberRepository: MemberRepository;
+  let transactionRepository: TransactionRepository;
   let hashGenerator: HashGenerator;
 
   beforeEach(async () => {
@@ -23,6 +25,12 @@ describe('CreateMemberService', () => {
           },
         },
         {
+          provide: TransactionRepository,
+          useValue: {
+            updateMonthlySummary: jest.fn(),
+          },
+        },
+        {
           provide: HashGenerator,
           useValue: {
             hash: jest.fn(),
@@ -33,6 +41,9 @@ describe('CreateMemberService', () => {
 
     service = module.get<CreateMemberService>(CreateMemberService);
     memberRepository = module.get<MemberRepository>(MemberRepository);
+    transactionRepository = module.get<TransactionRepository>(
+      TransactionRepository,
+    );
     hashGenerator = module.get<HashGenerator>(HashGenerator);
   });
 
@@ -43,13 +54,32 @@ describe('CreateMemberService', () => {
       password: 'password123',
     };
 
-    jest.spyOn(memberRepository, 'findUniqueByEmail').mockResolvedValue(null);
+    const createdMember = new Member(
+      {
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        password: 'hashedPassword',
+      },
+      1,
+    );
+
+    jest
+      .spyOn(memberRepository, 'findUniqueByEmail')
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(createdMember);
     jest.spyOn(hashGenerator, 'hash').mockResolvedValue('hashedPassword');
     jest.spyOn(memberRepository, 'create').mockResolvedValue(undefined);
+    jest
+      .spyOn(transactionRepository, 'updateMonthlySummary')
+      .mockResolvedValue(undefined);
 
     const result = await service.execute(dto);
 
     expect(result.isRight()).toBe(true);
+    expect(transactionRepository.updateMonthlySummary).toHaveBeenCalledWith(
+      1,
+      expect.any(Date),
+    );
   });
 
   it('should return an error if email already exists', async () => {

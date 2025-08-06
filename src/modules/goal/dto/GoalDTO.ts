@@ -22,15 +22,15 @@ export class GoalDTO {
   @IsString()
   category!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Valor alvo em centavos' })
   @IsNumber()
-  targetAmount!: number;
+  targetAmount!: number; // Agora em centavos
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Valor atual em centavos' })
   @IsNumber()
-  currentAmount!: number;
+  currentAmount!: number; // Agora em centavos
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Contribuição mensal em centavos' })
   @IsNumber()
-  monthlyContribution!: number;
+  monthlyContribution!: number; // Agora em centavos
 }

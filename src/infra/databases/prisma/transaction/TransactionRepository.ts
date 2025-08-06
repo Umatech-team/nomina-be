@@ -26,8 +26,24 @@ export class TransactionRepositoryImplementation
             where: {
               memberId,
               date: {
-                gte: startDate,
-                lte: endDate,
+                gte: new Date(
+                  new Date(startDate).getUTCFullYear(),
+                  new Date(startDate).getMonth(),
+                  new Date(startDate).getDate(),
+                  0,
+                  0,
+                  0,
+                  0,
+                ),
+                lte: new Date(
+                  new Date(endDate).getFullYear(),
+                  new Date(endDate).getMonth(),
+                  new Date(endDate).getDate(),
+                  23,
+                  59,
+                  59,
+                  999,
+                ),
               },
             },
             skip: (page - 1) * pageSize,
@@ -58,22 +74,11 @@ export class TransactionRepositoryImplementation
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - (period === '7d' ? 7 : 30));
 
-    const startDateUTC = new Date(
-      Date.UTC(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate(),
-      ),
-    );
-    const endDateUTC = new Date(
-      Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()),
-    );
-
     const transactions = await this.prisma.transaction.groupBy({
       by: ['date', 'type'],
       where: {
         memberId,
-        date: { gte: startDateUTC, lte: endDateUTC },
+        date: { gte: startDate, lte: endDate },
       },
       _sum: {
         amount: true,
@@ -84,19 +89,40 @@ export class TransactionRepositoryImplementation
       orderBy: { date: 'asc' },
     });
 
-    const result = transactions.map((transaction) => {
-      const income =
-        transaction.type === 'INCOME' ? (transaction._sum.amount ?? 0) : 0;
-      const expense =
-        transaction.type === 'EXPENSE' ? (transaction._sum.amount ?? 0) : 0;
-      return TransactionMapper.toTransactionSummary(
-        new TransactionSummary({
+    const dailySummaryMap = new Map<
+      string,
+      { income: number; expense: number; date: Date }
+    >();
+
+    transactions.forEach((transaction) => {
+      const dateKey = transaction.date.toISOString().split('T')[0];
+      const amount = Number(transaction._sum.amount ?? 0);
+
+      if (!dailySummaryMap.has(dateKey)) {
+        dailySummaryMap.set(dateKey, {
+          income: 0,
+          expense: 0,
           date: transaction.date,
-          income,
-          expense,
-        }),
-      );
+        });
+      }
+
+      const summary = dailySummaryMap.get(dateKey)!;
+      if (transaction.type === 'INCOME') {
+        summary.income += amount;
+      } else if (transaction.type === 'EXPENSE') {
+        summary.expense += amount;
+      }
     });
+
+    const result = Array.from(dailySummaryMap.values()).map((summary) =>
+      TransactionMapper.toTransactionSummary(
+        new TransactionSummary({
+          date: summary.date,
+          income: summary.income,
+          expense: summary.expense,
+        }),
+      ),
+    );
 
     return result;
   };
@@ -142,13 +168,19 @@ export class TransactionRepositoryImplementation
     endDate: Date,
     pageSize = 9,
   ): Promise<TopExpensesByCategory[]> {
+    const normalizedStartDate = new Date(startDate);
+    normalizedStartDate.setHours(0, 0, 0, 0);
+
+    const normalizedEndDate = new Date(endDate);
+    normalizedEndDate.setHours(23, 59, 59, 999);
+
     const expenses = await this.prisma.transaction.groupBy({
       by: ['category'],
       _sum: { amount: true },
       where: {
         memberId,
         type: 'EXPENSE',
-        date: { gte: startDate, lte: endDate },
+        date: { gte: normalizedStartDate, lte: normalizedEndDate },
       },
       orderBy: { _sum: { amount: 'desc' } },
       take: pageSize,
@@ -158,7 +190,7 @@ export class TransactionRepositoryImplementation
       TransactionMapper.toTopExpensesByCategory(
         new TopExpensesByCategory({
           category: expense.category,
-          total: expense._sum.amount ?? 0,
+          total: Number(expense._sum.amount ?? 0),
         }),
       ),
     );
@@ -212,24 +244,28 @@ export class TransactionRepositoryImplementation
     };
 
     const incomeChangePercentage = calculatePercentage(
-      currentMonthSummary.totalIncome,
-      previousMonthSummary ? previousMonthSummary.totalIncome : 0,
+      Number(currentMonthSummary.totalIncome),
+      previousMonthSummary ? Number(previousMonthSummary.totalIncome) : 0,
     );
     const expenseChangePercentage = calculatePercentage(
-      currentMonthSummary.totalExpense,
-      previousMonthSummary ? previousMonthSummary.totalExpense : 0,
+      Number(currentMonthSummary.totalExpense),
+      previousMonthSummary ? Number(previousMonthSummary.totalExpense) : 0,
     );
     const investmentsChangePercentage = calculatePercentage(
-      currentMonthSummary.totalInvestments,
-      previousMonthSummary ? previousMonthSummary.totalInvestments : 0,
+      Number(currentMonthSummary.totalInvestments),
+      previousMonthSummary ? Number(previousMonthSummary.totalInvestments) : 0,
     );
     const balanceChangePercentage = calculatePercentage(
-      currentMonthSummary.balance,
-      previousMonthSummary ? previousMonthSummary.balance : 0,
+      Number(currentMonthSummary.balance),
+      previousMonthSummary ? Number(previousMonthSummary.balance) : 0,
     );
 
     const result = TransactionMapper.toMonthSummaryWithPercentage({
       ...currentMonthSummary,
+      totalIncome: Number(currentMonthSummary.totalIncome),
+      totalExpense: Number(currentMonthSummary.totalExpense),
+      totalInvestments: Number(currentMonthSummary.totalInvestments),
+      balance: Number(currentMonthSummary.balance),
       percentageChanges: {
         income: incomeChangePercentage,
         expense: expenseChangePercentage,
@@ -249,7 +285,7 @@ export class TransactionRepositoryImplementation
     totalInvestments?: number,
     balance?: number,
   ): Promise<void> {
-    const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1); // primeiro dia do mês
+    const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
 
     await this.prisma.memberMonthlySummary.upsert({
       where: {

@@ -6,6 +6,7 @@ import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMem
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { CreateTransactionGateway } from '../gateways/CreateTransaction.gateway';
+import { MonthlySummaryPresenter } from '../presenters/MonthlySummary.presenter';
 import { TransactionPreviewPresenter } from '../presenters/TransactionPreview.presenter';
 import { CreateTransactionService } from '../services/CreateTransaction.service';
 
@@ -35,7 +36,7 @@ export class CreateTransactionController {
 
     return {
       transaction: TransactionPreviewPresenter.toHTTP(transaction),
-      newSummary,
+      newSummary: MonthlySummaryPresenter.toHTTP(newSummary), // Formatado com presenter
     };
   }
 }

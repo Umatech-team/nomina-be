@@ -4,6 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
+import { MoneyUtils } from '@utils/MoneyUtils';
 import { UpdateGoalDTO } from '../dto/UpdateGoalDTO';
 import { UpdateGoalGateway } from '../gateways/UpdateGoal.gateway';
 import { GoalPresenter } from '../presenters/Goal.presenter';
@@ -34,7 +35,7 @@ export class UpdateGoalController {
 
     return {
       goal: GoalPresenter.toHTTP(goal),
-      newGoal,
+      newBalance: MoneyUtils.centsToDecimal(newGoal), // Apenas decimal, sem formatação
     };
   }
 }
