@@ -6,7 +6,9 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn'],
+  });
   const allowedOrigins = [env.PROD_URL, env.DEV_URL];
 
   app.use(helmet());
@@ -32,15 +34,16 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'refresh_token'],
   });
 
-  const config = new DocumentBuilder()
-    .setTitle('Nomina')
-    .setVersion('0.4.0')
-    .addTag('Nomina')
-    .setDescription('The Nomina API description')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  if (env.NODE_ENV === 'dev') {
+    const config = new DocumentBuilder()
+      .setTitle('Nomina API')
+      .setDescription('API for managing personal finances')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+  }
 
   await app.listen(env.PORT);
 }
