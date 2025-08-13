@@ -4,6 +4,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
+import { MoneyUtils } from '@utils/MoneyUtils';
 import { UpdateTransactionDTO } from '../dto/UpdateTransactionDTO';
 import { Transaction } from '../entities/Transaction';
 import { InvalidAmountError } from '../errors/InvalidAmountError';
@@ -40,6 +41,7 @@ export class UpdateTransactionService
     date,
   }: Request): Promise<Either<Errors, Response>> {
     const member = await this.memberRepository.findUniqueById(sub);
+    amount = MoneyUtils.decimalToCents(amount);
 
     if (!member) {
       return left(new UnauthorizedError());
