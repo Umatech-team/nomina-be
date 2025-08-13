@@ -1,3 +1,4 @@
+import { env } from '@infra/env';
 import { BadRequestException, PipeTransform } from '@nestjs/common';
 import { statusCode } from '@shared/core/types/statusCode';
 import { ZodError, ZodSchema } from 'zod';
@@ -12,7 +13,9 @@ export class ZodValidationPipe implements PipeTransform {
 
   transform(value: unknown) {
     try {
-      console.log('pipe', value);
+      if (env.NODE_ENV === 'dev') {
+        console.log('pipe', value);
+      }
       return this.schema.parse(value);
     } catch (err) {
       if (err instanceof ZodError) {
