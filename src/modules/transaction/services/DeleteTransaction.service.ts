@@ -69,8 +69,6 @@ export class DeleteTransactionService
     amount: number,
     type: TransactionType,
   ): Promise<void> {
-    console.log('updateMonthlySummaryDecrementally');
-    console.log('type', type);
     const month = new Date();
     const currentMonth = new Date(month.getFullYear(), month.getMonth(), 1);
 
