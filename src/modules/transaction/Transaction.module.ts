@@ -1,5 +1,4 @@
 import { DatabaseModule } from '@infra/databases/Database.module';
-import { MemberModule } from '@modules/member/Member.module';
 import { Module } from '@nestjs/common';
 import { CreateTransactionController } from './controllers/CreateTransaction.controller';
 import { DeleteTransactionController } from './controllers/DeleteTransaction.controller';

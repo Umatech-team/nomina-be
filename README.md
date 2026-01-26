@@ -1,1 +1,3 @@
-This is a project set up by [Confectus](https://www.npmjs.com/package/confectus).
+Adicionar guards pra roles
+Add workspace
+Recorrencia em transacoes

@@ -1,8 +1,48 @@
-import { TransactionMethod, TransactionType } from '@constants/enums';
+import { TransactionStatus, TransactionType } from '@constants/enums';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNumber, IsString } from 'class-validator';
+import { IsDate, IsEnum, IsNumber, IsString } from 'class-validator';
 
 export class TransactionDTO {
+  @ApiProperty()
+  @IsString()
+  id!: string;
+
+  @ApiProperty()
+  @IsString()
+  workspaceId!: string;
+
+  @ApiProperty()
+  @IsString()
+  accountId!: string;
+
+  @ApiProperty()
+  @IsString()
+  categoryId!: string | null;
+
+  @ApiProperty()
+  @IsString()
+  description!: string;
+
+  @ApiProperty({ description: 'Valor em centavos' })
+  @IsNumber()
+  amount!: number;
+
+  @ApiProperty()
+  @IsDate()
+  date!: Date;
+
+  @ApiProperty({ enum: TransactionType })
+  @IsEnum(TransactionType)
+  type!: TransactionType;
+
+  @ApiProperty({ enum: TransactionStatus })
+  @IsEnum(TransactionStatus)
+  status!: TransactionStatus;
+
+  @ApiProperty()
+  @IsString()
+  recurringId!: string | null;
+
   @ApiProperty()
   @IsDate()
   createdAt!: Date;
@@ -10,47 +50,4 @@ export class TransactionDTO {
   @ApiProperty()
   @IsDate()
   updatedAt!: Date | null;
-
-  @ApiProperty()
-  @IsNumber()
-  memberId!: number;
-
-  @ApiProperty()
-  @IsString()
-  title!: string;
-
-  @ApiProperty()
-  @IsString()
-  type!: TransactionType;
-
-  @ApiProperty()
-  @IsString()
-  method!: TransactionMethod;
-
-  @ApiProperty()
-  @IsString()
-  description!: string | null;
-
-  @ApiProperty()
-  @IsString()
-  category!: string;
-
-  @ApiProperty()
-  @IsString()
-  subCategory!: string;
-
-  @ApiProperty({
-    description:
-      'Valor em decimal (será convertido para centavos internamente)',
-  })
-  @IsNumber()
-  amount!: number; // Recebe valor decimal, converte para centavos internamente
-
-  @ApiProperty()
-  @IsString()
-  currency!: string;
-
-  @ApiProperty()
-  @IsDate()
-  date!: Date;
 }

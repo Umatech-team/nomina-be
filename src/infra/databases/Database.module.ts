@@ -1,20 +1,18 @@
-import { GoalRepository } from '@modules/goal/repositories/contracts/GoalRepository';
-import { MemberRepository } from '@modules/member/repositories/contracts/MemberRepository';
-import { RefreshTokensRepository } from '@modules/member/repositories/contracts/RefreshTokenRepository';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
+import { RefreshTokensRepository } from '@modules/user/repositories/contracts/RefreshTokenRepository';
+import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
 import { Module } from '@nestjs/common';
-import { GoalRepositoryImplementation } from './prisma/goal/GoalRepository';
-import { MemberRepositoryImplementation } from './prisma/member/MemberRepository';
-import { RefreshTokensRepositoryImplementation } from './prisma/member/RefreshTokensRepositoryImplementation';
 import { PrismaService } from './prisma/prisma.service';
 import { TransactionRepositoryImplementation } from './prisma/transaction/TransactionRepository';
+import { RefreshTokensRepositoryImplementation } from './prisma/user/RefreshTokensRepositoryImplementation';
+import { UserRepositoryImplementation } from './prisma/user/UserRepository';
 
 @Module({
   providers: [
     PrismaService,
     {
-      provide: MemberRepository,
-      useClass: MemberRepositoryImplementation,
+      provide: UserRepository,
+      useClass: UserRepositoryImplementation,
     },
     {
       provide: RefreshTokensRepository,
@@ -24,17 +22,12 @@ import { TransactionRepositoryImplementation } from './prisma/transaction/Transa
       provide: TransactionRepository,
       useClass: TransactionRepositoryImplementation,
     },
-    {
-      provide: GoalRepository,
-      useClass: GoalRepositoryImplementation,
-    },
   ],
   exports: [
     PrismaService,
-    MemberRepository,
+    UserRepository,
     RefreshTokensRepository,
     TransactionRepository,
-    GoalRepository,
   ],
 })
 export class DatabaseModule {}

@@ -1,26 +1,37 @@
-export enum PlanType {
-  FREE = 'FREE',
-  PREMIUM = 'PREMIUM',
-}
-
-export enum PaymentStatus {
-  PAID = 'PAID',
-  PENDING = 'PENDING',
-  FAILED = 'FAILED',
-}
-
-export enum SupportTier {
-  STANDARD = 'STANDARD',
-  PRIORITY = 'PRIORITY',
+export enum MemberRole {
+  OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
+  MEMBER = 'MEMBER',
+  VIEWER = 'VIEWER',
 }
 
 export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE',
+  TRANSFER = 'TRANSFER',
 }
 
-export enum TransactionMethod {
+export enum TransactionStatus {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+}
+
+export enum AccountType {
+  CHECKING = 'CHECKING',
   CASH = 'CASH',
-  CARD = 'CARD',
-  PIX = 'PIX',
+  CREDIT_CARD = 'CREDIT_CARD',
+  INVESTMENT = 'INVESTMENT',
+}
+
+export enum RecurrenceFrequency {
+  WEEKLY = 'WEEKLY',
+  MONTHLY = 'MONTHLY',
+  YEARLY = 'YEARLY',
+}
+
+export enum SubscriptionStatus {
+  ACTIVE = 'ACTIVE',
+  CANCELED = 'CANCELED',
+  PAST_DUE = 'PAST_DUE',
+  TRIALING = 'TRIALING',
 }

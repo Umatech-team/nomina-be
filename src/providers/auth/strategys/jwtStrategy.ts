@@ -5,7 +5,8 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import z from 'zod';
 
 export const tokenPayloadSchema = z.object({
-  sub: z.coerce.number(),
+  sub: z.string().uuid(),
+  workspaceId: z.string().uuid(),
 });
 
 export type TokenPayloadSchema = z.infer<typeof tokenPayloadSchema>;
