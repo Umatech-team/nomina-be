@@ -2,35 +2,27 @@ import { DatabaseModule } from '@infra/databases/Database.module';
 import { Module } from '@nestjs/common';
 import { CryptographyModule } from '@providers/cryptography/Cryptography.module';
 import { DateModule } from '@providers/date/Date.module';
-import { CreateMemberController } from './controllers/CreateUser.controller';
-import { GetMemberController } from './controllers/GetMember.controller';
-import { LoginMemberController } from './controllers/LoginMember.controller';
+import { CreateUserController } from './controllers/CreateUser.controller';
+import { LoginUserController } from './controllers/LoginUser.controller';
 import { RefreshTokenController } from './controllers/RefreshToken.controller';
-import { UpdateMemberGeneralInfosController } from './controllers/UpdateMemberGeneralInfos';
-import { UpdateMemberPasswordController } from './controllers/UpdateMemberPassword';
-import { CreateMemberService } from './services/CreateUser.service';
-import { FindMemberByIdService } from './services/FindMemberById.service';
-import { LoginMemberService } from './services/LoginMember.service';
+import { CreateUserService } from './services/CreateUser.service';
+import { LoginUserService } from './services/LoginUser.service';
 import { RefreshTokenService } from './services/RefreshToken.service';
-import { UpdateMemberGeneralInfosService } from './services/UpdateMember.service';
-import { UpdateMemberPasswordService } from './services/UpdateMemberPassword.service';
+import { UpdateUserGeneralInfosService } from './services/UpdateMember.service';
+import { UpdateUserPasswordService } from './services/UpdateMemberPassword.service';
 
 @Module({
   controllers: [
-    CreateMemberController,
-    LoginMemberController,
-    GetMemberController,
-    UpdateMemberGeneralInfosController,
-    UpdateMemberPasswordController,
+    CreateUserController,
+    LoginUserController,
     RefreshTokenController,
   ],
   imports: [DatabaseModule, CryptographyModule, DateModule],
   providers: [
-    CreateMemberService,
-    FindMemberByIdService,
-    LoginMemberService,
-    UpdateMemberGeneralInfosService,
-    UpdateMemberPasswordService,
+    CreateUserService,
+    LoginUserService,
+    UpdateUserGeneralInfosService,
+    UpdateUserPasswordService,
     RefreshTokenService,
   ],
 })

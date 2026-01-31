@@ -1,4 +1,4 @@
-import { MemberRepository } from '@modules/member/repositories/contracts/MemberRepository';
+import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
@@ -17,23 +17,23 @@ type Response = {
 };
 
 @Injectable()
-export class FindTransactionSummaryByMemberIdService
+export class FindTransactionSummaryByUserIdService
   implements Service<Request, Errors, Response>
 {
   constructor(
     private readonly transactionRepository: TransactionRepository,
-    private readonly memberRepository: MemberRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async execute({ sub, period }: Request): Promise<Either<Errors, Response>> {
-    const member = await this.memberRepository.findUniqueById(sub);
+    const user = await this.userRepository.findUniqueById(sub);
 
-    if (!member) {
+    if (!user) {
       return left(new TransactionNotFoundError());
     }
 
     const summary =
-      await this.transactionRepository.findTransactionSummaryByMemberId(
+      await this.transactionRepository.findTransactionSummaryByUserId(
         sub,
         period,
       );

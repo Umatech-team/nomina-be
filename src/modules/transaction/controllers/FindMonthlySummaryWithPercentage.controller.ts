@@ -1,7 +1,7 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import { Controller, Get, HttpCode } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
+import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { MonthlySummaryPresenter } from '../presenters/MonthlySummary.presenter';
@@ -16,7 +16,7 @@ export class FindMonthlySummaryWithPercentageController {
 
   @Get('monthly-summary-with-percentage')
   @HttpCode(statusCode.OK)
-  async handle(@CurrentLoggedMember() { sub }: TokenPayloadSchema) {
+  async handle(@CurrentLoggedUser() { sub }: TokenPayloadSchema) {
     const result = await this.findMonthlySummaryWithPercentageService.execute({
       sub,
     });

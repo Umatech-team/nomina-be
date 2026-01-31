@@ -1,7 +1,7 @@
 import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
-const updateMemberGeneralInfos = z.object({
+const updateUserGeneralInfos = z.object({
   name: z
     .string()
     .trim()
@@ -9,10 +9,8 @@ const updateMemberGeneralInfos = z.object({
     .max(20, 'Nome muito longo'),
   email: z.string().trim().email('E-mail inválido'),
   phone: z.string().trim().optional(),
-  currency: z.string(),
-  language: z.string(),
 });
 
-export const UpdateMemberGeneralInfosGateway = new ZodValidationPipe(
-  updateMemberGeneralInfos,
+export const UpdateUserGeneralInfosGateway = new ZodValidationPipe(
+  updateUserGeneralInfos,
 );

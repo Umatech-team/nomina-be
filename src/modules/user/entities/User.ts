@@ -1,13 +1,41 @@
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
+import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
-import { UserDTO } from '../dto/UserDTO';
+import { InvalidUserError } from '../errors/InvalidUserError';
 
-export class User extends AggregateRoot<UserDTO> {
-  constructor(
-    props: Optional<UserDTO, 'createdAt' | 'updatedAt' | 'phone' | 'avatarUrl'>,
+export interface UserProps {
+  name: string;
+  email: string;
+  passwordHash: string;
+  phone?: string | null;
+  avatarUrl?: string | null;
+  createdAt: Date;
+  updatedAt?: Date | null;
+}
+
+export class User extends AggregateRoot<UserProps> {
+  private constructor(props: UserProps, id?: string) {
+    super(props, id);
+  }
+
+  static create(
+    props: Optional<
+      UserProps,
+      'createdAt' | 'updatedAt' | 'phone' | 'avatarUrl'
+    >,
     id?: string,
-  ) {
-    const userProps: UserDTO = {
+  ): Either<InvalidUserError, User> {
+    if (!props.name || props.name.trim().length < 4) {
+      return left(
+        new InvalidUserError('O nome deve ter no mínimo 4 caracteres.'),
+      );
+    }
+
+    if (!User.isValidEmail(props.email)) {
+      return left(new InvalidUserError('O e-mail informado é inválido.'));
+    }
+
+    const userProps: UserProps = {
       ...props,
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? null,
@@ -15,7 +43,12 @@ export class User extends AggregateRoot<UserDTO> {
       avatarUrl: props.avatarUrl ?? null,
     };
 
-    super(userProps, id);
+    const user = new User(userProps, id);
+    return right(user);
+  }
+
+  private static isValidEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
   get createdAt() {
@@ -63,7 +96,7 @@ export class User extends AggregateRoot<UserDTO> {
   }
 
   get avatarUrl(): string | null {
-    return this.props.avatarUrl;
+    return this.props.avatarUrl ?? null;
   }
 
   set avatarUrl(avatarUrl: string | null) {

@@ -22,7 +22,7 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   subscriptions Subscription[]
-  memberships   WorkspaceMember[]
+  userships     WorkspaceUser[]
   refreshTokens RefreshToken[]
 
   @@map("users")
@@ -34,14 +34,11 @@ model User {
 
 model Workspace {
   id        String   @id @default(uuid())
-  name      String // Ex: "Pessoal", "Casa da Praia", "Empresa"
+  name      String
   currency  String   @default("BRL")
   createdAt DateTime @default(now()) @map("created_at")
 
-  // Quem paga por este workspace? (Geralmente o criador, mas bom ter explícito)
-  ownerId String @map("owner_id")
-
-  members      WorkspaceMember[]
+  users        WorkspaceUser[]
   accounts     Account[]
   categories   Category[]
   transactions Transaction[]
@@ -50,18 +47,19 @@ model Workspace {
   @@map("workspaces")
 }
 
-model WorkspaceMember {
-  id          String     @id @default(uuid())
-  workspaceId String     @map("workspace_id")
-  userId      String     @map("user_id")
-  role        MemberRole @default(MEMBER) // ADMIN, MEMBER, VIEWER
-  joinedAt    DateTime   @default(now()) @map("joined_at")
+model WorkspaceUser {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  userId      String   @map("user_id")
+  isDefault   Boolean  @default(false) @map("is_default")
+  role        UserRole @default(USER)
+  joinedAt    DateTime @default(now()) @map("joined_at")
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([workspaceId, userId]) // Um user só pode estar uma vez no mesmo workspace
-  @@map("workspace_members")
+  @@unique([workspaceId, userId])
+  @@map("workspace_users")
 }
 
 // --------------------------------------------------------
@@ -182,10 +180,10 @@ model Subscription {
 // ENUMS
 // --------------------------------------------------------
 
-enum MemberRole {
+enum UserRole {
   OWNER
   ADMIN
-  MEMBER
+  USER
   VIEWER
 }
 

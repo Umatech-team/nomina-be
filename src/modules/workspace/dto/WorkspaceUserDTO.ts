@@ -1,4 +1,4 @@
-import { MemberRole } from '@constants/enums';
+import { UserRole } from '@constants/enums';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDate, IsEnum, IsString } from 'class-validator';
 
@@ -15,9 +15,9 @@ export class WorkspaceUserDTO {
   @IsString()
   userId!: string;
 
-  @ApiProperty({ enum: MemberRole })
-  @IsEnum(MemberRole)
-  role!: MemberRole;
+  @ApiProperty({ enum: UserRole })
+  @IsEnum(UserRole)
+  role!: UserRole;
 
   @ApiProperty()
   @IsDate()

@@ -1,28 +1,28 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import { Body, Controller, HttpCode, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
+import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
-import { UpdateMemberPasswordDTO } from '../dto/UpdateMemberPasswordDTO';
-import { UpdateMemberPasswordGateway } from '../gateways/UpdateMemberPassword.gateway';
-import { UpdateMemberPasswordService } from '../services/UpdateMemberPassword.service';
+import { UpdateUserPasswordDTO } from '../dto/UpdateMemberPasswordDTO';
+import { UpdateUserPasswordGateway } from '../gateways/UpdateMemberPassword.gateway';
+import { UpdateUserPasswordService } from '../services/UpdateMemberPassword.service';
 
-@ApiTags('Member')
-@Controller('member')
-export class UpdateMemberPasswordController {
+@ApiTags('User')
+@Controller('user')
+export class UpdateUserPasswordController {
   constructor(
-    private readonly updateMemberGeneralInfosService: UpdateMemberPasswordService,
+    private readonly updateUserPasswordService: UpdateUserPasswordService,
   ) {}
 
-  @Patch('/update/password')
+  @Patch('/password')
   @HttpCode(statusCode.NO_CONTENT)
   async handle(
-    @CurrentLoggedMember() { sub }: TokenPayloadSchema,
-    @Body(UpdateMemberPasswordGateway)
-    { email, currentPassword, newPassword }: UpdateMemberPasswordDTO,
+    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
+    @Body(UpdateUserPasswordGateway)
+    { email, currentPassword, newPassword }: UpdateUserPasswordDTO,
   ) {
-    const result = await this.updateMemberGeneralInfosService.execute({
+    const result = await this.updateUserPasswordService.execute({
       email,
       currentPassword,
       newPassword,

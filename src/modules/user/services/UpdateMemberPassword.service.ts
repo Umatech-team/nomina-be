@@ -4,23 +4,23 @@ import { HashComparer } from '@providers/cryptography/contracts/HashComparer';
 import { HashGenerator } from '@providers/cryptography/contracts/HashGenerator';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { UpdateMemberPasswordDTO } from '../dto/UpdateMemberPasswordDTO';
-import { MemberNotFoundError } from '../errors/MemberNotFoundError';
+import { UpdateUserPasswordDTO } from '../dto/UpdateMemberPasswordDTO';
+import { UserNotFoundError } from '../errors/UserNotFoundError';
 import { WrongCredentialsError } from '../errors/WrongCredentialsError';
-import { MemberRepository } from '../repositories/contracts/UserRepository';
+import { UserRepository } from '../repositories/contracts/UserRepository';
 
-type Request = UpdateMemberPasswordDTO & TokenPayloadSchema;
+type Request = UpdateUserPasswordDTO & Pick<TokenPayloadSchema, 'sub'>;
 
-type Errors = MemberNotFoundError | WrongCredentialsError;
+type Errors = UserNotFoundError | WrongCredentialsError;
 
 type Response = null;
 
 @Injectable()
-export class UpdateMemberPasswordService
+export class UpdateUserPasswordService
   implements Service<Request, Errors, Response>
 {
   constructor(
-    private readonly memberRepository: MemberRepository,
+    private readonly userRepository: UserRepository,
     private readonly hashComparer: HashComparer,
     private readonly hashGenerator: HashGenerator,
   ) {}
@@ -31,15 +31,15 @@ export class UpdateMemberPasswordService
     currentPassword,
     newPassword,
   }: Request): Promise<Either<Errors, Response>> {
-    const member = await this.memberRepository.findUniqueById(sub);
+    const user = await this.userRepository.findUniqueById(sub);
 
-    if (!member) {
-      return left(new MemberNotFoundError());
+    if (!user) {
+      return left(new UserNotFoundError());
     }
 
     const isPasswordValid = await this.hashComparer.compare(
       currentPassword,
-      member.password,
+      user.passwordHash,
     );
 
     if (!isPasswordValid) {
@@ -48,10 +48,10 @@ export class UpdateMemberPasswordService
 
     const hashedPassword = await this.hashGenerator.hash(newPassword);
 
-    member.email = email;
-    member.password = hashedPassword;
+    user.email = email;
+    user.passwordHash = hashedPassword;
 
-    await this.memberRepository.update(member);
+    await this.userRepository.update(user);
 
     return right(null);
   }

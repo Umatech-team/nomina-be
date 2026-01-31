@@ -1,4 +1,4 @@
-import { MemberRepository } from '@modules/member/repositories/contracts/MemberRepository';
+import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
@@ -25,7 +25,7 @@ export class UpdateTransactionService
 {
   constructor(
     private readonly transactionRepository: TransactionRepository,
-    private readonly memberRepository: MemberRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async execute({
@@ -40,10 +40,10 @@ export class UpdateTransactionService
     currency,
     date,
   }: Request): Promise<Either<Errors, Response>> {
-    const member = await this.memberRepository.findUniqueById(sub);
+    const user = await this.userRepository.findUniqueById(sub);
     amount = MoneyUtils.decimalToCents(amount);
 
-    if (!member) {
+    if (!user) {
       return left(new UnauthorizedError());
     }
 
@@ -54,7 +54,7 @@ export class UpdateTransactionService
       return left(new TransactionNotFoundError());
     }
 
-    if (transaction.memberId !== sub) {
+    if (transaction.userId !== sub) {
       return left(new UnauthorizedError());
     }
 
@@ -74,16 +74,16 @@ export class UpdateTransactionService
     await this.transactionRepository.update(transaction);
 
     if (type === 'EXPENSE') {
-      member.balance -= amount;
+      user.balance -= amount;
     } else {
-      member.balance += amount;
+      user.balance += amount;
     }
 
-    await this.memberRepository.update(member);
+    await this.userRepository.update(user);
 
     return right({
       transaction,
-      newBalance: member.balance,
+      newBalance: user.balance,
     });
   }
 }

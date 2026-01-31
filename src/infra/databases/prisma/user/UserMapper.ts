@@ -3,9 +3,8 @@ import { Prisma, User as UserPrisma } from '@prisma/client';
 
 export class UserMapper {
   static toEntity(raw: UserPrisma): User {
-    return new User(
+    const result = User.create(
       {
-        id: raw.id,
         createdAt: raw.createdAt,
         updatedAt: raw.updatedAt,
         name: raw.name,
@@ -16,6 +15,12 @@ export class UserMapper {
       },
       raw.id,
     );
+
+    if (result.isLeft()) {
+      throw result.value;
+    }
+
+    return result.value;
   }
 
   static toPrisma(entity: User): Prisma.UserUncheckedCreateInput {

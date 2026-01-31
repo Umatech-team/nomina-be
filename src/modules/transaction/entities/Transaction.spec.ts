@@ -4,7 +4,7 @@ import { Transaction } from './Transaction';
 
 describe('Transaction', () => {
   const baseProps = {
-    memberId: 1,
+    userId: 1,
     title: 'Test Transaction',
     type: TransactionType.EXPENSE,
     method: TransactionMethod.CARD,
@@ -19,7 +19,7 @@ describe('Transaction', () => {
     it('deve criar uma transação válida', () => {
       const transaction = new Transaction(baseProps);
 
-      expect(transaction.memberId).toBe(1);
+      expect(transaction.userId).toBe(1);
       expect(transaction.title).toBe('Test Transaction');
       expect(transaction.type).toBe(TransactionType.EXPENSE);
       expect(transaction.method).toBe(TransactionMethod.CARD);
@@ -163,9 +163,9 @@ describe('Transaction', () => {
       expect(transaction.updatedAt).toBeInstanceOf(Date);
     });
 
-    it('deve atualizar memberId e updatedAt', () => {
-      transaction.memberId = 2;
-      expect(transaction.memberId).toBe(2);
+    it('deve atualizar userId e updatedAt', () => {
+      transaction.userId = 2;
+      expect(transaction.userId).toBe(2);
       expect(transaction.updatedAt).toBeInstanceOf(Date);
     });
   });

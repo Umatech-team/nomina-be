@@ -2,7 +2,7 @@ import { User } from '@modules/user/entities/User';
 import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { MemberMapper } from './UserMapper';
+import { UserMapper } from './UserMapper';
 
 @Injectable()
 export class UserRepositoryImplementation implements UserRepository {
@@ -15,7 +15,7 @@ export class UserRepositoryImplementation implements UserRepository {
       },
     });
 
-    return user ? MemberMapper.toEntity(user) : null;
+    return user ? UserMapper.toEntity(user) : null;
   }
 
   async findUniqueByEmail(email: string): Promise<User | null> {
@@ -25,16 +25,38 @@ export class UserRepositoryImplementation implements UserRepository {
       },
     });
 
-    return user ? MemberMapper.toEntity(user) : null;
+    return user ? UserMapper.toEntity(user) : null;
   }
 
   async create(user: User): Promise<void> {
-    await this.prisma.user.create({
-      data: MemberMapper.toPrisma(user),
+    await this.prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: UserMapper.toPrisma(user),
+      });
+      const createdWorkspace = await tx.workspace.create({
+        data: {
+          name: 'Espaço Pessoal',
+          currency: 'BRL',
+        },
+      });
+      await tx.workspaceUser.create({
+        data: {
+          userId: createdUser.id,
+          workspaceId: createdWorkspace.id,
+          role: 'OWNER',
+          isDefault: true,
+        },
+      });
+      await tx.account.create({
+        data: {
+          name: 'Carteira',
+          type: 'CASH',
+          balance: 0,
+          workspaceId: createdWorkspace.id,
+          icon: 'wallet',
+        },
+      });
     });
-    await this.prisma.workspace.create({
-      data: 
-    })
   }
 
   async update(user: User): Promise<void> {
@@ -42,7 +64,7 @@ export class UserRepositoryImplementation implements UserRepository {
       where: {
         id: user.id,
       },
-      data: MemberMapper.toPrisma(user),
+      data: UserMapper.toPrisma(user),
     });
   }
 

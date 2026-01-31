@@ -9,8 +9,8 @@ export abstract class TransactionRepository implements Repository<Transaction> {
   abstract update(transaction: Transaction): Promise<void>;
   abstract delete(id: number): Promise<void>;
   abstract findUniqueById(id: number): Promise<Transaction | null>;
-  abstract listTransactionsByMemberId(
-    memberId: number,
+  abstract listTransactionsByUserId(
+    userId: number,
     page: number,
     pageSize: number,
     startDate?: Date,
@@ -18,24 +18,24 @@ export abstract class TransactionRepository implements Repository<Transaction> {
   ): Promise<Transaction[]>;
 
   abstract getTopExpensesByCategory(
-    memberId: number,
+    userId: number,
     startDate: Date,
     endDate: Date,
     pageSize: number,
   ): Promise<TopExpensesByCategory[]>;
 
   abstract getMonthlySummary(
-    memberId: number,
+    userId: number,
     currentMonth: Date,
   ): Promise<MonthSumarryWithPercentage>;
 
-  abstract findTransactionSummaryByMemberId(
-    memberId: number,
+  abstract findTransactionSummaryByUserId(
+    userId: number,
     period: '7d' | '30d',
   ): Promise<TransactionSummary[]>;
 
   abstract updateMonthlySummary(
-    memberId: number,
+    userId: number,
     month: Date,
     totalIncome?: number,
     totalExpense?: number,

@@ -1,7 +1,7 @@
-export enum MemberRole {
+export enum UserRole {
   OWNER = 'OWNER',
   ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER',
+  USER = 'USER',
   VIEWER = 'VIEWER',
 }
 

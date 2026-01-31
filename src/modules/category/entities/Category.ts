@@ -1,6 +1,7 @@
 import { TransactionType } from '@constants/enums';
-import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
-import { Optional } from '@shared/core/types/Optional';
+import { Entity } from '@shared/core/Entities/Entity';
+import { Either, left, right } from '@shared/core/errors/Either';
+import { InvalidCategoryError } from '../errors/InvalidCategoryError';
 
 export interface CategoryProps {
   workspaceId: string;
@@ -11,19 +12,43 @@ export interface CategoryProps {
   parentId: string | null;
 }
 
-export class Category extends AggregateRoot<CategoryProps> {
-  constructor(
-    props: Optional<CategoryProps, 'icon' | 'color' | 'parentId'>,
-    id?: string,
-  ) {
-    const categoryProps: CategoryProps = {
-      ...props,
-      icon: props.icon ?? null,
-      color: props.color ?? null,
-      parentId: props.parentId ?? null,
-    };
+export class Category extends Entity<CategoryProps> {
+  constructor(props: CategoryProps, id?: string) {
+    super(props, id);
+  }
 
-    super(categoryProps, id);
+  static create(
+    props: CategoryProps,
+    id?: string,
+  ): Either<InvalidCategoryError, Category> {
+    if (!props.workspaceId) {
+      return left(new InvalidCategoryError('O ID do espaço é obrigatório.'));
+    }
+
+    if (!props.name) {
+      return left(
+        new InvalidCategoryError('O nome da categoria é obrigatório.'),
+      );
+    }
+
+    if (!props.type) {
+      return left(
+        new InvalidCategoryError('O tipo da categoria é obrigatório.'),
+      );
+    }
+
+    if (props.parentId === '') {
+      return left(
+        new InvalidCategoryError(
+          'O ID da categoria pai, se fornecido, não pode ser uma string vazia.',
+        ),
+      );
+    }
+
+    const createdCategory: CategoryProps = {
+      ...props,
+    };
+    return right(new Category(createdCategory, id));
   }
 
   get workspaceId(): string {

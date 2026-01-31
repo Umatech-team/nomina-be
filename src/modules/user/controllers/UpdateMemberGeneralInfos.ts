@@ -1,31 +1,29 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import { Body, Controller, HttpCode, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
+import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
-import { UpdateMemberGeneralInfosDTO } from '../dto/UpdateMemberGeneralInfosDTO';
-import { UpdateMemberGeneralInfosGateway } from '../gateways/UpdateMemberGeneralInfos.gateway';
-import { UpdateMemberGeneralInfosService } from '../services/UpdateMember.service';
+import { UpdateUserGeneralInfosDTO } from '../dto/UpdateMemberGeneralInfosDTO';
+import { UpdateUserGeneralInfosGateway } from '../gateways/UpdateMemberGeneralInfos.gateway';
+import { UpdateUserGeneralInfosService } from '../services/UpdateMember.service';
 
-@ApiTags('Member')
-@Controller('member')
-export class UpdateMemberGeneralInfosController {
+@ApiTags('User')
+@Controller('user')
+export class UpdateUserGeneralInfosController {
   constructor(
-    private readonly updateMemberGeneralInfosService: UpdateMemberGeneralInfosService,
+    private readonly updateUserGeneralInfosService: UpdateUserGeneralInfosService,
   ) {}
 
-  @Patch('/update/general-infos')
+  @Patch()
   @HttpCode(statusCode.NO_CONTENT)
   async handle(
-    @CurrentLoggedMember() { sub }: TokenPayloadSchema,
-    @Body(UpdateMemberGeneralInfosGateway)
-    { currency, email, language, name, phone }: UpdateMemberGeneralInfosDTO,
+    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
+    @Body(UpdateUserGeneralInfosGateway)
+    { email, name, phone }: UpdateUserGeneralInfosDTO,
   ) {
-    const result = await this.updateMemberGeneralInfosService.execute({
-      currency,
+    const result = await this.updateUserGeneralInfosService.execute({
       email,
-      language,
       name,
       phone,
       sub,

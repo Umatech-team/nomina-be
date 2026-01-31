@@ -15,10 +15,6 @@ export class WorkspaceDTO {
   currency!: string;
 
   @ApiProperty()
-  @IsString()
-  ownerId!: string;
-
-  @ApiProperty()
   @IsDate()
   createdAt!: Date;
 }

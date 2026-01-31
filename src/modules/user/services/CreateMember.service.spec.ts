@@ -1,24 +1,24 @@
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HashGenerator } from '@providers/cryptography/contracts/HashGenerator';
-import { CreateMemberDTO } from '../dto/CreateMemberDTO';
-import { Member } from '../entities/User';
+import { CreateUserDTO } from '../dto/CreateUserDTO';
+import { User } from '../entities/User';
 import { EmailAlreadyExistsError } from '../errors/EmailAlreadyExistsError';
-import { MemberRepository } from '../repositories/contracts/UserRepository';
-import { CreateMemberService } from './CreateUser.service';
+import { UserRepository } from '../repositories/contracts/UserRepository';
+import { CreateUserService } from './CreateUser.service';
 
-describe('CreateMemberService', () => {
-  let service: CreateMemberService;
-  let memberRepository: MemberRepository;
+describe('CreateUserService', () => {
+  let service: CreateUserService;
+  let userRepository: UserRepository;
   let transactionRepository: TransactionRepository;
   let hashGenerator: HashGenerator;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CreateMemberService,
+        CreateUserService,
         {
-          provide: MemberRepository,
+          provide: UserRepository,
           useValue: {
             findUniqueByEmail: jest.fn(),
             create: jest.fn(),
@@ -39,22 +39,22 @@ describe('CreateMemberService', () => {
       ],
     }).compile();
 
-    service = module.get<CreateMemberService>(CreateMemberService);
-    memberRepository = module.get<MemberRepository>(MemberRepository);
+    service = module.get<CreateUserService>(CreateUserService);
+    userRepository = module.get<UserRepository>(UserRepository);
     transactionRepository = module.get<TransactionRepository>(
       TransactionRepository,
     );
     hashGenerator = module.get<HashGenerator>(HashGenerator);
   });
 
-  it('should create a member', async () => {
-    const dto: CreateMemberDTO = {
+  it('should create a user', async () => {
+    const dto: CreateUserDTO = {
       name: 'John Doe',
       email: 'john.doe@example.com',
       password: 'password123',
     };
 
-    const createdMember = new Member(
+    const createdUser = new User(
       {
         name: 'John Doe',
         email: 'john.doe@example.com',
@@ -64,11 +64,11 @@ describe('CreateMemberService', () => {
     );
 
     jest
-      .spyOn(memberRepository, 'findUniqueByEmail')
+      .spyOn(userRepository, 'findUniqueByEmail')
       .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(createdMember);
+      .mockResolvedValueOnce(createdUser);
     jest.spyOn(hashGenerator, 'hash').mockResolvedValue('hashedPassword');
-    jest.spyOn(memberRepository, 'create').mockResolvedValue(undefined);
+    jest.spyOn(userRepository, 'create').mockResolvedValue(undefined);
     jest
       .spyOn(transactionRepository, 'updateMonthlySummary')
       .mockResolvedValue(undefined);
@@ -83,14 +83,14 @@ describe('CreateMemberService', () => {
   });
 
   it('should return an error if email already exists', async () => {
-    const dto: CreateMemberDTO = {
+    const dto: CreateUserDTO = {
       name: 'John Doe',
       email: 'john.doe@example.com',
       password: 'password123',
     };
 
-    jest.spyOn(memberRepository, 'findUniqueByEmail').mockResolvedValue(
-      new Member({
+    jest.spyOn(userRepository, 'findUniqueByEmail').mockResolvedValue(
+      new User({
         name: 'John Doe',
         email: 'john.doe@example.com',
         password: 'password123',

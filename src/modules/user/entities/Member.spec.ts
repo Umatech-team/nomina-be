@@ -1,33 +1,33 @@
 import { PaymentStatus, PlanType, SupportTier } from '@constants/enums';
-import { Member } from './User';
+import { User } from './User';
 
-describe('Member Entity', () => {
-  it('should create a member with default values', () => {
-    const member = new Member({
+describe('User Entity', () => {
+  it('should create a user with default values', () => {
+    const user = new User({
       name: 'John Doe',
       email: 'john.doe@example.com',
       password: 'password123',
     });
 
-    expect(member.name).toBe('John Doe');
-    expect(member.email).toBe('john.doe@example.com');
-    expect(member.password).toBe('password123');
-    expect(member.createdAt).toBeInstanceOf(Date);
-    expect(member.updatedAt).toBeNull();
-    expect(member.phone).toBeNull();
-    expect(member.plan).toBe(PlanType.FREE);
-    expect(member.planStartDate).toBeInstanceOf(Date);
-    expect(member.planEndDate).toBeNull();
-    expect(member.paymentStatus).toBe(PaymentStatus.PAID);
-    expect(member.renewalDate).toBeNull();
-    expect(member.language).toBe('pt-BR');
-    expect(member.timezone).toBe('America/Sao_Paulo');
-    expect(member.currency).toBe('BRL');
-    expect(member.supportTier).toBe(SupportTier.STANDARD);
+    expect(user.name).toBe('John Doe');
+    expect(user.email).toBe('john.doe@example.com');
+    expect(user.password).toBe('password123');
+    expect(user.createdAt).toBeInstanceOf(Date);
+    expect(user.updatedAt).toBeNull();
+    expect(user.phone).toBeNull();
+    expect(user.plan).toBe(PlanType.FREE);
+    expect(user.planStartDate).toBeInstanceOf(Date);
+    expect(user.planEndDate).toBeNull();
+    expect(user.paymentStatus).toBe(PaymentStatus.PAID);
+    expect(user.renewalDate).toBeNull();
+    expect(user.language).toBe('pt-BR');
+    expect(user.timezone).toBe('America/Sao_Paulo');
+    expect(user.currency).toBe('BRL');
+    expect(user.supportTier).toBe(SupportTier.STANDARD);
   });
 
-  it('should update member properties and touch updatedAt', () => {
-    const member = new Member({
+  it('should update user properties and touch updatedAt', () => {
+    const user = new User({
       name: 'John Doe',
       email: 'john.doe@example.com',
       password: 'password123',
@@ -47,32 +47,32 @@ describe('Member Entity', () => {
     const newCurrency = 'USD';
     const newSupportTier = SupportTier.STANDARD;
 
-    member.name = newName;
-    member.email = newEmail;
-    member.phone = newPhone;
-    member.password = newPassword;
-    member.plan = newPlan;
-    member.planStartDate = newPlanStartDate;
-    member.paymentStatus = newPaymentStatus;
-    member.renewalDate = newRenewalDate;
-    member.timezone = newTimezone;
-    member.language = newLanguage;
-    member.currency = newCurrency;
-    member.supportTier = newSupportTier;
+    user.name = newName;
+    user.email = newEmail;
+    user.phone = newPhone;
+    user.password = newPassword;
+    user.plan = newPlan;
+    user.planStartDate = newPlanStartDate;
+    user.paymentStatus = newPaymentStatus;
+    user.renewalDate = newRenewalDate;
+    user.timezone = newTimezone;
+    user.language = newLanguage;
+    user.currency = newCurrency;
+    user.supportTier = newSupportTier;
 
-    expect(member.name).toBe(newName);
-    expect(member.email).toBe(newEmail);
-    expect(member.phone).toBe(newPhone);
-    expect(member.password).toBe(newPassword);
-    expect(member.plan).toBe(newPlan);
-    expect(member.planStartDate).toBe(newPlanStartDate);
-    expect(member.planEndDate).toBe(newPlanEndDate);
-    expect(member.paymentStatus).toBe(newPaymentStatus);
-    expect(member.renewalDate).toBe(newRenewalDate);
-    expect(member.timezone).toBe(newTimezone);
-    expect(member.language).toBe(newLanguage);
-    expect(member.currency).toBe(newCurrency);
-    expect(member.supportTier).toBe(newSupportTier);
-    expect(member.updatedAt).toBeInstanceOf(Date);
+    expect(user.name).toBe(newName);
+    expect(user.email).toBe(newEmail);
+    expect(user.phone).toBe(newPhone);
+    expect(user.password).toBe(newPassword);
+    expect(user.plan).toBe(newPlan);
+    expect(user.planStartDate).toBe(newPlanStartDate);
+    expect(user.planEndDate).toBe(newPlanEndDate);
+    expect(user.paymentStatus).toBe(newPaymentStatus);
+    expect(user.renewalDate).toBe(newRenewalDate);
+    expect(user.timezone).toBe(newTimezone);
+    expect(user.language).toBe(newLanguage);
+    expect(user.currency).toBe(newCurrency);
+    expect(user.supportTier).toBe(newSupportTier);
+    expect(user.updatedAt).toBeInstanceOf(Date);
   });
 });

@@ -3,15 +3,20 @@ import { Prisma, Workspace as WorkspacePrisma } from '@prisma/client';
 
 export class WorkspaceMapper {
   static toEntity(raw: WorkspacePrisma): Workspace {
-    return new Workspace(
+    const createdWorkspace = Workspace.create(
       {
         name: raw.name,
         currency: raw.currency,
-        ownerId: raw.ownerId,
         createdAt: raw.createdAt,
       },
       raw.id,
     );
+
+    if (createdWorkspace.isLeft()) {
+      throw new Error('Erro ao converter WorkspacePrisma para Workspace');
+    }
+
+    return createdWorkspace.value;
   }
 
   static toPrisma(entity: Workspace): Prisma.WorkspaceUncheckedCreateInput {
@@ -19,7 +24,6 @@ export class WorkspaceMapper {
       id: entity.id,
       name: entity.name,
       currency: entity.currency,
-      ownerId: entity.ownerId,
       createdAt: entity.createdAt,
     };
   }

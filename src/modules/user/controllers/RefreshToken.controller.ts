@@ -8,15 +8,14 @@ import { TokensPresenter } from '../presenters/Tokens.presenter';
 import { RefreshTokenService } from '../services/RefreshToken.service';
 
 @ApiTags('Auth')
-@Controller('refresh_token')
+@Controller('auth')
 export class RefreshTokenController {
   constructor(private readonly refreshTokenService: RefreshTokenService) {}
 
   @Public()
-  @Get()
+  @Get('/session/refresh')
   @HttpCode(statusCode.OK)
   async handle(@RefreshToken() refreshToken: string) {
-    console.log('refreshToken', refreshToken);
     const result = await this.refreshTokenService.execute(refreshToken);
 
     if (result.isLeft()) {

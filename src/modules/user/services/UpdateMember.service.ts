@@ -2,43 +2,39 @@ import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { UpdateMemberGeneralInfosDTO } from '../dto/UpdateMemberGeneralInfosDTO';
-import { MemberNotFoundError } from '../errors/MemberNotFoundError';
-import { MemberRepository } from '../repositories/contracts/UserRepository';
+import { UpdateUserGeneralInfosDTO } from '../dto/UpdateMemberGeneralInfosDTO';
+import { UserNotFoundError } from '../errors/UserNotFoundError';
+import { UserRepository } from '../repositories/contracts/UserRepository';
 
-type Request = UpdateMemberGeneralInfosDTO & TokenPayloadSchema;
+type Request = UpdateUserGeneralInfosDTO & Pick<TokenPayloadSchema, 'sub'>;
 
-type Errors = MemberNotFoundError;
+type Errors = UserNotFoundError;
 
 type Response = null;
 
 @Injectable()
-export class UpdateMemberGeneralInfosService
+export class UpdateUserGeneralInfosService
   implements Service<Request, Errors, Response>
 {
-  constructor(private readonly memberRepository: MemberRepository) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   async execute({
     sub,
-    currency,
     email,
-    language,
     name,
     phone,
   }: Request): Promise<Either<Errors, Response>> {
-    const member = await this.memberRepository.findUniqueById(sub);
+    const user = await this.userRepository.findUniqueById(sub);
 
-    if (!member) {
-      return left(new MemberNotFoundError());
+    if (!user) {
+      return left(new UserNotFoundError());
     }
 
-    member.currency = currency;
-    member.email = email;
-    member.language = language;
-    member.name = name;
-    member.phone = phone as string;
+    user.email = email;
+    user.name = name;
+    user.phone = phone as string;
 
-    await this.memberRepository.update(member);
+    await this.userRepository.update(user);
 
     return right(null);
   }

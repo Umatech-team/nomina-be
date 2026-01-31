@@ -4,5 +4,6 @@ import { WorkspaceDTO } from './WorkspaceDTO';
 export class CreateWorkspaceDTO extends OmitType(WorkspaceDTO, [
   'id',
   'createdAt',
-  'ownerId',
-]) {}
+]) {
+  isDefault!: boolean;
+}

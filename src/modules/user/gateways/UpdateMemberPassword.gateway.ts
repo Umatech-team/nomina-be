@@ -1,7 +1,7 @@
 import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
-const updateMemberPassword = z.object({
+const updateUserPassword = z.object({
   email: z.string().trim().email('E-mail inválido'),
   currentPassword: z
     .string()
@@ -15,6 +15,6 @@ const updateMemberPassword = z.object({
     .max(255, 'Senha muito longa'),
 });
 
-export const UpdateMemberPasswordGateway = new ZodValidationPipe(
-  updateMemberPassword,
+export const UpdateUserPasswordGateway = new ZodValidationPipe(
+  updateUserPassword,
 );

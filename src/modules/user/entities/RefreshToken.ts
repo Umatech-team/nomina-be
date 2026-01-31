@@ -1,15 +1,32 @@
-import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
+import { Entity } from '@shared/core/Entities/Entity';
 import { Optional } from '@shared/core/types/Optional';
-import { RefreshTokenDTO } from '../dto/RefreshTokenDTO';
 
-export class RefreshToken extends AggregateRoot<RefreshTokenDTO> {
-  constructor(props: Optional<RefreshTokenDTO, 'createdAt'>, id?: string) {
-    const refreshTokenProps: RefreshTokenDTO = {
+export interface RefreshTokenProps {
+  userId: string;
+  token: string;
+  expiresIn: Date;
+  createdAt: Date;
+}
+
+export class RefreshToken extends Entity<RefreshTokenProps> {
+  private constructor(props: RefreshTokenProps, id?: string) {
+    super(props, id);
+  }
+
+  static create(
+    props: Optional<RefreshTokenProps, 'createdAt'>,
+    id?: string,
+  ): RefreshToken {
+    const refreshTokenProps: RefreshTokenProps = {
       ...props,
       createdAt: props.createdAt ?? new Date(),
     };
 
-    super(refreshTokenProps, id);
+    return new RefreshToken(refreshTokenProps, id);
+  }
+
+  get userId() {
+    return this.props.userId;
   }
 
   get token() {
@@ -22,9 +39,5 @@ export class RefreshToken extends AggregateRoot<RefreshTokenDTO> {
 
   get createdAt() {
     return this.props.createdAt;
-  }
-
-  get userId() {
-    return this.props.userId;
   }
 }

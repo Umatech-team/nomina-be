@@ -1,26 +1,26 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
+import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { TransactionSummaryPresenter } from '../presenters/TransactionSummary.presenter';
-import { FindTransactionSummaryByMemberIdService } from '../services/FindTransactionSummaryByMemberId.service';
+import { FindTransactionSummaryByUserIdService } from '../services/FindTransactionSummaryByUserId.service';
 
 @ApiTags('Transaction')
 @Controller('transaction/summary')
-export class FindTransactionSummaryByMemberIdController {
+export class FindTransactionSummaryByUserIdController {
   constructor(
-    private readonly findTransactionSummaryByMemberIdService: FindTransactionSummaryByMemberIdService,
+    private readonly findTransactionSummaryByUserIdService: FindTransactionSummaryByUserIdService,
   ) {}
 
   @Get()
   @HttpCode(statusCode.OK)
   async handle(
-    @CurrentLoggedMember() { sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
     @Query('period') period: '7d' | '30d',
   ) {
-    const result = await this.findTransactionSummaryByMemberIdService.execute({
+    const result = await this.findTransactionSummaryByUserIdService.execute({
       sub,
       period,
     });

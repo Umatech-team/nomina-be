@@ -1,7 +1,7 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import { Controller, Delete, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
+import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { FindTransactionDTO } from '../dto/FindTransactionDTO';
@@ -17,7 +17,7 @@ export class DeleteTransactionController {
   @Delete('delete')
   @HttpCode(statusCode.OK)
   async handle(
-    @CurrentLoggedMember() { sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
     @Query('id') transactionId: FindTransactionDTO,
   ) {
     const result = await this.findTransactionByIdService.execute({

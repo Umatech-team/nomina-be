@@ -1,25 +1,31 @@
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
+import { Either, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
+import { InvalidWorkspaceError } from '../errors/InvalidWorkspaceError';
 
 export interface WorkspaceProps {
   name: string;
   currency: string;
-  ownerId: string;
   createdAt: Date;
 }
 
 export class Workspace extends AggregateRoot<WorkspaceProps> {
-  constructor(
+  constructor(props: WorkspaceProps, id?: string) {
+    super(props, id);
+  }
+
+  static create(
     props: Optional<WorkspaceProps, 'createdAt' | 'currency'>,
     id?: string,
-  ) {
+  ): Either<InvalidWorkspaceError, Workspace> {
     const workspaceProps: WorkspaceProps = {
       ...props,
-      currency: props.currency ?? 'BRL',
       createdAt: props.createdAt ?? new Date(),
+      currency: props.currency ?? 'BRL',
     };
 
-    super(workspaceProps, id);
+    const workspace = new Workspace(workspaceProps, id);
+    return right(workspace);
   }
 
   get name(): string {
@@ -28,10 +34,6 @@ export class Workspace extends AggregateRoot<WorkspaceProps> {
 
   get currency(): string {
     return this.props.currency;
-  }
-
-  get ownerId(): string {
-    return this.props.ownerId;
   }
 
   get createdAt(): Date {

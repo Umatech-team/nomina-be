@@ -1,7 +1,7 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import { Body, Controller, HttpCode, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
+import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { MoneyUtils } from '@utils/MoneyUtils';
@@ -20,7 +20,7 @@ export class UpdateTransactionController {
   @Patch('/update')
   @HttpCode(statusCode.OK)
   async handle(
-    @CurrentLoggedMember() { sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
     @Body(UpdateTransactionGateway)
     body: UpdateTransactionDTO,
   ) {

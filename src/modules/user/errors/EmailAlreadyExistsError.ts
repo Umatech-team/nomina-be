@@ -5,6 +5,6 @@ export class EmailAlreadyExistsError extends Error implements ServiceError {
   statusCode: number = statusCode.CONFLICT;
 
   constructor() {
-    super('Já existe um membro com o mesmo e-mail');
+    super('Já existe mesmo e-mail cadastrado no sistema');
   }
 }

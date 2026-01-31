@@ -4,10 +4,6 @@ import { IsDate, IsString } from 'class-validator';
 export class UserDTO {
   @ApiProperty()
   @IsString()
-  id!: string;
-
-  @ApiProperty()
-  @IsString()
   email!: string;
 
   @ApiProperty()

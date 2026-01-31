@@ -5,7 +5,7 @@ export class MonthlySummaryPresenter {
   static toHTTP(monthSummary: MonthSumarryWithPercentage) {
     return {
       id: monthSummary.id,
-      memberId: monthSummary.memberId,
+      userId: monthSummary.userId,
       month: monthSummary.month,
       totalIncome: MoneyUtils.centsToDecimal(monthSummary.totalIncome ?? 0),
       totalExpense: MoneyUtils.centsToDecimal(monthSummary.totalExpense ?? 0),

@@ -1,7 +1,7 @@
 import { ValueObject } from '@shared/core/Entities/ValueObject';
 
 export type MonthSumarryWithPercentageType = {
-  memberId: number;
+  userId: number;
   id: number;
   month: Date;
   totalIncome: number;
@@ -25,8 +25,8 @@ export class MonthSumarryWithPercentage extends ValueObject<MonthSumarryWithPerc
     super(monthSumarryWithPercentageProps);
   }
 
-  get memberId() {
-    return this.props.memberId;
+  get userId() {
+    return this.props.userId;
   }
 
   get id() {

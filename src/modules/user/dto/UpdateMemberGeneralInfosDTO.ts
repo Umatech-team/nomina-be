@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
-export class UpdateMemberGeneralInfosDTO {
+export class UpdateUserGeneralInfosDTO {
   @ApiProperty()
   @IsString()
   name!: string;
@@ -13,12 +13,4 @@ export class UpdateMemberGeneralInfosDTO {
   @ApiProperty()
   @IsString()
   phone!: string | null;
-
-  @ApiProperty()
-  @IsString()
-  language!: string;
-
-  @ApiProperty()
-  @IsString()
-  currency!: string;
 }

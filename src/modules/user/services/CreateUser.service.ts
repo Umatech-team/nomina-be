@@ -1,16 +1,16 @@
-import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { Injectable } from '@nestjs/common';
 import { HashGenerator } from '@providers/cryptography/contracts/HashGenerator';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { CreateUserDTO } from '../dto/CreateMemberDTO';
 import { User } from '../entities/User';
 import { EmailAlreadyExistsError } from '../errors/EmailAlreadyExistsError';
-import { MemberRepository } from '../repositories/contracts/UserRepository';
+import { InvalidUserError } from '../errors/InvalidUserError';
+import { UserRepository } from '../repositories/contracts/UserRepository';
+import { CreateUserDTO } from '../dto/CreateMemberDTO';
 
 type Request = CreateUserDTO;
 
-type Errors = EmailAlreadyExistsError;
+type Errors = EmailAlreadyExistsError | InvalidUserError;
 
 type Response = {
   user: User;
@@ -19,8 +19,7 @@ type Response = {
 @Injectable()
 export class CreateUserService implements Service<Request, Errors, Response> {
   constructor(
-    private readonly userRepository: MemberRepository,
-    private readonly transactionRepository: TransactionRepository,
+    private readonly userRepository: UserRepository,
     private readonly hashGenerator: HashGenerator,
   ) {}
 
@@ -38,11 +37,17 @@ export class CreateUserService implements Service<Request, Errors, Response> {
 
     const hashedPassword = await this.hashGenerator.hash(password);
 
-    const user = new User({
+    const userOrError = User.create({
       name,
       email,
-      password: hashedPassword,
+      passwordHash: hashedPassword,
     });
+
+    if (userOrError.isLeft()) {
+      return left(userOrError.value);
+    }
+
+    const user = userOrError.value;
 
     await this.userRepository.create(user);
 

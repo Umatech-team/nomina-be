@@ -4,15 +4,15 @@ import { CreateTransactionController } from './controllers/CreateTransaction.con
 import { DeleteTransactionController } from './controllers/DeleteTransaction.controller';
 import { FindMonthlySummaryWithPercentageController } from './controllers/FindMonthlySummaryWithPercentage.controller';
 import { FindTransactionController } from './controllers/FindTransaction.controller';
-import { FindTransactionSummaryByMemberIdController } from './controllers/FindTransactionSummaryByMemberId.controller';
+import { FindTransactionSummaryByUserIdController } from './controllers/FindTransactionSummaryByUserId.controller';
 import { ListTransactionController } from './controllers/ListTransaction.controller';
 import { TopExpensesByCategoryController } from './controllers/ListTransaction.controller copy';
-import { UpdateTransactionController } from './controllers/UpdateMemberGeneralInfos';
+import { UpdateTransactionController } from './controllers/UpdateUserGeneralInfos';
 import { CreateTransactionService } from './services/CreateTransaction.service';
 import { DeleteTransactionService } from './services/DeleteTransaction.service';
 import { FindMonthlySummaryWithPercentageService } from './services/FindMonthSummary.service';
 import { FindTransactionByIdService } from './services/FindTransactionById.service';
-import { FindTransactionSummaryByMemberIdService } from './services/FindTransactionSummaryByMemberId.service';
+import { FindTransactionSummaryByUserIdService } from './services/FindTransactionSummaryByUserId.service';
 import { ListTopExpensesByCategoryService } from './services/ListTopExpensesByCategory.service';
 import { ListTransactionByIdService } from './services/ListTransactionById.service';
 import { UpdateTransactionService } from './services/UpdateTransaction.service';
@@ -22,18 +22,18 @@ import { UpdateTransactionService } from './services/UpdateTransaction.service';
     CreateTransactionController,
     DeleteTransactionController,
     FindMonthlySummaryWithPercentageController,
-    FindTransactionSummaryByMemberIdController,
+    FindTransactionSummaryByUserIdController,
     TopExpensesByCategoryController,
     FindTransactionController,
     ListTransactionController,
     UpdateTransactionController,
   ],
-  imports: [DatabaseModule, MemberModule],
+  imports: [DatabaseModule, UserModule],
   providers: [
     CreateTransactionService,
     DeleteTransactionService,
     FindMonthlySummaryWithPercentageService,
-    FindTransactionSummaryByMemberIdService,
+    FindTransactionSummaryByUserIdService,
     ListTopExpensesByCategoryService,
     FindTransactionByIdService,
     ListTransactionByIdService,

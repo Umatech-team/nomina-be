@@ -13,8 +13,8 @@ export class TransactionRepositoryImplementation
 {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listTransactionsByMemberId(
-    memberId: number,
+  async listTransactionsByUserId(
+    userId: number,
     page: number,
     pageSize: number,
     startDate: Date,
@@ -24,7 +24,7 @@ export class TransactionRepositoryImplementation
       startDate && endDate
         ? await this.prisma.transaction.findMany({
             where: {
-              memberId,
+              userId,
               date: {
                 gte: new Date(
                   new Date(startDate).getUTCFullYear(),
@@ -54,7 +54,7 @@ export class TransactionRepositoryImplementation
           })
         : await this.prisma.transaction.findMany({
             where: {
-              memberId,
+              userId,
             },
             skip: (page - 1) * pageSize,
             take: pageSize,
@@ -66,8 +66,8 @@ export class TransactionRepositoryImplementation
     return transactions.map(TransactionMapper.toEntity);
   }
 
-  findTransactionSummaryByMemberId = async (
-    memberId: number,
+  findTransactionSummaryByUserId = async (
+    userId: number,
     period: '7d' | '30d',
   ): Promise<TransactionSummary[]> => {
     const endDate = new Date();
@@ -77,7 +77,7 @@ export class TransactionRepositoryImplementation
     const transactions = await this.prisma.transaction.groupBy({
       by: ['date', 'type'],
       where: {
-        memberId,
+        userId,
         date: { gte: startDate, lte: endDate },
       },
       _sum: {
@@ -163,7 +163,7 @@ export class TransactionRepositoryImplementation
   }
 
   async getTopExpensesByCategory(
-    memberId: number,
+    userId: number,
     startDate: Date,
     endDate: Date,
     pageSize = 9,
@@ -178,7 +178,7 @@ export class TransactionRepositoryImplementation
       by: ['category'],
       _sum: { amount: true },
       where: {
-        memberId,
+        userId,
         type: 'EXPENSE',
         date: { gte: normalizedStartDate, lte: normalizedEndDate },
       },
@@ -197,17 +197,17 @@ export class TransactionRepositoryImplementation
   }
 
   async getMonthlySummary(
-    memberId: number,
+    userId: number,
     currentMonth: Date,
   ): Promise<MonthSumarryWithPercentage> {
     const currentMonthFormatted = new Date(currentMonth);
     currentMonthFormatted.setDate(1);
     currentMonthFormatted.setHours(0, 0, 0, 0);
 
-    let currentMonthSummary = await this.prisma.memberMonthlySummary.findUnique(
+    let currentMonthSummary = await this.prisma.userMonthlySummary.findUnique(
       {
         where: {
-          memberId_month: { memberId, month: currentMonthFormatted },
+          userId_month: { userId, month: currentMonthFormatted },
         },
       },
     );
@@ -216,16 +216,16 @@ export class TransactionRepositoryImplementation
     previousMonth.setMonth(previousMonth.getMonth() - 1);
 
     const previousMonthSummary =
-      await this.prisma.memberMonthlySummary.findUnique({
+      await this.prisma.userMonthlySummary.findUnique({
         where: {
-          memberId_month: { memberId, month: previousMonth },
+          userId_month: { userId, month: previousMonth },
         },
       });
 
     if (!currentMonthSummary) {
-      currentMonthSummary = await this.prisma.memberMonthlySummary.create({
+      currentMonthSummary = await this.prisma.userMonthlySummary.create({
         data: {
-          memberId,
+          userId,
           month: currentMonthFormatted,
           totalIncome: 0,
           totalExpense: 0,
@@ -278,7 +278,7 @@ export class TransactionRepositoryImplementation
   }
 
   async updateMonthlySummary(
-    memberId: number,
+    userId: number,
     month: Date,
     totalIncome?: number,
     totalExpense?: number,
@@ -287,9 +287,9 @@ export class TransactionRepositoryImplementation
   ): Promise<void> {
     const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
 
-    await this.prisma.memberMonthlySummary.upsert({
+    await this.prisma.userMonthlySummary.upsert({
       where: {
-        memberId_month: { memberId, month: startOfMonth },
+        userId_month: { userId, month: startOfMonth },
       },
       update: {
         totalIncome,
@@ -298,7 +298,7 @@ export class TransactionRepositoryImplementation
         balance,
       },
       create: {
-        memberId,
+        userId,
         month: startOfMonth,
         totalIncome,
         totalExpense,

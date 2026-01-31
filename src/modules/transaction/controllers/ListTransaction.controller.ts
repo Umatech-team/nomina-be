@@ -1,7 +1,7 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
+import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { TransactionPreviewPresenter } from '../presenters/TransactionPreview.presenter';
@@ -17,7 +17,7 @@ export class ListTransactionController {
   @Get()
   @HttpCode(statusCode.OK)
   async handle(
-    @CurrentLoggedMember() { sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
     @Query('page') page: string,
     @Query('pageSize') pageSize: string,
     @Query('startDate') startDate: Date,
