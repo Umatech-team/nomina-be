@@ -129,7 +129,10 @@ model Transaction {
   category        Category?             @relation(fields: [categoryId], references: [id])
   recurringOrigin RecurringTransaction? @relation(fields: [recurringId], references: [id])
 
-  @@index([workspaceId, date]) // Index vital para filtrar por mês
+  @@index([workspaceId, date])
+  @@index([workspaceId, categoryId])
+  @@index([workspaceId, type, status])
+  @@index([accountId])
   @@map("transactions")
 }
 
