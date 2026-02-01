@@ -3,7 +3,6 @@ import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
 const updateAccountSchema = z.object({
-  accountId: z.string().uuid('ID da conta inválido'),
   name: z.string().trim().min(1, 'Nome é obrigatório').max(100, 'Nome muito longo'),
   type: z.nativeEnum(AccountType),
   icon: z.string().trim().nullable(),
