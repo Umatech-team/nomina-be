@@ -87,11 +87,11 @@ model Account {
 
 model Category {
   id          String          @id @default(uuid())
-  workspaceId String          @map("workspace_id")
+  workspaceId String?         @map("workspace_id")
   name        String
-  icon        String? // Identificador do ícone (ex: 'food-outline')
-  color       String? // Hex code
-  type        TransactionType // INCOME ou EXPENSE (ajuda a filtrar)
+  icon        String?
+  color       String?
+  type        TransactionType
 
   // Auto-relacionamento para Subcategorias
   parentId String?    @map("parent_id")
@@ -99,7 +99,7 @@ model Category {
   children Category[] @relation("SubCategories")
 
   transactions Transaction[]
-  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace    Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@map("categories")
 }
