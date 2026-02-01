@@ -1,6 +1,8 @@
 import { AccountType } from '@constants/enums';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
+import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
+import { InvalidAccountError } from '../errors/InvalidAccountError';
 
 export interface AccountProps {
   workspaceId: string;
@@ -14,23 +16,45 @@ export interface AccountProps {
 }
 
 export class Account extends AggregateRoot<AccountProps> {
-  constructor(
-    props: Optional<
-      AccountProps,
-      'balance' | 'icon' | 'color' | 'closingDay' | 'dueDay'
-    >,
+  constructor(props: AccountProps, id?: string) {
+    super(props, id);
+  }
+
+  static create(
+    props: Optional<AccountProps, 'icon' | 'color' | 'closingDay' | 'dueDay'>,
     id?: string,
-  ) {
-    const accountProps: AccountProps = {
+  ): Either<InvalidAccountError, Account> {
+    if (!props.workspaceId) {
+      return left(
+        new InvalidAccountError('O ID do espaço de trabalho é obrigatório.'),
+      );
+    }
+
+    if (props.name.length < 2 || props.name.length > 50) {
+      return left(
+        new InvalidAccountError(
+          'O nome da conta deve ter entre 2 e 50 caracteres.',
+        ),
+      );
+    }
+
+    if (props.balance < 0n) {
+      return left(
+        new InvalidAccountError('O saldo inicial não pode ser negativo.'),
+      );
+    }
+
+    const createdAccount: AccountProps = {
       ...props,
-      balance: props.balance ?? BigInt(0),
       icon: props.icon ?? null,
       color: props.color ?? null,
       closingDay: props.closingDay ?? null,
       dueDay: props.dueDay ?? null,
     };
 
-    super(accountProps, id);
+    const account = new Account(createdAccount, id);
+
+    return right(account);
   }
 
   get workspaceId(): string {
