@@ -21,10 +21,6 @@ export class Category extends Entity<CategoryProps> {
     props: CategoryProps,
     id?: string,
   ): Either<InvalidCategoryError, Category> {
-    if (!props.workspaceId) {
-      return left(new InvalidCategoryError('O ID do espaço é obrigatório.'));
-    }
-
     if (!props.name) {
       return left(
         new InvalidCategoryError('O nome da categoria é obrigatório.'),
