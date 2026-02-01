@@ -1,13 +1,15 @@
+import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
+import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { CreateAccountDTO } from '../dto/CreateAccountDTO';
 import { Account } from '../entities/Account';
 import { ConflictAccountError } from '../errors/ConflictAccountError';
 import { AccountRepository } from '../repositories/contracts/AccountRepository';
 
-type Request = CreateAccountDTO & Pick<TokenPayloadSchema, 'sub'>;
+type Request = CreateAccountDTO & TokenPayloadSchema;
 type Errors = ConflictAccountError;
 type Response = {
   account: Account;
@@ -17,19 +19,29 @@ type Response = {
 export class CreateAccountService
   implements Service<Request, Errors, Response>
 {
-  constructor(private readonly accountRepository: AccountRepository) {}
+  constructor(
+    private readonly accountRepository: AccountRepository,
+    private readonly userRepository: UserRepository,
+  ) {}
 
   async execute({
     name,
-    sub,
+    workspaceId,
     type,
     icon,
     color,
     closingDay,
     dueDay,
+    sub,
   }: Request): Promise<Either<Errors, Response>> {
+    const user = await this.userRepository.findUniqueById(sub);
+
+    if (!user) {
+      return left(new UnauthorizedError());
+    }
+
     const nameAccountAlreadyExists =
-      await this.accountRepository.findByNameAndWorkspaceId(name, sub);
+      await this.accountRepository.findByNameAndWorkspaceId(name, workspaceId);
 
     if (nameAccountAlreadyExists) {
       return left(
@@ -40,7 +52,7 @@ export class CreateAccountService
     }
 
     const accountOrError = Account.create({
-      workspaceId: sub,
+      workspaceId,
       name,
       type,
       balance: 0n,
