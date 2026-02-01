@@ -14,7 +14,7 @@ export class TransactionMapper {
         date: raw.date,
         type: raw.type as TransactionType,
         status: raw.status as TransactionStatus,
-        recurringId: raw.recurringTransactionId,
+        recurringId: raw.recurringId,
         createdAt: raw.createdAt,
         updatedAt: raw.updatedAt,
       },
@@ -33,33 +33,9 @@ export class TransactionMapper {
       date: entity.date,
       type: entity.type,
       status: entity.status,
-      recurringTransactionId: entity.recurringId,
+      recurringId: entity.recurringId,
       createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
+      updatedAt: entity.updatedAt ?? new Date(),
     };
-  }
-}
-      date: entity.date,
-      income: entity.income,
-      expense: entity.expense,
-    });
-  }
-
-  static toMonthSummaryWithPercentage(
-    entity: MonthSumarryWithPercentageType,
-  ): MonthSumarryWithPercentage {
-    return new MonthSumarryWithPercentage({
-      ...entity,
-      percentageChanges: entity.percentageChanges,
-    });
-  }
-
-  static toTopExpensesByCategory(
-    entity: TopExpensesByCategory,
-  ): TopExpensesByCategory {
-    return new TopExpensesByCategory({
-      category: entity.category,
-      total: entity.total,
-    });
   }
 }
