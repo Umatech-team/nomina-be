@@ -6,7 +6,7 @@ export class CategoryMapper {
   static toEntity(raw: CategoryPrisma): Category {
     return new Category(
       {
-        workspaceId: raw.workspaceId,
+        workspaceId: raw.workspaceId ?? '',
         name: raw.name,
         icon: raw.icon,
         color: raw.color,
