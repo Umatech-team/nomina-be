@@ -17,12 +17,13 @@ export class FindTransactionController {
   @Get()
   @HttpCode(statusCode.OK)
   async handle(
-    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Query('id') id: string,
   ) {
     const result = await this.findTransactionByIdService.execute({
-      transactionId: parseInt(id),
+      transactionId: id,
       sub,
+      workspaceId,
     });
 
     if (result.isLeft()) {

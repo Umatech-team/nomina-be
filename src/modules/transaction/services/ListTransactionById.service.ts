@@ -8,6 +8,7 @@ import { ListTransactionsDTO } from '../dto/ListTransactionsDTO';
 import { Transaction } from '../entities/Transaction';
 import { TransactionNotFoundError } from '../errors/TransactionNotFoundError';
 import { TransactionRepository } from '../repositories/contracts/TransactionRepository';
+import { GenerateRecurringTransactionsService } from './GenerateRecurringTransactions.service';
 
 type Request = ListTransactionsDTO & TokenPayloadSchema;
 
@@ -24,10 +25,12 @@ export class ListTransactionByIdService
   constructor(
     private readonly transactionRepository: TransactionRepository,
     private readonly userRepository: UserRepository,
+    private readonly generateRecurringService: GenerateRecurringTransactionsService,
   ) {}
 
   async execute({
     sub,
+    workspaceId,
     startDate,
     endDate,
     page,
@@ -38,6 +41,9 @@ export class ListTransactionByIdService
     if (!user) {
       return left(new TransactionNotFoundError());
     }
+
+    // Gerar recorrências pendentes (Lazy Loading)
+    await this.generateRecurringService.execute({ workspaceId });
 
     const transaction =
       await this.transactionRepository.listTransactionsByUserId(

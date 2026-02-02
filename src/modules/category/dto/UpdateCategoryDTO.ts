@@ -1,12 +1,11 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 import { CategoryDTO } from './CategoryDTO';
 
-export class UpdateCategoryDTO extends OmitType(CategoryDTO, [
-  'id',
-  'workspaceId',
-]) {
-  @ApiProperty()
+export class UpdateCategoryDTO extends PartialType(
+  OmitType(CategoryDTO, ['id', 'workspaceId']),
+) {
+  @ApiPropertyOptional()
   @IsString()
-  categoryId!: string;
+  categoryId?: string;
 }

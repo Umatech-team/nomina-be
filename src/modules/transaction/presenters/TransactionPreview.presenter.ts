@@ -5,10 +5,9 @@ export class TransactionPreviewPresenter {
     return {
       id: transaction.id,
       type: transaction.type,
-      title: transaction.title,
-      category: transaction.category,
+      description: transaction.description,
+      categoryId: transaction.categoryId,
       amount: transaction.amountDecimal,
-      method: transaction.method,
       date: transaction.date,
     };
   }

@@ -5,4 +5,6 @@ const findSubscriptionSchema = z.object({
   subscriptionId: z.string().uuid('ID da assinatura inválido'),
 });
 
-export const FindSubscriptionGateway = new ZodValidationPipe(findSubscriptionSchema);
+export const FindSubscriptionGateway = new ZodValidationPipe(
+  findSubscriptionSchema,
+);

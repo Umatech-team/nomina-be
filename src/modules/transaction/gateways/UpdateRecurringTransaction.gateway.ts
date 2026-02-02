@@ -3,15 +3,15 @@ import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
 const updateRecurringTransactionSchema = z.object({
-  recurringTransactionId: z
-    .string()
-    .uuid('ID da transação recorrente inválido'),
-  accountId: z.string().uuid('ID da conta inválido'),
-  categoryId: z.string().uuid('ID da categoria inválido').nullable(),
-  description: z.string().min(1, 'Descrição é obrigatória'),
-  amount: z.number().positive('Valor deve ser positivo'),
-  frequency: z.nativeEnum(RecurrenceFrequency),
-  interval: z.number().int().positive('Intervalo deve ser um número positivo'),
+  categoryId: z.string().uuid('ID da categoria inválido').nullable().optional(),
+  description: z.string().min(1, 'Descrição é obrigatória').optional(),
+  amount: z.number().positive('Valor deve ser positivo').optional(),
+  frequency: z.nativeEnum(RecurrenceFrequency).optional(),
+  interval: z
+    .number()
+    .int()
+    .positive('Intervalo deve ser um número positivo')
+    .optional(),
   startDate: z
     .string()
     .refine(
@@ -23,7 +23,8 @@ const updateRecurringTransactionSchema = z.object({
         message: 'Data de início deve estar em um formato válido',
       },
     )
-    .transform((dateString) => new Date(dateString)),
+    .transform((dateString) => new Date(dateString))
+    .optional(),
   endDate: z
     .string()
     .refine(
@@ -36,8 +37,8 @@ const updateRecurringTransactionSchema = z.object({
       },
     )
     .transform((dateString) => new Date(dateString))
-    .nullable(),
-  active: z.boolean(),
+    .nullable()
+    .optional(),
 });
 
 export const UpdateRecurringTransactionGateway = new ZodValidationPipe(

@@ -17,7 +17,7 @@ export class TopExpensesByCategoryController {
   @Get('/top-expenses-by-category')
   @HttpCode(statusCode.OK)
   async handle(
-    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Query('pageSize') pageSize: string,
     @Query('startDate') startDate: Date,
     @Query('endDate') endDate: Date,
@@ -27,6 +27,7 @@ export class TopExpensesByCategoryController {
       startDate,
       endDate,
       sub,
+      workspaceId,
     });
 
     if (result.isLeft()) {

@@ -5,7 +5,6 @@ import { WorkspaceDTO } from './WorkspaceDTO';
 export class UpdateWorkspaceDTO extends OmitType(WorkspaceDTO, [
   'id',
   'createdAt',
-  'ownerId',
 ]) {
   @ApiProperty()
   @IsString()

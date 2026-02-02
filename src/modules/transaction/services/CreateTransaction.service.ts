@@ -1,23 +1,20 @@
-import { TransactionType } from '@constants/enums';
-import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
+import { TransactionStatus, TransactionType } from '@constants/enums';
+import { PrismaService } from '@infra/databases/prisma/prisma.service';
+import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
+import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
-import { MoneyUtils } from '@utils/MoneyUtils';
 import { CreateTransactionDTO } from '../dto/CreateTransactionDTO';
 import { Transaction } from '../entities/Transaction';
-import { InsufficientBalanceError } from '../errors/InsufficientBalanceError';
 import { InvalidAmountError } from '../errors/InvalidAmountError';
-import { TransactionRepository } from '../repositories/contracts/TransactionRepository';
-import { MonthSumarryWithPercentage } from '../valueObjects/MonthSumarryWithPercentage';
 
 type Request = CreateTransactionDTO & TokenPayloadSchema;
-type Errors = UnauthorizedError | InsufficientBalanceError | InvalidAmountError;
+type Errors = UnauthorizedError | InvalidAmountError;
 type Response = {
   transaction: Transaction;
-  newSummary: MonthSumarryWithPercentage;
 };
 
 @Injectable()
@@ -25,101 +22,91 @@ export class CreateTransactionService
   implements Service<Request, Errors, Response>
 {
   constructor(
-    private readonly transactionRepository: TransactionRepository,
-    private readonly userRepository: UserRepository,
+    private readonly accountRepository: AccountRepository,
+    private readonly categoryRepository: CategoryRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async execute({
-    sub,
-    amount,
-    category,
-    subCategory,
-    date,
+    workspaceId,
+    accountId,
+    categoryId,
     description,
-    currency,
+    amount,
+    date,
     type,
-    method,
-    title,
+    status = TransactionStatus.COMPLETED,
   }: Request): Promise<Either<Errors, Response>> {
-    const user = await this.userRepository.findUniqueById(sub);
-    amount = MoneyUtils.decimalToCents(amount);
-
-    if (!user) {
-      return left(new UnauthorizedError());
-    }
-
+    // Validate amount
     if (amount <= 0) {
       return left(new InvalidAmountError());
     }
 
-    const transaction = new Transaction({
-      userId: sub,
-      amount,
-      category,
-      subCategory,
-      date,
-      description,
-      currency,
-      type,
-      method,
-      title,
+    // Validate account belongs to workspace
+    const account = await this.accountRepository.findById(accountId);
+    if (!account || account.workspaceId !== workspaceId) {
+      return left(new UnauthorizedError());
+    }
+
+    // Validate category belongs to workspace if provided
+    if (categoryId) {
+      const category = await this.categoryRepository.findById(categoryId);
+      if (!category || category.workspaceId !== workspaceId) {
+        return left(new UnauthorizedError());
+      }
+    }
+
+    // Create transaction atomically with balance update
+    const result = await this.prisma.$transaction(async (tx) => {
+      // Create transaction
+      const transactionData = await tx.transaction.create({
+        data: {
+          workspaceId,
+          accountId,
+          categoryId,
+          description,
+          amount: BigInt(amount),
+          date,
+          type,
+          status,
+          recurringId: null,
+        },
+      });
+
+      // Update account balance ONLY if status is COMPLETED
+      if (status === TransactionStatus.COMPLETED) {
+        const balanceDelta =
+          type === TransactionType.INCOME ? Number(amount) : -Number(amount);
+
+        await tx.account.update({
+          where: { id: accountId },
+          data: { balance: { increment: balanceDelta } },
+        });
+      }
+
+      return transactionData;
     });
 
-    await this.transactionRepository.create(transaction);
-
-    await this.updateMonthlySummaryIncrementally(
-      user.id,
-      amount,
-      category === 'INVESTMENT' ? ('INVESTMENT' as TransactionType) : type,
-    );
-
-    const newSummary = await this.transactionRepository.getMonthlySummary(
-      user.id,
-      new Date(),
+    // Map to entity
+    const transaction = new Transaction(
+      {
+        workspaceId: result.workspaceId,
+        accountId: result.accountId,
+        categoryId: result.categoryId,
+        description: result.description,
+        amount: result.amount,
+        date: result.date,
+        type: result.type as TransactionType,
+        status: result.status as TransactionStatus,
+        recurringId: result.recurringId,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
+      },
+      result.id,
     );
 
     return right({
       transaction,
-      newSummary,
     });
-  }
-
-  private async updateMonthlySummaryIncrementally(
-    userId: number,
-    amount: number,
-    type: TransactionType,
-  ): Promise<void> {
-    const month = new Date();
-    const currentMonth = new Date(month.getFullYear(), month.getMonth(), 1);
-
-    const currentSummary = await this.transactionRepository.getMonthlySummary(
-      userId,
-      currentMonth,
-    );
-
-    let totalIncome = currentSummary.totalIncome;
-    let totalExpense = currentSummary.totalExpense;
-    let totalInvestments = currentSummary.totalInvestments;
-    let balance = currentSummary.balance;
-
-    if (type === 'INCOME') {
-      totalIncome += amount;
-      balance += amount;
-    } else if (type === 'EXPENSE') {
-      totalExpense += amount;
-      balance -= amount;
-    } else if (type === 'INVESTMENT') {
-      totalInvestments += amount;
-      balance -= amount;
-    }
-
-    await this.transactionRepository.updateMonthlySummary(
-      userId,
-      currentMonth,
-      totalIncome,
-      totalExpense,
-      totalInvestments,
-      balance,
-    );
   }
 }

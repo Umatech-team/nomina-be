@@ -1,5 +1,8 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { CheckLimit } from '@modules/subscription/decorators/CheckLimit.decorator';
+import { SubscriptionLimitsGuard } from '@modules/subscription/guards/SubscriptionLimits.guard';
+import { ResourceType } from '@modules/subscription/services/CheckSubscriptionLimits.service';
+import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
@@ -18,6 +21,8 @@ export class CreateWorkspaceController {
 
   @Post()
   @HttpCode(statusCode.CREATED)
+  @UseGuards(SubscriptionLimitsGuard)
+  @CheckLimit(ResourceType.WORKSPACE)
   async handle(
     @CurrentLoggedUser() { sub }: TokenPayloadSchema,
     @Body(CreateWorkspaceGateway) body: CreateWorkspaceDTO,

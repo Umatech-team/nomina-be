@@ -5,7 +5,7 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { TransactionSummaryPresenter } from '../presenters/TransactionSummary.presenter';
-import { FindTransactionSummaryByUserIdService } from '../services/FindTransactionSummaryByUserId.service';
+import { FindTransactionSummaryByUserIdService } from '../services/FindTransactionSummaryByMemberId.service';
 
 @ApiTags('Transaction')
 @Controller('transaction/summary')
@@ -17,11 +17,12 @@ export class FindTransactionSummaryByUserIdController {
   @Get()
   @HttpCode(statusCode.OK)
   async handle(
-    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Query('period') period: '7d' | '30d',
   ) {
     const result = await this.findTransactionSummaryByUserIdService.execute({
       sub,
+      workspaceId,
       period,
     });
 

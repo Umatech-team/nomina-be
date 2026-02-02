@@ -1,5 +1,5 @@
-import { TransactionType } from '@constants/enums';
-import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
+import { TransactionStatus, TransactionType } from '@constants/enums';
+import { PrismaService } from '@infra/databases/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
@@ -7,14 +7,10 @@ import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { FindTransactionDTO } from '../dto/FindTransactionDTO';
 import { Transaction } from '../entities/Transaction';
-import { InvalidAmountError } from '../errors/InvalidAmountError';
 import { TransactionNotFoundError } from '../errors/TransactionNotFoundError';
-import { TransactionRepository } from '../repositories/contracts/TransactionRepository';
 
 type Request = FindTransactionDTO & TokenPayloadSchema;
-
-type Errors = UnauthorizedError | InvalidAmountError | TransactionNotFoundError;
-
+type Errors = UnauthorizedError | TransactionNotFoundError;
 type Response = {
   transaction: Transaction;
 };
@@ -23,83 +19,66 @@ type Response = {
 export class DeleteTransactionService
   implements Service<Request, Errors, Response>
 {
-  constructor(
-    private readonly transactionRepository: TransactionRepository,
-    private readonly userRepository: UserRepository,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async execute({
-    sub,
+    workspaceId,
     transactionId,
   }: Request): Promise<Either<Errors, Response>> {
-    const user = await this.userRepository.findUniqueById(sub);
-
-    if (!user) {
-      return left(new UnauthorizedError());
-    }
-
-    const transaction =
-      await this.transactionRepository.findUniqueById(transactionId);
+    // Fetch transaction to validate ownership
+    const transaction = await this.prisma.transaction.findUnique({
+      where: { id: transactionId },
+    });
 
     if (!transaction) {
       return left(new TransactionNotFoundError());
     }
 
-    if (transaction.userId !== sub) {
+    if (transaction.workspaceId !== workspaceId) {
       return left(new UnauthorizedError());
     }
 
-    await this.transactionRepository.delete(transactionId);
-
-    await this.updateMonthlySummaryDecrementally(
-      user.id,
-      transaction.amount,
-      transaction.category === 'INVESTMENT'
-        ? ('INVESTMENT' as TransactionType)
-        : (transaction.type as TransactionType),
+    // Map to entity before deletion
+    const transactionEntity = new Transaction(
+      {
+        workspaceId: transaction.workspaceId,
+        accountId: transaction.accountId,
+        categoryId: transaction.categoryId,
+        description: transaction.description,
+        amount: transaction.amount,
+        date: transaction.date,
+        type: transaction.type as TransactionType,
+        status: transaction.status as TransactionStatus,
+        recurringId: transaction.recurringId,
+        createdAt: transaction.createdAt,
+        updatedAt: transaction.updatedAt,
+      },
+      transaction.id,
     );
+
+    // Delete transaction atomically with balance reversion
+    await this.prisma.$transaction(async (tx) => {
+      // Delete transaction
+      await tx.transaction.delete({
+        where: { id: transactionId },
+      });
+
+      // Revert balance if status was COMPLETED
+      if (transaction.status === TransactionStatus.COMPLETED) {
+        const balanceDelta =
+          transaction.type === TransactionType.INCOME
+            ? -Number(transaction.amount)
+            : Number(transaction.amount);
+
+        await tx.account.update({
+          where: { id: transaction.accountId },
+          data: { balance: { increment: balanceDelta } },
+        });
+      }
+    });
 
     return right({
-      transaction,
+      transaction: transactionEntity,
     });
-  }
-
-  private async updateMonthlySummaryDecrementally(
-    userId: number,
-    amount: number,
-    type: TransactionType,
-  ): Promise<void> {
-    const month = new Date();
-    const currentMonth = new Date(month.getFullYear(), month.getMonth(), 1);
-
-    const currentSummary = await this.transactionRepository.getMonthlySummary(
-      userId,
-      currentMonth,
-    );
-
-    let totalIncome = currentSummary.totalIncome;
-    let totalExpense = currentSummary.totalExpense;
-    let totalInvestments = currentSummary.totalInvestments;
-    let balance = currentSummary.balance;
-
-    if (type === 'INCOME') {
-      totalIncome -= amount;
-      balance -= amount;
-    } else if (type === 'EXPENSE') {
-      totalExpense -= amount;
-      balance += amount;
-    } else if (type === 'INVESTMENT') {
-      totalInvestments -= amount;
-      balance += amount;
-    }
-
-    await this.transactionRepository.updateMonthlySummary(
-      userId,
-      currentMonth,
-      totalIncome,
-      totalExpense,
-      totalInvestments,
-      balance,
-    );
   }
 }

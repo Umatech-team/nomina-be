@@ -6,6 +6,7 @@ export abstract class AccountRepository {
     name: string,
     workspaceId: string,
   ): Promise<Account | null>;
+
   abstract findById(accountId: string): Promise<Account | null>;
   abstract update(account: Account): Promise<Account>;
   abstract delete(accountId: string): Promise<void>;

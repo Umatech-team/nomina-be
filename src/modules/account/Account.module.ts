@@ -1,5 +1,6 @@
 import { DatabaseModule } from '@infra/databases/Database.module';
 import { Module } from '@nestjs/common';
+import { SubscriptionModule } from '../subscription/Subscription.module';
 import { CreateAccountController } from './controllers/CreateAccount.controller';
 import { DeleteAccountController } from './controllers/DeleteAccount.controller';
 import { FindAccountController } from './controllers/FindAccount.controller';
@@ -12,7 +13,7 @@ import { ListAccountsService } from './services/ListAccounts.service';
 import { UpdateAccountService } from './services/UpdateAccount.service';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, SubscriptionModule],
   controllers: [
     CreateAccountController,
     UpdateAccountController,

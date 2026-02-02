@@ -7,7 +7,7 @@ import { AccountMapper } from './AccountMapper';
 @Injectable()
 export class AccountRepositoryImplementation implements AccountRepository {
   constructor(private readonly prisma: PrismaService) {}
-  
+
   async findByNameAndWorkspaceId(
     name: string,
     workspaceId: string,

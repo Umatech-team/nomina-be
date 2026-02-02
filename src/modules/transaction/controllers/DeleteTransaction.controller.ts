@@ -11,22 +11,27 @@ import { DeleteTransactionService } from '../services/DeleteTransaction.service'
 @Controller('transaction')
 export class DeleteTransactionController {
   constructor(
-    private readonly findTransactionByIdService: DeleteTransactionService,
+    private readonly deleteTransactionService: DeleteTransactionService,
   ) {}
 
   @Delete('delete')
   @HttpCode(statusCode.OK)
   async handle(
-    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
-    @Query('id') transactionId: FindTransactionDTO,
+    @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
+    @Query() { transactionId }: FindTransactionDTO,
   ) {
-    const result = await this.findTransactionByIdService.execute({
-      transactionId: Number(transactionId),
+    const result = await this.deleteTransactionService.execute({
+      transactionId,
       sub,
+      workspaceId,
     });
 
     if (result.isLeft()) {
       return ErrorPresenter.toHTTP(result.value);
     }
+
+    return {
+      message: 'Transaction deleted successfully',
+    };
   }
 }

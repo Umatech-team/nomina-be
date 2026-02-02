@@ -5,4 +5,6 @@ const findWorkspaceUserSchema = z.object({
   workspaceUserId: z.string().uuid('ID do membro do workspace inválido'),
 });
 
-export const FindWorkspaceUserGateway = new ZodValidationPipe(findWorkspaceUserSchema);
+export const FindWorkspaceUserGateway = new ZodValidationPipe(
+  findWorkspaceUserSchema,
+);

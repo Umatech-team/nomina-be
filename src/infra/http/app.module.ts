@@ -1,6 +1,7 @@
 import { AccountModule } from '@modules/account/Account.module';
 import { CategoryModule } from '@modules/category/Category.module';
 import { ReportModule } from '@modules/report/Report.module';
+import { SubscriptionModule } from '@modules/subscription/Subscription.module';
 import { TransactionModule } from '@modules/transaction/Transaction.module';
 import { UserModule } from '@modules/user/User.module';
 import { WorkspaceModule } from '@modules/workspace/Workspace.module';
@@ -12,25 +13,24 @@ import { JwtAuthGuard } from '@providers/auth/guards/jwtAuth.guard';
 import { RolesGuard } from '@providers/auth/guards/Roles.guard';
 import { CryptographyModule } from '@providers/cryptography/Cryptography.module';
 import { DateModule } from '@providers/date/Date.module';
+import { RedisModule } from '../cache/Redis.module';
 import { DatabaseModule } from '../databases/Database.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    
-    // Infrastructure
     DatabaseModule,
+    RedisModule,
     AuthModule,
     CryptographyModule,
     DateModule,
-    
-    // Domain Modules
     UserModule,
     WorkspaceModule,
     TransactionModule,
     AccountModule,
     CategoryModule,
     ReportModule,
+    SubscriptionModule,
   ],
   providers: [
     {

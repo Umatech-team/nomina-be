@@ -7,4 +7,6 @@ const updateWorkspaceUserSchema = z.object({
   role: z.nativeEnum(UserRole),
 });
 
-export const UpdateWorkspaceUserGateway = new ZodValidationPipe(updateWorkspaceUserSchema);
+export const UpdateWorkspaceUserGateway = new ZodValidationPipe(
+  updateWorkspaceUserSchema,
+);

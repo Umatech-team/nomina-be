@@ -3,7 +3,13 @@ import { z } from 'zod';
 
 const listWorkspacesSchema = z.object({
   page: z.number().int().positive('Página deve ser um número positivo'),
-  pageSize: z.number().int().positive('Tamanho da página deve ser um número positivo').max(100, 'Tamanho da página muito grande'),
+  pageSize: z
+    .number()
+    .int()
+    .positive('Tamanho da página deve ser um número positivo')
+    .max(100, 'Tamanho da página muito grande'),
 });
 
-export const ListWorkspacesGateway = new ZodValidationPipe(listWorkspacesSchema);
+export const ListWorkspacesGateway = new ZodValidationPipe(
+  listWorkspacesSchema,
+);

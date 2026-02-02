@@ -16,9 +16,10 @@ export class FindMonthlySummaryWithPercentageController {
 
   @Get('monthly-summary-with-percentage')
   @HttpCode(statusCode.OK)
-  async handle(@CurrentLoggedUser() { sub }: TokenPayloadSchema) {
+  async handle(@CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema) {
     const result = await this.findMonthlySummaryWithPercentageService.execute({
       sub,
+      workspaceId,
     });
 
     if (result.isLeft()) {

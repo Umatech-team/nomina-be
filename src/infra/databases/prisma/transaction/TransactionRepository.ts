@@ -1,6 +1,5 @@
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
-import { MonthSumarryWithPercentage } from '@modules/transaction/valueObjects/MonthSumarryWithPercentage';
 import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpensesByCategory';
 import { TransactionSummary } from '@modules/transaction/valueObjects/TransactionSummary';
 import { Injectable } from '@nestjs/common';
@@ -14,7 +13,7 @@ export class TransactionRepositoryImplementation
   constructor(private readonly prisma: PrismaService) {}
 
   async listTransactionsByUserId(
-    userId: number,
+    userId: string,
     page: number,
     pageSize: number,
     startDate: Date,
@@ -24,7 +23,7 @@ export class TransactionRepositoryImplementation
       startDate && endDate
         ? await this.prisma.transaction.findMany({
             where: {
-              userId,
+              workspaceId: userId,
               date: {
                 gte: new Date(
                   new Date(startDate).getUTCFullYear(),
@@ -54,7 +53,7 @@ export class TransactionRepositoryImplementation
           })
         : await this.prisma.transaction.findMany({
             where: {
-              userId,
+              workspaceId: userId,
             },
             skip: (page - 1) * pageSize,
             take: pageSize,
@@ -67,7 +66,7 @@ export class TransactionRepositoryImplementation
   }
 
   findTransactionSummaryByUserId = async (
-    userId: number,
+    userId: string,
     period: '7d' | '30d',
   ): Promise<TransactionSummary[]> => {
     const endDate = new Date();
@@ -77,7 +76,7 @@ export class TransactionRepositoryImplementation
     const transactions = await this.prisma.transaction.groupBy({
       by: ['date', 'type'],
       where: {
-        userId,
+        workspaceId: userId,
         date: { gte: startDate, lte: endDate },
       },
       _sum: {
@@ -96,7 +95,7 @@ export class TransactionRepositoryImplementation
 
     transactions.forEach((transaction) => {
       const dateKey = transaction.date.toISOString().split('T')[0];
-      const amount = Number(transaction._sum.amount ?? 0);
+      const amount = Number(transaction._sum?.amount ?? 0);
 
       if (!dailySummaryMap.has(dateKey)) {
         dailySummaryMap.set(dateKey, {
@@ -114,20 +113,19 @@ export class TransactionRepositoryImplementation
       }
     });
 
-    const result = Array.from(dailySummaryMap.values()).map((summary) =>
-      TransactionMapper.toTransactionSummary(
+    const result = Array.from(dailySummaryMap.values()).map(
+      (summary) =>
         new TransactionSummary({
           date: summary.date,
           income: summary.income,
           expense: summary.expense,
         }),
-      ),
     );
 
     return result;
   };
 
-  async findUniqueById(id: number): Promise<Transaction | null> {
+  async findUniqueById(id: string): Promise<Transaction | null> {
     const transaction = await this.prisma.transaction.findUnique({
       where: {
         id,
@@ -148,13 +146,13 @@ export class TransactionRepositoryImplementation
     console.log('transaction.id', transaction.id);
     await this.prisma.transaction.update({
       where: {
-        id: transaction.id as number,
+        id: transaction.id,
       },
       data: TransactionMapper.toPrisma(transaction),
     });
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await this.prisma.transaction.delete({
       where: {
         id,
@@ -163,7 +161,7 @@ export class TransactionRepositoryImplementation
   }
 
   async getTopExpensesByCategory(
-    userId: number,
+    userId: string,
     startDate: Date,
     endDate: Date,
     pageSize = 9,
@@ -175,10 +173,10 @@ export class TransactionRepositoryImplementation
     normalizedEndDate.setHours(23, 59, 59, 999);
 
     const expenses = await this.prisma.transaction.groupBy({
-      by: ['category'],
+      by: ['categoryId'],
       _sum: { amount: true },
       where: {
-        userId,
+        workspaceId: userId,
         type: 'EXPENSE',
         date: { gte: normalizedStartDate, lte: normalizedEndDate },
       },
@@ -186,125 +184,12 @@ export class TransactionRepositoryImplementation
       take: pageSize,
     });
 
-    return expenses.map((expense) =>
-      TransactionMapper.toTopExpensesByCategory(
+    return expenses.map(
+      (expense) =>
         new TopExpensesByCategory({
-          category: expense.category,
-          total: Number(expense._sum.amount ?? 0),
+          category: expense.categoryId ?? '',
+          total: Number(expense._sum?.amount ?? 0),
         }),
-      ),
     );
-  }
-
-  async getMonthlySummary(
-    userId: number,
-    currentMonth: Date,
-  ): Promise<MonthSumarryWithPercentage> {
-    const currentMonthFormatted = new Date(currentMonth);
-    currentMonthFormatted.setDate(1);
-    currentMonthFormatted.setHours(0, 0, 0, 0);
-
-    let currentMonthSummary = await this.prisma.userMonthlySummary.findUnique(
-      {
-        where: {
-          userId_month: { userId, month: currentMonthFormatted },
-        },
-      },
-    );
-
-    const previousMonth = new Date(currentMonthFormatted);
-    previousMonth.setMonth(previousMonth.getMonth() - 1);
-
-    const previousMonthSummary =
-      await this.prisma.userMonthlySummary.findUnique({
-        where: {
-          userId_month: { userId, month: previousMonth },
-        },
-      });
-
-    if (!currentMonthSummary) {
-      currentMonthSummary = await this.prisma.userMonthlySummary.create({
-        data: {
-          userId,
-          month: currentMonthFormatted,
-          totalIncome: 0,
-          totalExpense: 0,
-          totalInvestments: previousMonthSummary?.totalInvestments ?? 0,
-          balance: previousMonthSummary?.balance ?? 0,
-        },
-      });
-    }
-
-    const calculatePercentage = (current: number, previous: number): number => {
-      if (current === 0 || previous === 0) {
-        return 0;
-      }
-
-      return ((current - previous) / previous) * 100;
-    };
-
-    const incomeChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.totalIncome),
-      previousMonthSummary ? Number(previousMonthSummary.totalIncome) : 0,
-    );
-    const expenseChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.totalExpense),
-      previousMonthSummary ? Number(previousMonthSummary.totalExpense) : 0,
-    );
-    const investmentsChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.totalInvestments),
-      previousMonthSummary ? Number(previousMonthSummary.totalInvestments) : 0,
-    );
-    const balanceChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.balance),
-      previousMonthSummary ? Number(previousMonthSummary.balance) : 0,
-    );
-
-    const result = TransactionMapper.toMonthSummaryWithPercentage({
-      ...currentMonthSummary,
-      totalIncome: Number(currentMonthSummary.totalIncome),
-      totalExpense: Number(currentMonthSummary.totalExpense),
-      totalInvestments: Number(currentMonthSummary.totalInvestments),
-      balance: Number(currentMonthSummary.balance),
-      percentageChanges: {
-        income: incomeChangePercentage,
-        expense: expenseChangePercentage,
-        balance: balanceChangePercentage,
-        investments: investmentsChangePercentage,
-      },
-    }) as MonthSumarryWithPercentage;
-
-    return result;
-  }
-
-  async updateMonthlySummary(
-    userId: number,
-    month: Date,
-    totalIncome?: number,
-    totalExpense?: number,
-    totalInvestments?: number,
-    balance?: number,
-  ): Promise<void> {
-    const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
-
-    await this.prisma.userMonthlySummary.upsert({
-      where: {
-        userId_month: { userId, month: startOfMonth },
-      },
-      update: {
-        totalIncome,
-        totalExpense,
-        totalInvestments,
-        balance,
-      },
-      create: {
-        userId,
-        month: startOfMonth,
-        totalIncome,
-        totalExpense,
-        totalInvestments,
-        balance,
-      },
-    });
   }
 }

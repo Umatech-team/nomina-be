@@ -17,7 +17,7 @@ export class ListTransactionController {
   @Get()
   @HttpCode(statusCode.OK)
   async handle(
-    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Query('page') page: string,
     @Query('pageSize') pageSize: string,
     @Query('startDate') startDate: Date,
@@ -29,6 +29,7 @@ export class ListTransactionController {
       startDate,
       endDate,
       sub,
+      workspaceId,
     });
 
     if (result.isLeft()) {

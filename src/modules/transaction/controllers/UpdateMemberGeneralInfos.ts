@@ -4,10 +4,9 @@ import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
-import { MoneyUtils } from '@utils/MoneyUtils';
 import { UpdateTransactionDTO } from '../dto/UpdateTransactionDTO';
 import { UpdateTransactionGateway } from '../gateways/UpdateTransaction.gateway';
-import { TransactionPreviewPresenter } from '../presenters/TransactionPreview.presenter';
+import { TransactionPresenter } from '../presenters/Transaction.presenter';
 import { UpdateTransactionService } from '../services/UpdateTransaction.service';
 
 @ApiTags('Transaction')
@@ -20,24 +19,24 @@ export class UpdateTransactionController {
   @Patch('/update')
   @HttpCode(statusCode.OK)
   async handle(
-    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Body(UpdateTransactionGateway)
     body: UpdateTransactionDTO,
   ) {
     const result = await this.updateTransactionService.execute({
       ...body,
       sub,
+      workspaceId,
     });
 
     if (result.isLeft()) {
       return ErrorPresenter.toHTTP(result.value);
     }
 
-    const { transaction, newBalance } = result.value;
+    const { transaction } = result.value;
 
     return {
-      transaction: TransactionPreviewPresenter.toHTTP(transaction),
-      newBalance: MoneyUtils.centsToDecimal(newBalance), // Apenas decimal, sem formatação
+      transaction: TransactionPresenter.toHTTP(transaction),
     };
   }
 }

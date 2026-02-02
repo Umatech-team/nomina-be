@@ -2,6 +2,7 @@ import { TransactionType } from '@constants/enums';
 import { Category } from '@modules/category/entities/Category';
 import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { CategoryMapper } from './CategoryMapper';
 
@@ -97,7 +98,7 @@ export class CategoryRepositoryImplementation implements CategoryRepository {
     page: number = 1,
     limit: number = 50,
   ): Promise<{ categories: Category[]; total: number }> {
-    const where: any = {
+    const where: Prisma.CategoryWhereInput = {
       workspaceId,
     };
 
