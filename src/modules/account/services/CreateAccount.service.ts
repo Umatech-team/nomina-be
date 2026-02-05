@@ -1,6 +1,6 @@
 import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
 import { Injectable } from '@nestjs/common';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
@@ -9,7 +9,7 @@ import { Account } from '../entities/Account';
 import { ConflictAccountError } from '../errors/ConflictAccountError';
 import { AccountRepository } from '../repositories/contracts/AccountRepository';
 
-type Request = CreateAccountDTO & TokenPayloadSchema;
+type Request = CreateAccountDTO & TokenPayloadBase;
 type Errors = ConflictAccountError;
 type Response = {
   account: Account;
