@@ -1,36 +1,23 @@
 import { ValueObject } from '@shared/core/Entities/ValueObject';
 
-export type MonthSumarryWithPercentageType = {
-  userId: number;
-  id: number;
+export type MonthSummaryType = {
   month: Date;
   totalIncome: number;
   totalExpense: number;
   totalInvestments: number;
-  balance: number;
-  percentageChanges: {
-    income: number;
-    expense: number;
-    balance: number;
-    investments: number;
+  rate: {
+    currentMonthSaving: number;
+    previousMonthCompareSaving: number;
   };
 };
 
-export class MonthSumarryWithPercentage extends ValueObject<MonthSumarryWithPercentageType> {
-  constructor(props: MonthSumarryWithPercentageType) {
-    const monthSumarryWithPercentageProps = {
-      ...props,
-    };
-
-    super(monthSumarryWithPercentageProps);
+export class MonthSummary extends ValueObject<MonthSummaryType> {
+  constructor(props: MonthSummaryType) {
+    super(props);
   }
 
-  get userId() {
-    return this.props.userId;
-  }
-
-  get id() {
-    return this.props.id;
+  static create(props: MonthSummaryType): MonthSummary {
+    return new MonthSummary(props);
   }
 
   get month() {
@@ -49,11 +36,7 @@ export class MonthSumarryWithPercentage extends ValueObject<MonthSumarryWithPerc
     return this.props.totalInvestments;
   }
 
-  get balance() {
-    return this.props.balance;
-  }
-
-  get percentageChanges() {
-    return this.props.percentageChanges;
+  get rate() {
+    return this.props.rate;
   }
 }
