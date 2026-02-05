@@ -9,7 +9,7 @@ export abstract class TransactionRepository implements Repository<Transaction> {
   abstract delete(id: string): Promise<void>;
   abstract findUniqueById(id: string): Promise<Transaction | null>;
   abstract listTransactionsByUserId(
-    userId: string,
+    workspaceId: string,
     page: number,
     pageSize: number,
     startDate?: Date,
@@ -23,8 +23,53 @@ export abstract class TransactionRepository implements Repository<Transaction> {
     pageSize: number,
   ): Promise<TopExpensesByCategory[]>;
 
-  abstract findTransactionSummaryByUserId(
-    userId: string,
+  abstract listTransactionsSummaryByWorkspaceId(
+    workspaceId: string,
     period: '7d' | '30d',
   ): Promise<TransactionSummary[]>;
+
+  abstract sumTransactionsByDateRange(
+    workspaceId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<{
+    totalIncome: number;
+    totalExpense: number;
+    balance: number;
+  }>;
+
+  abstract createWithBalanceUpdate(transaction: Transaction): Promise<void>;
+  abstract updateWithBalanceUpdate(
+    oldTransaction: Transaction,
+    newTransaction: Transaction,
+  ): Promise<void>;
+
+  abstract deleteWithBalanceReversion(transaction: Transaction): Promise<void>;
+  abstract toggleStatusWithBalanceUpdate(
+    transactionId: string,
+  ): Promise<Transaction>;
+
+  abstract getExpensesByCategoryReport(
+    workspaceId: string,
+    month: number,
+    year: number,
+  ): Promise<
+    Array<{
+      categoryId: string | null;
+      totalAmount: number;
+    }>
+  >;
+
+  abstract getCashFlowEvolutionReport(
+    workspaceId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<
+    Array<{
+      date: string;
+      income: number;
+      expense: number;
+      balance: number;
+    }>
+  >;
 }
