@@ -5,13 +5,12 @@ import { CreateRecurringTransactionController } from './controllers/CreateRecurr
 import { CreateTransactionController } from './controllers/CreateTransaction.controller';
 import { DeleteRecurringTransactionController } from './controllers/DeleteRecurringTransaction.controller';
 import { DeleteTransactionController } from './controllers/DeleteTransaction.controller';
-import { FindMonthlySummaryWithPercentageController } from './controllers/FindMonthlySummaryWithPercentage.controller';
+import { FindMonthSummaryController } from './controllers/FindMonthSummary.controller';
 import { FindRecurringTransactionController } from './controllers/FindRecurringTransaction.controller';
 import { FindTransactionController } from './controllers/FindTransaction.controller';
-import { FindTransactionSummaryByUserIdController } from './controllers/FindTransactionSummaryByMemberId.controller';
 import { ListRecurringTransactionsController } from './controllers/ListRecurringTransactions.controller';
 import { ListTransactionController } from './controllers/ListTransaction.controller';
-import { TopExpensesByCategoryController } from './controllers/ListTransaction.controller copy';
+import { ListTransactionSummaryByWorkspaceIdController } from './controllers/ListTransactionSummaryByWorkspaceId.controller';
 import { ToggleActiveRecurringTransactionController } from './controllers/ToggleActiveRecurringTransaction.controller';
 import { ToggleTransactionStatusController } from './controllers/ToggleTransactionStatus.controller';
 import { UpdateTransactionController } from './controllers/UpdateMemberGeneralInfos';
@@ -21,10 +20,10 @@ import { CreateRecurringTransactionService } from './services/CreateRecurringTra
 import { CreateTransactionService } from './services/CreateTransaction.service';
 import { DeleteRecurringTransactionService } from './services/DeleteRecurringTransaction.service';
 import { DeleteTransactionService } from './services/DeleteTransaction.service';
-import { FindMonthlySummaryWithPercentageService } from './services/FindMonthSummary.service';
+import { FindMonthSummaryService } from './services/FindMonthSummary.service';
 import { FindRecurringTransactionService } from './services/FindRecurringTransaction.service';
 import { FindTransactionByIdService } from './services/FindTransactionById.service';
-import { FindTransactionSummaryByUserIdService } from './services/FindTransactionSummaryByMemberId.service';
+import { ListTransactionSummaryByWorkspaceIdService } from './services/FindTransactionSummaryByMemberId.service';
 import { GenerateRecurringTransactionsService } from './services/GenerateRecurringTransactions.service';
 import { ListRecurringTransactionsService } from './services/ListRecurringTransactions.service';
 import { ListTopExpensesByCategoryService } from './services/ListTopExpensesByCategory.service';
@@ -38,9 +37,8 @@ import { UpdateTransactionService } from './services/UpdateTransaction.service';
   controllers: [
     CreateTransactionController,
     DeleteTransactionController,
-    FindMonthlySummaryWithPercentageController,
-    FindTransactionSummaryByUserIdController,
-    TopExpensesByCategoryController,
+    FindMonthSummaryController,
+    ListTransactionSummaryByWorkspaceIdController,
     FindTransactionController,
     ListTransactionController,
     UpdateTransactionController,
@@ -57,8 +55,8 @@ import { UpdateTransactionService } from './services/UpdateTransaction.service';
   providers: [
     CreateTransactionService,
     DeleteTransactionService,
-    FindMonthlySummaryWithPercentageService,
-    FindTransactionSummaryByUserIdService,
+    FindMonthSummaryService,
+    ListTransactionSummaryByWorkspaceIdService,
     ListTopExpensesByCategoryService,
     FindTransactionByIdService,
     ListTransactionByIdService,
