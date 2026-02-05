@@ -4,6 +4,7 @@ type TransactionSummaryType = {
   date: Date;
   income: number;
   expense: number;
+  balance: number;
 };
 
 export class TransactionSummary extends ValueObject<TransactionSummaryType> {
@@ -25,5 +26,9 @@ export class TransactionSummary extends ValueObject<TransactionSummaryType> {
 
   get expense() {
     return this.props.expense;
+  }
+
+  get balance() {
+    return this.props.balance;
   }
 }
