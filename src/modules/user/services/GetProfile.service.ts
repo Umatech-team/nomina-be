@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { User } from '../entities/User';
@@ -7,7 +7,7 @@ import { EmailAlreadyExistsError } from '../errors/EmailAlreadyExistsError';
 import { UserNotFoundError } from '../errors/UserNotFoundError';
 import { UserRepository } from '../repositories/contracts/UserRepository';
 
-type Request = TokenPayloadSchema;
+type Request = TokenPayloadBase;
 
 type Errors = UserNotFoundError | EmailAlreadyExistsError;
 
