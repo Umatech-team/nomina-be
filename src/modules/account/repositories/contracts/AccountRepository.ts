@@ -15,4 +15,6 @@ export abstract class AccountRepository {
     page: number,
     pageSize: number,
   ): Promise<{ accounts: Account[]; total: number }>;
+
+  abstract findAllByWorkspaceId(workspaceId: string): Promise<Account[]>;
 }
