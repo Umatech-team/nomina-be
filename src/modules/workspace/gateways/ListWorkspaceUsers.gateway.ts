@@ -3,8 +3,8 @@ import { z } from 'zod';
 
 const listWorkspaceUsersSchema = z.object({
   workspaceId: z.string().uuid('ID do workspace inválido'),
-  page: z.number().int().positive('Página deve ser um número positivo'),
-  pageSize: z
+  page: z.coerce.number().int().positive('Página deve ser um número positivo'),
+  pageSize: z.coerce
     .number()
     .int()
     .positive('Tamanho da página deve ser um número positivo')
