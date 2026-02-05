@@ -95,4 +95,17 @@ export class AccountRepositoryImplementation implements AccountRepository {
       total,
     };
   }
+
+  async findAllByWorkspaceId(workspaceId: string): Promise<Account[]> {
+    const accounts = await this.prisma.account.findMany({
+      where: {
+        workspaceId,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    return accounts.map(AccountMapper.toEntity);
+  }
 }
