@@ -99,7 +99,7 @@ export class CategoryRepositoryImplementation implements CategoryRepository {
     limit: number = 50,
   ): Promise<{ categories: Category[]; total: number }> {
     const where: Prisma.CategoryWhereInput = {
-      workspaceId,
+      OR: [{ workspaceId }, { workspaceId: null }],
     };
 
     if (filters?.type) {
@@ -146,5 +146,15 @@ export class CategoryRepositoryImplementation implements CategoryRepository {
       where: { parentId: categoryId },
       data: { parentId: newParentId },
     });
+  }
+
+  async findManyByIds(categoryIds: string[]): Promise<Category[]> {
+    const categories = await this.prisma.category.findMany({
+      where: {
+        id: { in: categoryIds },
+      },
+    });
+
+    return categories.map(CategoryMapper.toEntity);
   }
 }
