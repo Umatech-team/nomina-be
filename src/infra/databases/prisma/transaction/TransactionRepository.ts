@@ -213,7 +213,6 @@ export class TransactionRepositoryImplementation
     const normalizedEndDate = new Date(endDate);
     normalizedEndDate.setHours(23, 59, 59, 999);
 
-    // Aggregate INCOME transactions
     const incomeResult = await this.prisma.transaction.aggregate({
       _sum: { amount: true },
       where: {
@@ -270,7 +269,6 @@ export class TransactionRepositoryImplementation
     newTransaction: Transaction,
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
-      // Calculate old effect on balance
       const oldEffect =
         oldTransaction.status === 'COMPLETED'
           ? oldTransaction.type === 'INCOME'
@@ -278,7 +276,6 @@ export class TransactionRepositoryImplementation
             : -Number(oldTransaction.amount)
           : 0;
 
-      // Calculate new effect on balance
       const newEffect =
         newTransaction.status === 'COMPLETED'
           ? newTransaction.type === 'INCOME'
@@ -286,13 +283,11 @@ export class TransactionRepositoryImplementation
             : -Number(newTransaction.amount)
           : 0;
 
-      // Update transaction
       await tx.transaction.update({
         where: { id: newTransaction.id },
         data: TransactionMapper.toPrisma(newTransaction),
       });
 
-      // Revert old balance effect from old account
       if (oldEffect !== 0) {
         await tx.account.update({
           where: { id: oldTransaction.accountId },
@@ -300,7 +295,6 @@ export class TransactionRepositoryImplementation
         });
       }
 
-      // Apply new balance effect to new account
       if (newEffect !== 0) {
         await tx.account.update({
           where: { id: newTransaction.accountId },
