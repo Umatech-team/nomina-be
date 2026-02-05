@@ -8,13 +8,13 @@ import { TransactionPreviewPresenter } from '../presenters/TransactionPreview.pr
 import { ListTransactionByIdService } from '../services/ListTransactionById.service';
 
 @ApiTags('Transaction')
-@Controller('transaction/list')
+@Controller('transaction')
 export class ListTransactionController {
   constructor(
     private readonly listTransactionByIdService: ListTransactionByIdService,
   ) {}
 
-  @Get()
+  @Get('/list')
   @HttpCode(statusCode.OK)
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
