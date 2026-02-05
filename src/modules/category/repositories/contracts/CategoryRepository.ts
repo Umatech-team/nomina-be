@@ -34,4 +34,6 @@ export abstract class CategoryRepository {
     categoryId: string,
     newParentId: string | null,
   ): Promise<void>;
+
+  abstract findManyByIds(categoryIds: string[]): Promise<Category[]>;
 }
