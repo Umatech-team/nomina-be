@@ -9,6 +9,7 @@ export class TransactionPreviewPresenter {
       categoryId: transaction.categoryId,
       amount: transaction.amountDecimal,
       date: transaction.date,
+      status: transaction.status,
     };
   }
 }
