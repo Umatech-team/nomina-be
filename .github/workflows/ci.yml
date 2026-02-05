@@ -16,7 +16,7 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
-          POSTGRES_DB: nomina_test
+          POSTGRES_DB: lastro_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -40,7 +40,7 @@ jobs:
     - name: Setup test environment
       run: |
         cp .env.example .env.test || echo "No .env.example found, creating basic .env.test"
-        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/nomina_test" >> .env.test
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/lastro_test" >> .env.test
         echo "JWT_PRIVATE_KEY_BASE64=" >> .env.test
         echo "JWT_PUBLIC_KEY_BASE64=" >> .env.test
 
@@ -50,7 +50,7 @@ jobs:
     - name: Run database migrations
       run: bunx prisma migrate deploy
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nomina_test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/lastro_test
 
     - name: Run linting
       run: bun run lint
@@ -59,19 +59,19 @@ jobs:
       run: bun test
       env:
         NODE_ENV: test
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nomina_test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/lastro_test
 
     - name: Run e2e tests
       run: bun run test:e2e
       env:
         NODE_ENV: test
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nomina_test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/lastro_test
 
     - name: Run test coverage
       run: bun run test:cov
       env:
         NODE_ENV: test
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nomina_test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/lastro_test
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
