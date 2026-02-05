@@ -1,6 +1,6 @@
 import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
 import { Injectable } from '@nestjs/common';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
@@ -9,7 +9,7 @@ import { Transaction } from '../entities/Transaction';
 import { TransactionNotFoundError } from '../errors/TransactionNotFoundError';
 import { TransactionRepository } from '../repositories/contracts/TransactionRepository';
 
-type Request = FindTransactionDTO & TokenPayloadSchema;
+type Request = FindTransactionDTO & TokenPayloadBase;
 
 type Errors = TransactionNotFoundError | UnauthorizedError;
 
