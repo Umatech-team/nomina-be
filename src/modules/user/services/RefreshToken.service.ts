@@ -1,4 +1,5 @@
 import { env } from '@infra/env';
+import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { Injectable } from '@nestjs/common';
 import { Decoder } from '@providers/cryptography/contracts/Decoder';
 import { Encrypter } from '@providers/cryptography/contracts/Encrypter';
@@ -28,6 +29,7 @@ export class RefreshTokenService implements Service<Request, Errors, Response> {
     private readonly decrypter: Decoder,
     private readonly encrypter: Encrypter,
     private readonly dateAddition: DateAddition,
+    private readonly workspaceUserRepository: WorkspaceUserRepository,
   ) {}
 
   async execute(
@@ -60,9 +62,20 @@ export class RefreshTokenService implements Service<Request, Errors, Response> {
 
     await this.refreshTokensRepository.delete(lastRefreshTokenSaved.id);
 
+    const defaultWorkspaceUser =
+      await this.workspaceUserRepository.findDefaultByUserId(user.id);
+
+    if (!defaultWorkspaceUser) {
+      return left(new SessionExpiredError());
+    }
+
     const accessToken = await this.encrypter.encrypt(
       {
         sub: user.id,
+        name: user.name,
+        workspaceId: defaultWorkspaceUser.member.workspaceId,
+        workspaceName: defaultWorkspaceUser.workspaceName,
+        role: defaultWorkspaceUser.member.role,
       },
       {
         expiresIn: env.JWT_USER_ACCESS_EXPIRES_IN,
