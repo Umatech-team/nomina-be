@@ -21,9 +21,10 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime? @updatedAt @map("updated_at")
 
-  subscriptions Subscription[]
-  userships     WorkspaceUser[]
-  refreshTokens RefreshToken[]
+  subscriptions    Subscription[]
+  userships        WorkspaceUser[]
+  refreshTokens    RefreshToken[]
+  workspaceInvites WorkspaceInvite[]
 
   @@map("users")
 }
@@ -38,11 +39,12 @@ model Workspace {
   currency  String   @default("BRL")
   createdAt DateTime @default(now()) @map("created_at")
 
-  users        WorkspaceUser[]
-  accounts     Account[]
-  categories   Category[]
-  transactions Transaction[]
-  recurring    RecurringTransaction[]
+  users            WorkspaceUser[]
+  accounts         Account[]
+  categories       Category[]
+  transactions     Transaction[]
+  recurring        RecurringTransaction[]
+  workspaceInvites WorkspaceInvite[]
 
   @@map("workspaces")
 }
@@ -60,6 +62,24 @@ model WorkspaceUser {
 
   @@unique([workspaceId, userId])
   @@map("workspace_users")
+}
+
+model WorkspaceInvite {
+  id          String    @id @default(uuid())
+  code        String    @unique @db.VarChar(8)
+  workspaceId String    @map("workspace_id")
+  role        UserRole
+  createdBy   String    @map("created_by")
+  expiresAt   DateTime  @map("expires_at")
+  usedAt      DateTime? @map("used_at")
+  usedBy      String?   @map("used_by")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator   User      @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@index([workspaceId, expiresAt])
+  @@map("workspace_invites")
 }
 
 // --------------------------------------------------------
