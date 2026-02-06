@@ -22,13 +22,13 @@ interface CreateRecurringTransactionBody {
 }
 
 @ApiTags('Recurring Transaction')
-@Controller('recurring-transaction')
+@Controller('transaction')
 export class CreateRecurringTransactionController {
   constructor(
     private readonly createService: CreateRecurringTransactionService,
   ) {}
 
-  @Post('create')
+  @Post('recurring')
   @HttpCode(statusCode.CREATED)
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
@@ -47,9 +47,6 @@ export class CreateRecurringTransactionController {
 
     const { recurringTransaction } = result.value;
 
-    return {
-      recurringTransaction:
-        RecurringTransactionPresenter.toHTTP(recurringTransaction),
-    };
+    return RecurringTransactionPresenter.toHTTP(recurringTransaction);
   }
 }
