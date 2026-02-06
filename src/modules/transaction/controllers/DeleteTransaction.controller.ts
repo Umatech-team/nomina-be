@@ -29,9 +29,5 @@ export class DeleteTransactionController {
     if (result.isLeft()) {
       return ErrorPresenter.toHTTP(result.value);
     }
-
-    return {
-      message: 'Transaction deleted successfully',
-    };
   }
 }
