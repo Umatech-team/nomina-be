@@ -42,7 +42,7 @@ export class UserRepositoryImplementation implements UserRepository {
       await tx.subscription.create({
         data: {
           userId: createdUser.id,
-          planId: 'weekly_free_trial',
+          planId: 'plan_trial',
           status: 'ACTIVE',
           currentPeriodEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         },
