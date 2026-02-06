@@ -12,6 +12,15 @@ export class WorkspaceUserRepositoryImplementation
   implements WorkspaceUserRepository
 {
   constructor(private readonly prisma: PrismaService) {}
+  async findUniqueById(id: string): Promise<WorkspaceUser | null> {
+    const raw = await this.prisma.workspaceUser.findUnique({
+      where: { id },
+    });
+
+    if (!raw) return null;
+
+    return WorkspaceUserMapper.toEntity(raw);
+  }
 
   async findDefaultByUserId(
     userId: string,
