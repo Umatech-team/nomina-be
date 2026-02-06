@@ -1,13 +1,30 @@
 services:
   postgres:
-    container_name: my_project
-    image: postgres
+    container_name: lastro_postgres
+    image: postgres:16-alpine 
     ports:
-      - 5432:5432
+      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: my_project
-      PGDATA: /data/pgdata
+      POSTGRES_DB: lastro_db
+      PGDATA: /var/lib/postgresql/data 
     volumes:
-      - .data/pg:/data/postgres
+      - ./.docker/pg:/var/lib/postgresql/data
+    networks:
+      - lastro_net
+
+  redis:
+    container_name: lastro_redis
+    image: redis:alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./.docker/redis:/data
+    networks:
+      - lastro_net
+
+networks:
+  lastro_net:
+    driver: bridge

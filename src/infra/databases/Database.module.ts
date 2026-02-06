@@ -1,20 +1,38 @@
-import { GoalRepository } from '@modules/goal/repositories/contracts/GoalRepository';
-import { MemberRepository } from '@modules/member/repositories/contracts/MemberRepository';
-import { RefreshTokensRepository } from '@modules/member/repositories/contracts/RefreshTokenRepository';
+import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
+import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
+import { SubscriptionRepository } from '@modules/subscription/repositories/contracts/SubscriptionRepository';
+import { RecurringTransactionRepository } from '@modules/transaction/repositories/contracts/RecurringTransactionRepository';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
+import { RefreshTokensRepository } from '@modules/user/repositories/contracts/RefreshTokenRepository';
+import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
+import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
+import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { Module } from '@nestjs/common';
-import { GoalRepositoryImplementation } from './prisma/goal/GoalRepository';
-import { MemberRepositoryImplementation } from './prisma/member/MemberRepository';
-import { RefreshTokensRepositoryImplementation } from './prisma/member/RefreshTokensRepositoryImplementation';
+import { AccountRepositoryImplementation } from './prisma/account/AccountRepository';
+import { CategoryRepositoryImplementation } from './prisma/category/CategoryRepository';
 import { PrismaService } from './prisma/prisma.service';
+import { SubscriptionRepositoryImplementation } from './prisma/subscription/SubscriptionRepositoryImplementation';
+import { RecurringTransactionRepositoryImplementation } from './prisma/transaction/RecurringTransactionRepositoryImplementation';
 import { TransactionRepositoryImplementation } from './prisma/transaction/TransactionRepository';
+import { RefreshTokensRepositoryImplementation } from './prisma/user/RefreshTokensRepositoryImplementation';
+import { UserRepositoryImplementation } from './prisma/user/UserRepository';
+import { WorkspaceRepositoryImplementation } from './prisma/workspace/WorkspaceRepository';
+import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/WorkspaceUserRepository';
 
 @Module({
   providers: [
     PrismaService,
     {
-      provide: MemberRepository,
-      useClass: MemberRepositoryImplementation,
+      provide: UserRepository,
+      useClass: UserRepositoryImplementation,
+    },
+    {
+      provide: WorkspaceRepository,
+      useClass: WorkspaceRepositoryImplementation,
+    },
+    {
+      provide: WorkspaceUserRepository,
+      useClass: WorkspaceUserRepositoryImplementation,
     },
     {
       provide: RefreshTokensRepository,
@@ -25,16 +43,33 @@ import { TransactionRepositoryImplementation } from './prisma/transaction/Transa
       useClass: TransactionRepositoryImplementation,
     },
     {
-      provide: GoalRepository,
-      useClass: GoalRepositoryImplementation,
+      provide: RecurringTransactionRepository,
+      useClass: RecurringTransactionRepositoryImplementation,
+    },
+    {
+      provide: AccountRepository,
+      useClass: AccountRepositoryImplementation,
+    },
+    {
+      provide: CategoryRepository,
+      useClass: CategoryRepositoryImplementation,
+    },
+    {
+      provide: SubscriptionRepository,
+      useClass: SubscriptionRepositoryImplementation,
     },
   ],
   exports: [
     PrismaService,
-    MemberRepository,
+    UserRepository,
+    WorkspaceRepository,
+    WorkspaceUserRepository,
     RefreshTokensRepository,
     TransactionRepository,
-    GoalRepository,
+    RecurringTransactionRepository,
+    AccountRepository,
+    CategoryRepository,
+    SubscriptionRepository,
   ],
 })
 export class DatabaseModule {}

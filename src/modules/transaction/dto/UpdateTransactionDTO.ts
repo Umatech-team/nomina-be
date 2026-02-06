@@ -1,9 +1,15 @@
-import { IsNumber } from 'class-validator';
-import { CreateTransactionDTO } from './CreateTransactionDTO';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
+import { TransactionDTO } from './TransactionDTO';
 
-export class UpdateTransactionDTO extends CreateTransactionDTO {
+export class UpdateTransactionDTO extends OmitType(TransactionDTO, [
+  'id',
+  'createdAt',
+  'updatedAt',
+  'workspaceId',
+  'recurringId',
+]) {
   @ApiProperty()
-  @IsNumber()
-  transactionId!: number;
+  @IsString()
+  transactionId!: string;
 }

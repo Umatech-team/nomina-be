@@ -1,0 +1,130 @@
+import { RecurrenceFrequency } from '@constants/enums';
+import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
+import { Optional } from '@shared/core/types/Optional';
+
+export interface RecurringTransactionProps {
+  workspaceId: string;
+  accountId: string;
+  categoryId: string | null;
+  description: string;
+  amount: bigint;
+  frequency: RecurrenceFrequency;
+  interval: number;
+  startDate: Date;
+  endDate: Date | null;
+  lastGenerated: Date | null;
+  active: boolean;
+}
+
+export class RecurringTransaction extends AggregateRoot<RecurringTransactionProps> {
+  constructor(
+    props: Optional<
+      RecurringTransactionProps,
+      'interval' | 'endDate' | 'lastGenerated' | 'active' | 'categoryId'
+    >,
+    id?: string,
+  ) {
+    const recurringTransactionProps: RecurringTransactionProps = {
+      ...props,
+      interval: props.interval ?? 1,
+      endDate: props.endDate ?? null,
+      lastGenerated: props.lastGenerated ?? null,
+      active: props.active ?? true,
+      categoryId: props.categoryId ?? null,
+    };
+
+    super(recurringTransactionProps, id);
+  }
+
+  get workspaceId(): string {
+    return this.props.workspaceId;
+  }
+
+  get accountId(): string {
+    return this.props.accountId;
+  }
+
+  get categoryId(): string | null {
+    return this.props.categoryId;
+  }
+
+  get description(): string {
+    return this.props.description;
+  }
+
+  get amount(): bigint {
+    return this.props.amount;
+  }
+
+  get amountDecimal(): number {
+    return Number(this.props.amount) / 100;
+  }
+
+  get frequency(): RecurrenceFrequency {
+    return this.props.frequency;
+  }
+
+  get interval(): number {
+    return this.props.interval;
+  }
+
+  get startDate(): Date {
+    return this.props.startDate;
+  }
+
+  get endDate(): Date | null {
+    return this.props.endDate;
+  }
+
+  get lastGenerated(): Date | null {
+    return this.props.lastGenerated;
+  }
+
+  get active(): boolean {
+    return this.props.active;
+  }
+
+  set description(value: string) {
+    this.props.description = value;
+  }
+
+  set amount(value: bigint) {
+    this.props.amount = value;
+  }
+
+  set categoryId(value: string | null) {
+    this.props.categoryId = value;
+  }
+
+  set frequency(value: RecurrenceFrequency) {
+    this.props.frequency = value;
+  }
+
+  set interval(value: number) {
+    this.props.interval = value;
+  }
+
+  set startDate(value: Date) {
+    this.props.startDate = value;
+  }
+
+  set endDate(value: Date | null) {
+    this.props.endDate = value;
+  }
+
+  set lastGenerated(value: Date | null) {
+    this.props.lastGenerated = value;
+  }
+
+  set active(value: boolean) {
+    this.props.active = value;
+  }
+
+  deactivate(): void {
+    this.props.active = false;
+  }
+
+  activate(): void {
+    this.props.active = true;
+  }
+}

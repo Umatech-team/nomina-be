@@ -7,6 +7,7 @@ export class TransactionSummaryPresenter {
       date: transaction.date,
       income: MoneyUtils.centsToDecimal(transaction.income ?? 0),
       expense: MoneyUtils.centsToDecimal(transaction.expense ?? 0),
+      balance: MoneyUtils.centsToDecimal(transaction.balance ?? 0),
     };
   }
 }

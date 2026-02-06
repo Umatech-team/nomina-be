@@ -7,154 +7,246 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Member {
-  id                   Int                    @id @unique @default(autoincrement())
-  createdAt            DateTime               @default(now()) @map("created_at")
-  updatedAt            DateTime?              @updatedAt @map("updated_at")
-  name                 String
-  password             String
-  plan                 PlanType               @default(FREE)
-  timezone             String                 @default("America/Sao_Paulo")
-  language             String                 @default("pt-BR")
-  phone                String?
-  currency             String                 @default("BRL")
-  email                String                 @unique
-  paymentStatus        PaymentStatus          @default(PAID) @map("payment_status")
-  planEndDate          DateTime?              @map("plan_end_date")
-  planStartDate        DateTime               @default(now()) @map("plan_start_date")
-  renewalDate          DateTime?              @map("renewal_date")
-  supportTier          SupportTier            @default(STANDARD) @map("support_tier")
-  Goal                 Goal[]
-  MemberMonthlySummary MemberMonthlySummary[]
-  Notification         Notification[]
-  PaymentHistory       PaymentHistory[]
-  RefreshToken         RefreshToken[]
-  Transaction          Transaction[]
+// --------------------------------------------------------
+// INFRAESTRUTURA & AUTH
+// --------------------------------------------------------
 
-  @@index([planStartDate, planEndDate])
-  @@map("members")
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  name         String
+  phone        String?
+  avatarUrl    String?   @map("avatar_url")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  subscriptions    Subscription[]
+  userships        WorkspaceUser[]
+  refreshTokens    RefreshToken[]
+  workspaceInvites WorkspaceInvite[]
+
+  @@map("users")
 }
 
-model MemberMonthlySummary {
-  id               Int      @id @default(autoincrement())
-  memberId         Int      @map("member_id")
-  totalIncome      BigInt   @default(0) @map("total_income")
-  totalExpense     BigInt   @default(0) @map("total_expense")
-  totalInvestments BigInt   @default(0) @map("total_investments")
-  balance          BigInt   @default(0)
-  month            DateTime
-  member           Member   @relation(fields: [memberId], references: [id])
+// --------------------------------------------------------
+// WORKSPACE (O Coração do Multi-tenant/Casal)
+// --------------------------------------------------------
 
-  @@unique([memberId, month])
-  @@index([month])
-  @@map("member_monthly_summary")
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  currency  String   @default("BRL")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  users            WorkspaceUser[]
+  accounts         Account[]
+  categories       Category[]
+  transactions     Transaction[]
+  recurring        RecurringTransaction[]
+  workspaceInvites WorkspaceInvite[]
+
+  @@map("workspaces")
 }
 
-model PaymentHistory {
-  id            Int           @id @unique @default(autoincrement())
-  memberId      Int           @map("member_id")
-  amount        BigInt
-  paymentDate   DateTime      @map("payment_date")
-  paymentMethod String        @map("payment_method")
-  paymentStatus PaymentStatus @map("payment_status")
-  externalId    String?       @map("external_id")
-  member        Member        @relation(fields: [memberId], references: [id])
+model WorkspaceUser {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  userId      String   @map("user_id")
+  isDefault   Boolean  @default(false) @map("is_default")
+  role        UserRole @default(USER)
+  joinedAt    DateTime @default(now()) @map("joined_at")
 
-  @@index([paymentDate])
-  @@map("payment_history")
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@map("workspace_users")
+}
+
+model WorkspaceInvite {
+  id          String    @id @default(uuid())
+  code        String    @unique @db.VarChar(8)
+  workspaceId String    @map("workspace_id")
+  role        UserRole
+  createdBy   String    @map("created_by")
+  expiresAt   DateTime  @map("expires_at")
+  usedAt      DateTime? @map("used_at")
+  usedBy      String?   @map("used_by")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator   User      @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@index([workspaceId, expiresAt])
+  @@map("workspace_invites")
+}
+
+// --------------------------------------------------------
+// FINANCEIRO CORE
+// --------------------------------------------------------
+
+model Account {
+  id          String      @id @default(uuid())
+  workspaceId String      @map("workspace_id")
+  name        String // "Nubank", "Carteira", "Inter"
+  type        AccountType // CHECKING, CASH, CREDIT_CARD, INVESTMENT
+  balance     BigInt      @default(0) // Saldo atual cacheado (atualizado via triggers ou app service)
+  icon        String?
+  color       String?
+
+  // Para cartões de crédito: dia de fechamento e vencimento
+  closingDay Int? @map("closing_day")
+  dueDay     Int? @map("due_day")
+
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@map("accounts")
+}
+
+model Category {
+  id          String          @id @default(uuid())
+  workspaceId String?         @map("workspace_id")
+  name        String
+  icon        String?
+  color       String?
+  type        TransactionType
+
+  // Auto-relacionamento para Subcategorias
+  parentId String?    @map("parent_id")
+  parent   Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children Category[] @relation("SubCategories")
+
+  transactions Transaction[]
+  workspace    Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("categories")
 }
 
 model Transaction {
-  id          Int               @id @unique @default(autoincrement())
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime?         @updatedAt @map("updated_at")
-  memberId    Int               @map("member_id")
-  type        TransactionType
-  description String?
-  category    String
-  amount      BigInt
-  date        DateTime
-  currency    String
-  method      TransactionMethod
-  title       String
-  subCategory String
-  member      Member            @relation(fields: [memberId], references: [id])
+  id          String  @id @default(uuid())
+  workspaceId String  @map("workspace_id")
+  accountId   String  @map("account_id")
+  categoryId  String? @map("category_id") // Pode ser null se for transferência
 
-  @@index([memberId, type, date])
+  description String
+  amount      BigInt // Negativo para despesa, Positivo para receita
+  date        DateTime // Data da competência
+
+  type   TransactionType // INCOME, EXPENSE, TRANSFER
+  status TransactionStatus @default(COMPLETED) // PENDING (agendado), COMPLETED
+
+  // Relacionamento com Recorrência (de onde isso veio?)
+  recurringId String? @map("recurring_transaction_id")
+
+  // Metadata
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace       Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account         Account               @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  category        Category?             @relation(fields: [categoryId], references: [id])
+  recurringOrigin RecurringTransaction? @relation(fields: [recurringId], references: [id])
+
+  @@index([workspaceId, date])
+  @@index([workspaceId, categoryId])
+  @@index([workspaceId, type, status])
+  @@index([accountId])
   @@map("transactions")
 }
 
-model Goal {
-  id                  Int       @id @default(autoincrement())
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime? @updatedAt @map("updated_at")
-  memberId            Int       @map("member_id")
-  title               String
-  category            String
-  currentAmount       BigInt    @default(0) @map("current_amount")
-  monthlyContribution BigInt    @map("montly_contribution")
-  targetAmount        BigInt    @map("target_amount")
-  member              Member    @relation(fields: [memberId], references: [id])
+model RecurringTransaction {
+  id          String  @id @default(uuid())
+  workspaceId String  @map("workspace_id")
+  accountId   String  @map("account_id")
+  categoryId  String? @map("category_id")
 
-  @@index([memberId])
-  @@map("goals")
+  description String
+  amount      BigInt
+
+  frequency RecurrenceFrequency // MONTHLY, WEEKLY, YEARLY
+  interval  Int                 @default(1) // "A cada 2 meses" -> frequency=MONTHLY, interval=2
+
+  startDate DateTime  @map("start_date")
+  endDate   DateTime? @map("end_date") // Se null, é infinito
+
+  lastGenerated DateTime? @map("last_generated") // Controle para o seu script "Lazy" saber quando rodou a última vez
+
+  active Boolean @default(true)
+
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@map("recurring_transactions")
 }
 
-model Notification {
-  id        Int                  @id @unique @default(autoincrement())
-  createdAt DateTime             @default(now()) @map("created_at")
-  updatedAt DateTime             @updatedAt @map("updated_at")
-  memberId  Int                  @map("member_id")
-  type      String
-  message   String
-  read      Boolean              @default(false)
-  priority  NotificationPriority @default(LOW)
-  member    Member               @relation(fields: [memberId], references: [id])
+// --------------------------------------------------------
+// FATURAMENTO (SAAS)
+// --------------------------------------------------------
 
-  @@index([memberId, read])
-  @@map("notifications")
+model Subscription {
+  id               String             @id @default(uuid())
+  userId           String             @map("user_id") // Quem paga é o User
+  planId           String // ID do plano no Gateway (Stripe/Pagar.me)
+  status           SubscriptionStatus // ACTIVE, CANCELED, PAST_DUE
+  currentPeriodEnd DateTime           @map("current_period_end")
+
+  // Aqui você define limites se quiser (ex: maxWorkspaces)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
 }
 
-model RefreshToken {
-  id        Int      @id @unique @default(autoincrement())
-  token     String
-  expiresIn DateTime @map("expires_in")
-  createdAt DateTime @default(now()) @map("created_at")
-  memberId  Int      @map("member_id")
-  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+// --------------------------------------------------------
+// ENUMS
+// --------------------------------------------------------
 
-  @@map("refresh_tokens")
+enum UserRole {
+  OWNER
+  ADMIN
+  USER
+  VIEWER
 }
 
-enum PlanType {
-  FREE
-  PREMIUM
-}
-
-enum PaymentStatus {
-  PAID
-  PENDING
-  FAILED
-}
-
-enum SupportTier {
-  STANDARD
-  PRIORITY
+enum AccountType {
+  CHECKING // Conta Corrente
+  CASH // Dinheiro
+  CREDIT_CARD // Cartão de Crédito
+  INVESTMENT // Investimento
 }
 
 enum TransactionType {
   INCOME
   EXPENSE
+  TRANSFER // Transferência entre contas
 }
 
-enum TransactionMethod {
-  CASH
-  CARD
-  PIX
+enum TransactionStatus {
+  PENDING // Agendado / Não pago
+  COMPLETED // Pago / Confirmado
 }
 
-enum NotificationPriority {
-  LOW
-  MEDIUM
-  HIGH
+enum RecurrenceFrequency {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String
+  expiresIn DateTime @map("expires_in")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
 }

@@ -36,8 +36,8 @@ async function bootstrap() {
 
   if (env.NODE_ENV === 'dev') {
     const config = new DocumentBuilder()
-      .setTitle('Nomina API')
-      .setDescription('API for managing personal finances')
+      .setTitle('Lastro API')
+      .setDescription('O peso real do seu patrimônio')
       .setVersion('1.0')
       .addBearerAuth()
       .build();

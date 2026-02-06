@@ -1,23 +1,20 @@
-import { TransactionType } from '@constants/enums';
-import { MemberRepository } from '@modules/member/repositories/contracts/MemberRepository';
+import { TransactionStatus } from '@constants/enums';
+import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
+import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
 import { Injectable } from '@nestjs/common';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
-import { MoneyUtils } from '@utils/MoneyUtils';
 import { CreateTransactionDTO } from '../dto/CreateTransactionDTO';
 import { Transaction } from '../entities/Transaction';
-import { InsufficientBalanceError } from '../errors/InsufficientBalanceError';
 import { InvalidAmountError } from '../errors/InvalidAmountError';
 import { TransactionRepository } from '../repositories/contracts/TransactionRepository';
-import { MonthSumarryWithPercentage } from '../valueObjects/MonthSumarryWithPercentage';
 
-type Request = CreateTransactionDTO & TokenPayloadSchema;
-type Errors = UnauthorizedError | InsufficientBalanceError | InvalidAmountError;
+type Request = CreateTransactionDTO & TokenPayloadBase;
+type Errors = UnauthorizedError | InvalidAmountError;
 type Response = {
   transaction: Transaction;
-  newSummary: MonthSumarryWithPercentage;
 };
 
 @Injectable()
@@ -25,101 +22,59 @@ export class CreateTransactionService
   implements Service<Request, Errors, Response>
 {
   constructor(
+    private readonly accountRepository: AccountRepository,
+    private readonly categoryRepository: CategoryRepository,
     private readonly transactionRepository: TransactionRepository,
-    private readonly memberRepository: MemberRepository,
   ) {}
 
   async execute({
-    sub,
-    amount,
-    category,
-    subCategory,
-    date,
+    workspaceId,
+    accountId,
+    categoryId,
     description,
-    currency,
+    amount,
+    date,
     type,
-    method,
-    title,
+    status = TransactionStatus.COMPLETED,
   }: Request): Promise<Either<Errors, Response>> {
-    const member = await this.memberRepository.findUniqueById(sub);
-    amount = MoneyUtils.decimalToCents(amount);
-
-    if (!member) {
-      return left(new UnauthorizedError());
-    }
-
     if (amount <= 0) {
       return left(new InvalidAmountError());
     }
 
+    const account = await this.accountRepository.findById(accountId);
+    if (!account || account.workspaceId !== workspaceId) {
+      return left(new UnauthorizedError());
+    }
+
+    if (categoryId) {
+      const category = await this.categoryRepository.findById(categoryId);
+
+      const isGlobalCategory = !category?.workspaceId;
+      const belongsToWorkspace = category?.workspaceId === workspaceId;
+
+      if (!category || (!isGlobalCategory && !belongsToWorkspace)) {
+        return left(new UnauthorizedError());
+      }
+    }
+
     const transaction = new Transaction({
-      memberId: sub,
-      amount,
-      category,
-      subCategory,
-      date,
+      workspaceId,
+      accountId,
+      categoryId,
       description,
-      currency,
+      amount: BigInt(amount),
+      date,
       type,
-      method,
-      title,
+      status,
+      recurringId: null,
+      createdAt: new Date(),
+      updatedAt: null,
     });
 
-    await this.transactionRepository.create(transaction);
-
-    await this.updateMonthlySummaryIncrementally(
-      member.id,
-      amount,
-      category === 'INVESTMENT' ? ('INVESTMENT' as TransactionType) : type,
-    );
-
-    const newSummary = await this.transactionRepository.getMonthlySummary(
-      member.id,
-      new Date(),
-    );
+    await this.transactionRepository.createWithBalanceUpdate(transaction);
 
     return right({
       transaction,
-      newSummary,
     });
-  }
-
-  private async updateMonthlySummaryIncrementally(
-    memberId: number,
-    amount: number,
-    type: TransactionType,
-  ): Promise<void> {
-    const month = new Date();
-    const currentMonth = new Date(month.getFullYear(), month.getMonth(), 1);
-
-    const currentSummary = await this.transactionRepository.getMonthlySummary(
-      memberId,
-      currentMonth,
-    );
-
-    let totalIncome = currentSummary.totalIncome;
-    let totalExpense = currentSummary.totalExpense;
-    let totalInvestments = currentSummary.totalInvestments;
-    let balance = currentSummary.balance;
-
-    if (type === 'INCOME') {
-      totalIncome += amount;
-      balance += amount;
-    } else if (type === 'EXPENSE') {
-      totalExpense += amount;
-      balance -= amount;
-    } else if (type === 'INVESTMENT') {
-      totalInvestments += amount;
-      balance -= amount;
-    }
-
-    await this.transactionRepository.updateMonthlySummary(
-      memberId,
-      currentMonth,
-      totalIncome,
-      totalExpense,
-      totalInvestments,
-      balance,
-    );
   }
 }

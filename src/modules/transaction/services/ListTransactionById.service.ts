@@ -1,6 +1,6 @@
-import { MemberRepository } from '@modules/member/repositories/contracts/MemberRepository';
+import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
 import { Injectable } from '@nestjs/common';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
@@ -8,8 +8,9 @@ import { ListTransactionsDTO } from '../dto/ListTransactionsDTO';
 import { Transaction } from '../entities/Transaction';
 import { TransactionNotFoundError } from '../errors/TransactionNotFoundError';
 import { TransactionRepository } from '../repositories/contracts/TransactionRepository';
+import { GenerateRecurringTransactionsService } from './GenerateRecurringTransactions.service';
 
-type Request = ListTransactionsDTO & TokenPayloadSchema;
+type Request = ListTransactionsDTO & TokenPayloadBase;
 
 type Errors = TransactionNotFoundError | UnauthorizedError;
 
@@ -23,25 +24,29 @@ export class ListTransactionByIdService
 {
   constructor(
     private readonly transactionRepository: TransactionRepository,
-    private readonly memberRepository: MemberRepository,
+    private readonly userRepository: UserRepository,
+    private readonly generateRecurringService: GenerateRecurringTransactionsService,
   ) {}
 
   async execute({
     sub,
+    workspaceId,
     startDate,
     endDate,
     page,
     pageSize,
   }: Request): Promise<Either<Errors, Response>> {
-    const member = await this.memberRepository.findUniqueById(sub);
+    const user = await this.userRepository.findUniqueById(sub);
 
-    if (!member) {
+    if (!user) {
       return left(new TransactionNotFoundError());
     }
 
+    await this.generateRecurringService.execute({ workspaceId });
+
     const transaction =
-      await this.transactionRepository.listTransactionsByMemberId(
-        sub,
+      await this.transactionRepository.listTransactionsByUserId(
+        workspaceId,
         page,
         pageSize,
         startDate,

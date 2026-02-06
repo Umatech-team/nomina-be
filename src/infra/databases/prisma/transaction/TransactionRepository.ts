@@ -1,6 +1,5 @@
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
-import { MonthSumarryWithPercentage } from '@modules/transaction/valueObjects/MonthSumarryWithPercentage';
 import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpensesByCategory';
 import { TransactionSummary } from '@modules/transaction/valueObjects/TransactionSummary';
 import { Injectable } from '@nestjs/common';
@@ -13,8 +12,8 @@ export class TransactionRepositoryImplementation
 {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listTransactionsByMemberId(
-    memberId: number,
+  async listTransactionsByUserId(
+    workspaceId: string,
     page: number,
     pageSize: number,
     startDate: Date,
@@ -24,7 +23,7 @@ export class TransactionRepositoryImplementation
       startDate && endDate
         ? await this.prisma.transaction.findMany({
             where: {
-              memberId,
+              workspaceId,
               date: {
                 gte: new Date(
                   new Date(startDate).getUTCFullYear(),
@@ -54,7 +53,7 @@ export class TransactionRepositoryImplementation
           })
         : await this.prisma.transaction.findMany({
             where: {
-              memberId,
+              workspaceId,
             },
             skip: (page - 1) * pageSize,
             take: pageSize,
@@ -66,8 +65,8 @@ export class TransactionRepositoryImplementation
     return transactions.map(TransactionMapper.toEntity);
   }
 
-  findTransactionSummaryByMemberId = async (
-    memberId: number,
+  listTransactionsSummaryByWorkspaceId = async (
+    workspaceId: string,
     period: '7d' | '30d',
   ): Promise<TransactionSummary[]> => {
     const endDate = new Date();
@@ -77,8 +76,9 @@ export class TransactionRepositoryImplementation
     const transactions = await this.prisma.transaction.groupBy({
       by: ['date', 'type'],
       where: {
-        memberId,
+        workspaceId,
         date: { gte: startDate, lte: endDate },
+        status: 'COMPLETED',
       },
       _sum: {
         amount: true,
@@ -96,7 +96,7 @@ export class TransactionRepositoryImplementation
 
     transactions.forEach((transaction) => {
       const dateKey = transaction.date.toISOString().split('T')[0];
-      const amount = Number(transaction._sum.amount ?? 0);
+      const amount = Number(transaction._sum?.amount ?? 0);
 
       if (!dailySummaryMap.has(dateKey)) {
         dailySummaryMap.set(dateKey, {
@@ -114,20 +114,25 @@ export class TransactionRepositoryImplementation
       }
     });
 
-    const result = Array.from(dailySummaryMap.values()).map((summary) =>
-      TransactionMapper.toTransactionSummary(
-        new TransactionSummary({
-          date: summary.date,
-          income: summary.income,
-          expense: summary.expense,
-        }),
-      ),
+    const sortedSummaries = Array.from(dailySummaryMap.values()).sort(
+      (a, b) => a.date.getTime() - b.date.getTime(),
     );
+
+    let accumulatedBalance = 0;
+    const result = sortedSummaries.map((summary) => {
+      accumulatedBalance += summary.income - summary.expense;
+      return new TransactionSummary({
+        date: summary.date,
+        income: summary.income,
+        expense: summary.expense,
+        balance: accumulatedBalance,
+      });
+    });
 
     return result;
   };
 
-  async findUniqueById(id: number): Promise<Transaction | null> {
+  async findUniqueById(id: string): Promise<Transaction | null> {
     const transaction = await this.prisma.transaction.findUnique({
       where: {
         id,
@@ -144,17 +149,15 @@ export class TransactionRepositoryImplementation
   }
 
   async update(transaction: Transaction): Promise<void> {
-    console.log('transaction', transaction);
-    console.log('transaction.id', transaction.id);
     await this.prisma.transaction.update({
       where: {
-        id: transaction.id as number,
+        id: transaction.id,
       },
       data: TransactionMapper.toPrisma(transaction),
     });
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await this.prisma.transaction.delete({
       where: {
         id,
@@ -163,7 +166,7 @@ export class TransactionRepositoryImplementation
   }
 
   async getTopExpensesByCategory(
-    memberId: number,
+    userId: string,
     startDate: Date,
     endDate: Date,
     pageSize = 9,
@@ -175,10 +178,10 @@ export class TransactionRepositoryImplementation
     normalizedEndDate.setHours(23, 59, 59, 999);
 
     const expenses = await this.prisma.transaction.groupBy({
-      by: ['category'],
+      by: ['categoryId'],
       _sum: { amount: true },
       where: {
-        memberId,
+        workspaceId: userId,
         type: 'EXPENSE',
         date: { gte: normalizedStartDate, lte: normalizedEndDate },
       },
@@ -186,125 +189,264 @@ export class TransactionRepositoryImplementation
       take: pageSize,
     });
 
-    return expenses.map((expense) =>
-      TransactionMapper.toTopExpensesByCategory(
+    return expenses.map(
+      (expense) =>
         new TopExpensesByCategory({
-          category: expense.category,
-          total: Number(expense._sum.amount ?? 0),
+          category: expense.categoryId ?? '',
+          total: Number(expense._sum?.amount ?? 0),
         }),
-      ),
     );
   }
 
-  async getMonthlySummary(
-    memberId: number,
-    currentMonth: Date,
-  ): Promise<MonthSumarryWithPercentage> {
-    const currentMonthFormatted = new Date(currentMonth);
-    currentMonthFormatted.setDate(1);
-    currentMonthFormatted.setHours(0, 0, 0, 0);
+  async sumTransactionsByDateRange(
+    workspaceId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<{
+    totalIncome: number;
+    totalExpense: number;
+    balance: number;
+  }> {
+    const normalizedStartDate = new Date(startDate);
+    normalizedStartDate.setHours(0, 0, 0, 0);
 
-    let currentMonthSummary = await this.prisma.memberMonthlySummary.findUnique(
-      {
-        where: {
-          memberId_month: { memberId, month: currentMonthFormatted },
-        },
-      },
-    );
+    const normalizedEndDate = new Date(endDate);
+    normalizedEndDate.setHours(23, 59, 59, 999);
 
-    const previousMonth = new Date(currentMonthFormatted);
-    previousMonth.setMonth(previousMonth.getMonth() - 1);
-
-    const previousMonthSummary =
-      await this.prisma.memberMonthlySummary.findUnique({
-        where: {
-          memberId_month: { memberId, month: previousMonth },
-        },
-      });
-
-    if (!currentMonthSummary) {
-      currentMonthSummary = await this.prisma.memberMonthlySummary.create({
-        data: {
-          memberId,
-          month: currentMonthFormatted,
-          totalIncome: 0,
-          totalExpense: 0,
-          totalInvestments: previousMonthSummary?.totalInvestments ?? 0,
-          balance: previousMonthSummary?.balance ?? 0,
-        },
-      });
-    }
-
-    const calculatePercentage = (current: number, previous: number): number => {
-      if (current === 0 || previous === 0) {
-        return 0;
-      }
-
-      return ((current - previous) / previous) * 100;
-    };
-
-    const incomeChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.totalIncome),
-      previousMonthSummary ? Number(previousMonthSummary.totalIncome) : 0,
-    );
-    const expenseChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.totalExpense),
-      previousMonthSummary ? Number(previousMonthSummary.totalExpense) : 0,
-    );
-    const investmentsChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.totalInvestments),
-      previousMonthSummary ? Number(previousMonthSummary.totalInvestments) : 0,
-    );
-    const balanceChangePercentage = calculatePercentage(
-      Number(currentMonthSummary.balance),
-      previousMonthSummary ? Number(previousMonthSummary.balance) : 0,
-    );
-
-    const result = TransactionMapper.toMonthSummaryWithPercentage({
-      ...currentMonthSummary,
-      totalIncome: Number(currentMonthSummary.totalIncome),
-      totalExpense: Number(currentMonthSummary.totalExpense),
-      totalInvestments: Number(currentMonthSummary.totalInvestments),
-      balance: Number(currentMonthSummary.balance),
-      percentageChanges: {
-        income: incomeChangePercentage,
-        expense: expenseChangePercentage,
-        balance: balanceChangePercentage,
-        investments: investmentsChangePercentage,
-      },
-    }) as MonthSumarryWithPercentage;
-
-    return result;
-  }
-
-  async updateMonthlySummary(
-    memberId: number,
-    month: Date,
-    totalIncome?: number,
-    totalExpense?: number,
-    totalInvestments?: number,
-    balance?: number,
-  ): Promise<void> {
-    const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
-
-    await this.prisma.memberMonthlySummary.upsert({
+    const incomeResult = await this.prisma.transaction.aggregate({
+      _sum: { amount: true },
       where: {
-        memberId_month: { memberId, month: startOfMonth },
-      },
-      update: {
-        totalIncome,
-        totalExpense,
-        totalInvestments,
-        balance,
-      },
-      create: {
-        memberId,
-        month: startOfMonth,
-        totalIncome,
-        totalExpense,
-        totalInvestments,
-        balance,
+        workspaceId,
+        type: 'INCOME',
+        status: 'COMPLETED',
+        date: { gte: normalizedStartDate, lte: normalizedEndDate },
       },
     });
+
+    const expenseResult = await this.prisma.transaction.aggregate({
+      _sum: { amount: true },
+      where: {
+        workspaceId,
+        type: 'EXPENSE',
+        status: 'COMPLETED',
+        date: { gte: normalizedStartDate, lte: normalizedEndDate },
+      },
+    });
+
+    const totalIncome = Number(incomeResult._sum.amount ?? 0n);
+    const totalExpense = Number(expenseResult._sum.amount ?? 0n);
+    const balance = totalIncome - totalExpense;
+
+    return {
+      totalIncome,
+      totalExpense,
+      balance,
+    };
+  }
+
+  async createWithBalanceUpdate(transaction: Transaction): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.transaction.create({
+        data: TransactionMapper.toPrisma(transaction),
+      });
+
+      if (transaction.status === 'COMPLETED') {
+        const balanceDelta =
+          transaction.type === 'INCOME'
+            ? Number(transaction.amount)
+            : -Number(transaction.amount);
+
+        await tx.account.update({
+          where: { id: transaction.accountId },
+          data: { balance: { increment: balanceDelta } },
+        });
+      }
+    });
+  }
+
+  async updateWithBalanceUpdate(
+    oldTransaction: Transaction,
+    newTransaction: Transaction,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const oldEffect =
+        oldTransaction.status === 'COMPLETED'
+          ? oldTransaction.type === 'INCOME'
+            ? Number(oldTransaction.amount)
+            : -Number(oldTransaction.amount)
+          : 0;
+
+      const newEffect =
+        newTransaction.status === 'COMPLETED'
+          ? newTransaction.type === 'INCOME'
+            ? Number(newTransaction.amount)
+            : -Number(newTransaction.amount)
+          : 0;
+
+      await tx.transaction.update({
+        where: { id: newTransaction.id },
+        data: TransactionMapper.toPrisma(newTransaction),
+      });
+
+      if (oldEffect !== 0) {
+        await tx.account.update({
+          where: { id: oldTransaction.accountId },
+          data: { balance: { increment: -oldEffect } },
+        });
+      }
+
+      if (newEffect !== 0) {
+        await tx.account.update({
+          where: { id: newTransaction.accountId },
+          data: { balance: { increment: newEffect } },
+        });
+      }
+    });
+  }
+
+  async deleteWithBalanceReversion(transaction: Transaction): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.transaction.delete({
+        where: { id: transaction.id },
+      });
+
+      if (transaction.status === 'COMPLETED') {
+        const balanceDelta =
+          transaction.type === 'INCOME'
+            ? -Number(transaction.amount)
+            : Number(transaction.amount);
+
+        await tx.account.update({
+          where: { id: transaction.accountId },
+          data: { balance: { increment: balanceDelta } },
+        });
+      }
+    });
+  }
+
+  async toggleStatusWithBalanceUpdate(
+    transactionId: string,
+  ): Promise<Transaction> {
+    const result = await this.prisma.$transaction(async (tx) => {
+      const transactionData = await tx.transaction.findUnique({
+        where: { id: transactionId },
+      });
+
+      if (!transactionData) {
+        throw new Error('Transaction not found');
+      }
+
+      const oldStatus = transactionData.status;
+      const newStatus = oldStatus === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
+
+      const balanceEffect =
+        transactionData.type === 'INCOME'
+          ? Number(transactionData.amount)
+          : -Number(transactionData.amount);
+
+      const balanceDelta =
+        newStatus === 'COMPLETED' ? balanceEffect : -balanceEffect;
+
+      const updated = await tx.transaction.update({
+        where: { id: transactionId },
+        data: { status: newStatus },
+      });
+
+      await tx.account.update({
+        where: { id: transactionData.accountId },
+        data: { balance: { increment: balanceDelta } },
+      });
+
+      return updated;
+    });
+
+    return TransactionMapper.toEntity(result);
+  }
+
+  async getExpensesByCategoryReport(
+    workspaceId: string,
+    month: number,
+    year: number,
+  ): Promise<Array<{ categoryId: string | null; totalAmount: number }>> {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    const aggregations = await this.prisma.transaction.groupBy({
+      by: ['categoryId'],
+      where: {
+        workspaceId,
+        type: 'EXPENSE',
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+        status: 'COMPLETED',
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    return aggregations.map((item) => ({
+      categoryId: item.categoryId,
+      totalAmount: Number(item._sum.amount || 0),
+    }));
+  }
+
+  async getCashFlowEvolutionReport(
+    workspaceId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<
+    Array<{ date: string; income: number; expense: number; balance: number }>
+  > {
+    const transactions = await this.prisma.transaction.findMany({
+      where: {
+        workspaceId,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+        status: 'COMPLETED',
+        type: {
+          in: ['INCOME', 'EXPENSE'],
+        },
+      },
+      select: {
+        date: true,
+        type: true,
+        amount: true,
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    });
+
+    const dailyMap = new Map<string, { income: bigint; expense: bigint }>();
+
+    for (const transaction of transactions) {
+      const dateKey = transaction.date.toISOString().split('T')[0];
+
+      if (!dailyMap.has(dateKey)) {
+        dailyMap.set(dateKey, { income: 0n, expense: 0n });
+      }
+
+      const daily = dailyMap.get(dateKey)!;
+
+      if (transaction.type === 'INCOME') {
+        daily.income += transaction.amount;
+      } else {
+        daily.expense += transaction.amount;
+      }
+    }
+
+    return Array.from(dailyMap.entries())
+      .map(([date, { income, expense }]) => ({
+        date,
+        income: Number(income),
+        expense: Number(expense),
+        balance: Number(income - expense),
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
   }
 }

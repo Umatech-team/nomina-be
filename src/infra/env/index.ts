@@ -11,12 +11,20 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['dev', 'production']).default('production'),
   JWT_PRIVATE_KEY: z.string(),
   JWT_PUBLIC_KEY: z.string(),
-  JWT_MEMBER_ACCESS_EXPIRES_IN: z.string(),
-  JWT_MEMBER_REFRESH_EXPIRES_IN: z.string(),
-  MEMBER_REFRESH_EXPIRES_IN: z.coerce.number(),
+  JWT_USER_ACCESS_EXPIRES_IN: z.string(),
+  JWT_USER_REFRESH_EXPIRES_IN: z.string(),
+  USER_REFRESH_EXPIRES_IN: z.coerce.number(),
+
+  // Redis (optional)
+  REDIS_ENABLED: z.coerce.boolean().default(false),
+  REDIS_HOST: z.string().default('localhost'),
+  REDIS_PORT: z.coerce.number().default(6379),
+  REDIS_PASSWORD: z.string().optional(),
+  REDIS_DB: z.coerce.number().default(0),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;
+export type Env = EnvSchema;
 const _env = envSchema.safeParse(process.env);
 
 if (_env.success === false) {

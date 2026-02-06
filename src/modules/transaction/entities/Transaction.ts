@@ -1,173 +1,116 @@
-import { TransactionMethod, TransactionType } from '@constants/enums';
+import { TransactionStatus, TransactionType } from '@constants/enums';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Optional } from '@shared/core/types/Optional';
-import { Money } from '@shared/valueObjects/Money';
-import { TransactionDTO } from '../dto/TransactionDTO';
 
-export class Transaction extends AggregateRoot<TransactionDTO> {
+export interface TransactionProps {
+  workspaceId: string;
+  accountId: string;
+  categoryId: string | null;
+  description: string;
+  amount: bigint;
+  date: Date;
+  type: TransactionType;
+  status: TransactionStatus;
+  recurringId: string | null;
+  createdAt: Date;
+  updatedAt: Date | null;
+}
+
+export class Transaction extends AggregateRoot<TransactionProps> {
   constructor(
-    props: Optional<TransactionDTO, 'createdAt' | 'updatedAt' | 'description'>,
-    id?: number,
+    props: Optional<
+      TransactionProps,
+      'createdAt' | 'updatedAt' | 'status' | 'categoryId' | 'recurringId'
+    >,
+    id?: string,
   ) {
-    const transactionProps: TransactionDTO = {
+    const transactionProps: TransactionProps = {
       ...props,
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? null,
-      description: props.description ?? null,
-      category: props.category,
-      subCategory: props.subCategory,
-      amount: props.amount, // Agora em centavos
-      currency: props.currency,
-      date: props.date,
-      memberId: props.memberId,
-      type: props.type,
-      method: props.method,
-      title: props.title,
+      status: props.status ?? TransactionStatus.COMPLETED,
+      categoryId: props.categoryId ?? null,
+      recurringId: props.recurringId ?? null,
     };
 
     super(transactionProps, id);
   }
 
-  get createdAt() {
-    return this.props.createdAt;
+  get workspaceId(): string {
+    return this.props.workspaceId;
   }
 
-  get updatedAt() {
-    return this.props.updatedAt;
+  get accountId(): string {
+    return this.props.accountId;
   }
 
-  get memberId() {
-    return this.props.memberId;
+  get categoryId(): string | null {
+    return this.props.categoryId;
   }
 
-  get title() {
-    return this.props.title;
+  get description(): string {
+    return this.props.description;
   }
 
-  set title(title: string) {
-    this.props.title = title;
-    this.touch();
-  }
-
-  set memberId(memberId: number) {
-    this.props.memberId = memberId;
-    this.touch();
-  }
-
-  get description(): string | null {
-    return this.props.description ?? null;
-  }
-
-  set description(description: string) {
-    this.props.description = description;
-    this.touch();
-  }
-
-  get category() {
-    return this.props.category;
-  }
-
-  set category(category: string) {
-    this.props.category = category;
-    this.touch();
-  }
-
-  get subCategory() {
-    return this.props.subCategory;
-  }
-
-  set subCategory(subCategory: string) {
-    this.props.subCategory = subCategory;
-    this.touch();
-  }
-
-  get method() {
-    return this.props.method;
-  }
-
-  set method(method: string) {
-    this.props.method = method as TransactionMethod;
-    this.touch();
-  }
-
-  /**
-   * Retorna o valor em centavos (valor bruto do banco)
-   */
-  get amount(): number {
+  get amount(): bigint {
     return this.props.amount;
   }
 
-  /**
-   * Define o valor em centavos
-   */
-  set amount(amount: number) {
-    if (!Number.isInteger(amount) || amount < 0) {
-      throw new Error(
-        'Valor deve ser um número inteiro não negativo (centavos)',
-      );
-    }
-    this.props.amount = amount;
-    this.touch();
-  }
-
-  /**
-   * Retorna o valor como objeto Money
-   */
-  get money(): Money {
-    return Money.fromCents(this.props.amount, this.props.currency);
-  }
-
-  /**
-   * Define o valor usando objeto Money
-   */
-  set money(money: Money) {
-    this.props.amount = money.cents;
-    this.props.currency = money.currency;
-    this.touch();
-  }
-
-  /**
-   * Retorna o valor em formato decimal (para exibição)
-   */
   get amountDecimal(): number {
-    return this.props.amount / 100;
+    return Number(this.props.amount) / 100;
   }
 
-  /**
-   * Define o valor a partir de um decimal (converte para centavos)
-   */
-  setAmountFromDecimal(decimal: number): void {
-    if (decimal < 0) {
-      throw new Error('Valor não pode ser negativo');
-    }
-    this.props.amount = Math.round(decimal * 100);
-    this.touch();
-  }
-
-  get currency() {
-    return this.props.currency;
-  }
-
-  set currency(currency: string) {
-    this.props.currency = currency;
-    this.touch();
-  }
-
-  get date() {
+  get date(): Date {
     return this.props.date;
   }
 
-  set date(date: Date) {
-    this.props.date = date;
-    this.touch();
-  }
-
-  get type() {
+  get type(): TransactionType {
     return this.props.type;
   }
 
-  set type(type: string) {
-    this.props.type = type as TransactionType;
+  get status(): TransactionStatus {
+    return this.props.status;
+  }
+
+  get recurringId(): string | null {
+    return this.props.recurringId;
+  }
+
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
+
+  get updatedAt(): Date | null {
+    return this.props.updatedAt;
+  }
+
+  set description(value: string) {
+    this.props.description = value;
+    this.touch();
+  }
+
+  set amount(value: bigint) {
+    this.props.amount = value;
+    this.touch();
+  }
+
+  set date(value: Date) {
+    this.props.date = value;
+    this.touch();
+  }
+
+  set type(value: TransactionType) {
+    this.props.type = value;
+    this.touch();
+  }
+
+  set status(value: TransactionStatus) {
+    this.props.status = value;
+    this.touch();
+  }
+
+  set categoryId(value: string | null) {
+    this.props.categoryId = value;
     this.touch();
   }
 

@@ -1,44 +1,94 @@
-import { MemberRepository } from '@modules/member/repositories/contracts/MemberRepository';
+import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
 import { Injectable } from '@nestjs/common';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
+import { endOfMonth, startOfMonth, subMonths } from 'date-fns';
 import { TransactionRepository } from '../repositories/contracts/TransactionRepository';
-import { MonthSumarryWithPercentage } from '../valueObjects/MonthSumarryWithPercentage';
+import { MonthSummary } from '../valueObjects/MonthSumarryWithPercentage';
 
-type Request = TokenPayloadSchema;
+type Request = TokenPayloadBase;
 
 type Errors = UnauthorizedError;
 
 type Response = {
-  monthSummary: MonthSumarryWithPercentage;
+  monthSummary: MonthSummary;
 };
 
 @Injectable()
-export class FindMonthlySummaryWithPercentageService
+export class FindMonthSummaryService
   implements Service<Request, Errors, Response>
 {
   constructor(
     private readonly transactionRepository: TransactionRepository,
-    private readonly memberRepository: MemberRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
-  async execute({ sub }: Request): Promise<Either<Errors, Response>> {
-    const member = await this.memberRepository.findUniqueById(sub);
+  async execute({
+    sub,
+    workspaceId,
+  }: Request): Promise<Either<Errors, Response>> {
+    const user = await this.userRepository.findUniqueById(sub);
 
-    if (!member) {
+    if (!user) {
       return left(new UnauthorizedError());
     }
 
-    const currentMonth = new Date();
-    currentMonth.setDate(1);
-    currentMonth.setHours(0, 0, 0, 0);
+    const now = new Date();
 
-    const monthSummary = await this.transactionRepository.getMonthlySummary(
-      member.id,
-      currentMonth,
-    );
+    const currentMonthStart = startOfMonth(now);
+    const currentMonthEnd = endOfMonth(now);
+
+    const previousMonthDate = subMonths(now, 1);
+    const previousMonthStart = startOfMonth(previousMonthDate);
+    const previousMonthEnd = endOfMonth(previousMonthDate);
+
+    const currentMonthData =
+      await this.transactionRepository.sumTransactionsByDateRange(
+        workspaceId,
+        currentMonthStart,
+        currentMonthEnd,
+      );
+
+    const previousMonthData =
+      await this.transactionRepository.sumTransactionsByDateRange(
+        workspaceId,
+        previousMonthStart,
+        previousMonthEnd,
+      );
+
+    const calculatePercentageChange = (
+      current: number,
+      previous: number,
+    ): number => {
+      if (previous === 0) {
+        return current > 0 ? 100 : 0;
+      }
+      return ((current - previous) / previous) * 100;
+    };
+
+    const monthSummary = MonthSummary.create({
+      month: now,
+      totalIncome: currentMonthData.totalIncome,
+      totalExpense: currentMonthData.totalExpense,
+      totalInvestments: 0, // will be implemented
+      rate: {
+        currentMonthSaving:
+          currentMonthData.totalIncome > 0
+            ? Math.round(
+                ((currentMonthData.totalIncome -
+                  currentMonthData.totalExpense) /
+                  currentMonthData.totalIncome) *
+                  100,
+              )
+            : 0,
+        previousMonthCompareSaving: calculatePercentageChange(
+          currentMonthData.totalIncome - currentMonthData.totalExpense,
+          previousMonthData.totalIncome - previousMonthData.totalExpense,
+        ),
+      },
+    });
 
     return right({
       monthSummary,

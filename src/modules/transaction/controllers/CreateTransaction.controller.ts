@@ -2,12 +2,11 @@ import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import { CreateTransactionDTO } from '@modules/transaction/dto/CreateTransactionDTO';
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentLoggedMember } from '@providers/auth/decorators/CurrentLoggedMember.decorator';
+import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { CreateTransactionGateway } from '../gateways/CreateTransaction.gateway';
-import { MonthlySummaryPresenter } from '../presenters/MonthlySummary.presenter';
-import { TransactionPreviewPresenter } from '../presenters/TransactionPreview.presenter';
+import { TransactionPresenter } from '../presenters/Transaction.presenter';
 import { CreateTransactionService } from '../services/CreateTransaction.service';
 
 @ApiTags('Transaction')
@@ -20,23 +19,23 @@ export class CreateTransactionController {
   @Post('create')
   @HttpCode(statusCode.CREATED)
   async handle(
-    @CurrentLoggedMember() { sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Body(CreateTransactionGateway) body: CreateTransactionDTO,
   ) {
     const result = await this.createTransactionService.execute({
       ...body,
       sub,
+      workspaceId,
     });
 
     if (result.isLeft()) {
       return ErrorPresenter.toHTTP(result.value);
     }
 
-    const { transaction, newSummary } = result.value;
+    const { transaction } = result.value;
 
     return {
-      transaction: TransactionPreviewPresenter.toHTTP(transaction),
-      newSummary: MonthlySummaryPresenter.toHTTP(newSummary), // Formatado com presenter
+      transaction: TransactionPresenter.toHTTP(transaction),
     };
   }
 }
