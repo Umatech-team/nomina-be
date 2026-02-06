@@ -14,7 +14,7 @@ export class ToggleTransactionStatusController {
     private readonly toggleStatusService: ToggleTransactionStatusService,
   ) {}
 
-  @Patch('toggle-status/:id')
+  @Patch('status/:id')
   @HttpCode(statusCode.OK)
   async handle(
     @Param('id') transactionId: string,
