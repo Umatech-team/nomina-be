@@ -13,8 +13,8 @@ import { ListTransactionController } from './controllers/ListTransaction.control
 import { ListTransactionSummaryByWorkspaceIdController } from './controllers/ListTransactionSummaryByWorkspaceId.controller';
 import { ToggleActiveRecurringTransactionController } from './controllers/ToggleActiveRecurringTransaction.controller';
 import { ToggleTransactionStatusController } from './controllers/ToggleTransactionStatus.controller';
-import { UpdateTransactionController } from './controllers/UpdateMemberGeneralInfos';
 import { UpdateRecurringTransactionController } from './controllers/UpdateRecurringTransaction.controller';
+import { UpdateTransactionController } from './controllers/UpdateTransaction.controller';
 import { CalculateNextGenerationDateService } from './services/CalculateNextGenerationDate.service';
 import { CreateRecurringTransactionService } from './services/CreateRecurringTransaction.service';
 import { CreateTransactionService } from './services/CreateTransaction.service';
