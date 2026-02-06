@@ -40,16 +40,12 @@ export class CheckSubscriptionLimitsService {
     resourceType,
     workspaceId,
   }: Request): Promise<Either<Errors, Response>> {
-    // 1. Buscar subscription do usuário
     const subscription = await this.subscriptionRepository.findByUserId(userId);
 
-    // Se não tem subscription, aplicar limites FREE
     const planId = subscription?.planId ?? 'plan_free';
     const limits = getPlanLimits(planId);
 
-    // 2. Verificar se subscription está ativa
     if (subscription && subscription.status !== SubscriptionStatus.ACTIVE) {
-      // Hard-lock: Não permite criar nada se expirado/cancelado
       return left(
         new SubscriptionLimitExceededError(
           'Subscription is not active. Please renew your plan.',
@@ -57,7 +53,6 @@ export class CheckSubscriptionLimitsService {
       );
     }
 
-    // 3. Verificar limite específico do recurso
     switch (resourceType) {
       case ResourceType.WORKSPACE:
         return this.checkWorkspaceLimit(userId, limits.maxWorkspaces);
@@ -91,11 +86,10 @@ export class CheckSubscriptionLimitsService {
       return right({ allowed: true, currentCount: 0, limit: -1 });
     }
 
-    // Usando findManyByUserId com paginação - vamos buscar todos
     const result = await this.workspaceRepository.findManyByUserId(
       userId,
       1,
-      1000, // Um número alto para pegar todos
+      1000,
     );
     const currentCount = result.workspaces.length;
 
@@ -121,7 +115,7 @@ export class CheckSubscriptionLimitsService {
     const result = await this.accountRepository.findManyByWorkspaceId(
       workspaceId,
       1,
-      1000, // Um número alto para pegar todos
+      1000,
     );
     const currentCount = result.accounts.length;
 
