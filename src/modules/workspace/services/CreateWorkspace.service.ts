@@ -31,9 +31,18 @@ export class CreateWorkspaceService
     isDefault,
     sub,
   }: Request): Promise<Either<Errors, Response>> {
+    console.log('CreateWorkspaceService.execute -> Request', {
+      currency,
+      name,
+      isDefault,
+      sub,
+    });
     const workspaceOrError = Workspace.create({
       name,
       currency,
+    });
+    console.log('CreateWorkspaceService.execute -> workspaceOrError', {
+      workspaceOrError,
     });
 
     if (workspaceOrError.isLeft()) {
@@ -42,12 +51,20 @@ export class CreateWorkspaceService
 
     const workspace = workspaceOrError.value;
 
+    console.log('CreateWorkspaceService.execute -> workspace', {
+      workspace,
+    });
+
     const workspaceUserOrError = WorkspaceUser.create({
       userId: sub,
-      workspaceId: workspace.id,
+      workspaceId: 'temporary-id',
       role: UserRole.OWNER,
       isDefault: !!isDefault,
       joinedAt: new Date(),
+    });
+
+    console.log('CreateWorkspaceService.execute -> workspaceUserOrError', {
+      workspaceUserOrError,
     });
 
     if (workspaceUserOrError.isLeft()) {
