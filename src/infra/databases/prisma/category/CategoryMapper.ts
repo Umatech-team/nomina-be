@@ -6,12 +6,13 @@ export class CategoryMapper {
   static toEntity(raw: CategoryPrisma): Category {
     return new Category(
       {
-        workspaceId: raw.workspaceId ?? '',
+        workspaceId: raw.workspaceId,
         name: raw.name,
         icon: raw.icon,
         color: raw.color,
         type: raw.type as TransactionType,
         parentId: raw.parentId,
+        isSystemCategory: raw.isSystemCategory,
       },
       raw.id,
     );
@@ -26,6 +27,7 @@ export class CategoryMapper {
       color: entity.color,
       type: entity.type,
       parentId: entity.parentId,
+      isSystemCategory: entity.isSystemCategory,
     };
   }
 }

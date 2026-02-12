@@ -8,7 +8,7 @@ import { TransactionPresenter } from '../presenters/Transaction.presenter';
 import { FindTransactionByIdService } from '../services/FindTransactionById.service';
 
 @ApiTags('Transaction')
-@Controller('transaction/find')
+@Controller('transaction')
 export class FindTransactionController {
   constructor(
     private readonly findTransactionByIdService: FindTransactionByIdService,

@@ -1,5 +1,5 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
-import { Body, Controller, HttpCode, Put } from '@nestjs/common';
+import { Body, Controller, HttpCode, Param, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
@@ -16,17 +16,17 @@ export class UpdateTransactionController {
     private readonly updateTransactionService: UpdateTransactionService,
   ) {}
 
-  @Put()
-  @HttpCode(statusCode.OK)
-  async handle(
+  @Put(':transactionId') @HttpCode(statusCode.OK) async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Body(UpdateTransactionGateway)
-    body: UpdateTransactionDTO,
+    body: Omit<UpdateTransactionDTO, 'transactionId'>,
+    @Param('transactionId') transactionId: string,
   ) {
     const result = await this.updateTransactionService.execute({
       ...body,
       sub,
       workspaceId,
+      transactionId,
     });
 
     if (result.isLeft()) {

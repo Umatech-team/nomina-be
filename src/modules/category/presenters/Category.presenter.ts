@@ -11,6 +11,7 @@ export class CategoryPresenter {
       type: category.type,
       parentId: category.parentId,
       isSubcategory: category.isSubcategory,
+      isSystemCategory: category.isSystemCategory,
     };
   }
 }
