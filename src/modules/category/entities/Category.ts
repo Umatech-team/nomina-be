@@ -4,12 +4,13 @@ import { Either, left, right } from '@shared/core/errors/Either';
 import { InvalidCategoryError } from '../errors/InvalidCategoryError';
 
 export interface CategoryProps {
-  workspaceId: string;
+  workspaceId: string | null;
   name: string;
   icon: string | null;
   color: string | null;
   type: TransactionType;
   parentId: string | null;
+  isSystemCategory: boolean;
 }
 
 export class Category extends Entity<CategoryProps> {
@@ -47,7 +48,7 @@ export class Category extends Entity<CategoryProps> {
     return right(new Category(createdCategory, id));
   }
 
-  get workspaceId(): string {
+  get workspaceId(): string | null {
     return this.props.workspaceId;
   }
 
@@ -73,6 +74,10 @@ export class Category extends Entity<CategoryProps> {
 
   get isSubcategory(): boolean {
     return this.props.parentId !== null;
+  }
+
+  get isSystemCategory(): boolean {
+    return this.props.isSystemCategory;
   }
 
   set name(value: string) {
