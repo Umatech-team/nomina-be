@@ -99,7 +99,7 @@ export class CategoryRepositoryImplementation implements CategoryRepository {
     limit: number = 50,
   ): Promise<{ categories: Category[]; total: number }> {
     const where: Prisma.CategoryWhereInput = {
-      OR: [{ workspaceId }, { workspaceId: null }],
+      OR: [{ workspaceId }, { isSystemCategory: true }],
     };
 
     if (filters?.type) {
