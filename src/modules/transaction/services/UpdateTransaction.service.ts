@@ -60,7 +60,10 @@ export class UpdateTransactionService
 
     if (categoryId) {
       const category = await this.categoryRepository.findById(categoryId);
-      if (!category || category.workspaceId !== workspaceId) {
+      if (
+        !category ||
+        (category.workspaceId !== workspaceId && !category.isSystemCategory)
+      ) {
         return left(new UnauthorizedError());
       }
     }
