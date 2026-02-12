@@ -483,6 +483,7 @@ async function main() {
       data: {
         ...parentData,
         workspaceId: null, // Categorias globais/seed não têm workspace
+        isSystemCategory: true, // Marca como categoria do sistema
       },
     });
 
@@ -497,6 +498,7 @@ async function main() {
             ...childData,
             workspaceId: null,
             parentId: parentCategory.id,
+            isSystemCategory: true, // Marca como categoria do sistema
           },
         });
 
