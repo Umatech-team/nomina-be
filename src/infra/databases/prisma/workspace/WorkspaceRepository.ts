@@ -31,9 +31,11 @@ export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
         });
       }
 
-      await tx.workspace.create({
+      const createdWorkspace = await tx.workspace.create({
         data: WorkspaceMapper.toPrisma(workspace),
       });
+
+      owner.workspaceId = createdWorkspace.id;
 
       await tx.workspaceUser.create({
         data: WorkspaceUserMapper.toPrisma(owner),
@@ -44,7 +46,7 @@ export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
           name: 'Carteira',
           type: 'CASH',
           balance: 0,
-          workspaceId: workspace.id,
+          workspaceId: createdWorkspace.id,
           icon: 'wallet',
         },
       });
