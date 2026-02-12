@@ -2,7 +2,10 @@ import { Body, Controller, Headers, HttpCode, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '@providers/auth/decorators/IsPublic.decorator';
 import { statusCode } from '@shared/core/types/statusCode';
-import { ProcessWebhookService } from '../services/ProcessWebhook.service';
+import {
+    ProcessWebhookService,
+    WebhookPayload,
+} from '../services/ProcessWebhook.service';
 
 @ApiTags('Webhook')
 @Controller('webhook')
@@ -14,8 +17,9 @@ export class WebhookController {
   @HttpCode(statusCode.OK)
   @ApiOperation({ summary: 'Webhook endpoint for payment gateway' })
   async handle(
-    @Body() payload: any,
-    @Headers('x-webhook-signature') signature: string,
+    @Body() payload: WebhookPayload,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    @Headers('x-webhook-signature') _signature: string,
   ) {
     // TODO: Verificar assinatura do webhook (segurança)
     // const isValid = this.verifySignature(payload, signature);
@@ -27,7 +31,7 @@ export class WebhookController {
   }
 
   // Implementar verificação de assinatura específica do gateway
-  // private verifySignature(payload: any, signature: string): boolean {
+  // private verifySignature(payload: WebhookPayload, signature: string): boolean {
   //   // Stripe: usar stripe.webhooks.constructEvent
   //   // Asaas: verificar header X-Asaas-Signature
   //   return true;
