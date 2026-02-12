@@ -1,20 +1,16 @@
-import { TransactionType } from '@constants/enums';
+import { TransactionStatus, TransactionType } from '@constants/enums';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
 const updateTransaction = z.object({
-  transactionId: z.number(),
-  title: z.string(),
-  type: z.nativeEnum(TransactionType),
-  description: z.string().nullable(),
-  category: z.string(),
-  amount: z.number(),
-  currency: z.string(),
+  accountId: z.string().uuid('ID da conta inválido'),
+  categoryId: z.string().uuid('ID da categoria inválido').optional().nullable(),
+  description: z.string().min(1, 'Descrição é obrigatória'),
+  amount: z.number().positive('Valor deve ser positivo'),
   date: z
     .string()
     .refine(
       (dateString) => {
-        // Valida se a string pode ser convertida para uma data válida
         const date = new Date(dateString);
         return !isNaN(date.getTime());
       },
@@ -22,10 +18,9 @@ const updateTransaction = z.object({
         message: 'Data deve estar em um formato válido',
       },
     )
-    .transform((dateString) => {
-      // Converte a string para Date
-      return new Date(dateString);
-    }),
+    .transform((dateString) => new Date(dateString)),
+  type: z.nativeEnum(TransactionType),
+  status: z.nativeEnum(TransactionStatus),
 });
 
 export const UpdateTransactionGateway = new ZodValidationPipe(
