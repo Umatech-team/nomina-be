@@ -30,4 +30,7 @@ export class CategoryDTO {
   @ApiProperty()
   @IsString()
   parentId!: string | null;
+
+  @ApiProperty()
+  isSystemCategory!: boolean;
 }
