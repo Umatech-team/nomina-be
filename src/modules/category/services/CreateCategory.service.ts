@@ -47,6 +47,7 @@ export class CreateCategoryService
       icon,
       parentId,
       type,
+      isSystemCategory: false,
     });
 
     if (categoryOrError.isLeft()) {
