@@ -106,12 +106,13 @@ model Account {
 }
 
 model Category {
-  id          String          @id @default(uuid())
-  workspaceId String?         @map("workspace_id")
-  name        String
-  icon        String?
-  color       String?
-  type        TransactionType
+  id               String          @id @default(uuid())
+  workspaceId      String?         @map("workspace_id")
+  name             String
+  icon             String?
+  color            String?
+  type             TransactionType
+  isSystemCategory Boolean         @default(false) @map("is_system_category")
 
   // Auto-relacionamento para Subcategorias
   parentId String?    @map("parent_id")
@@ -121,6 +122,10 @@ model Category {
   transactions Transaction[]
   workspace    Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
+  @@unique([workspaceId, name, type, parentId])
+  @@index([workspaceId, type])
+  @@index([parentId])
+  @@index([isSystemCategory])
   @@map("categories")
 }
 
