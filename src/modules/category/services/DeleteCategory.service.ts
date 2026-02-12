@@ -6,6 +6,7 @@ import { FindCategoryByIdDTO } from '../dto/FindCategoryByIdDTO';
 import { CategoryHasChildrenError } from '../errors/CategoryHasChildrenError';
 import { CategoryHasTransactionsError } from '../errors/CategoryHasTransactionsError';
 import { CategoryNotFoundError } from '../errors/CategoryNotFoundError';
+import { SystemCategoryCannotBeModifiedError } from '../errors/SystemCategoryCannotBeModifiedError';
 import { CategoryRepository } from '../repositories/contracts/CategoryRepository';
 
 type Request = FindCategoryByIdDTO & Pick<TokenPayloadSchema, 'sub'>;
@@ -13,7 +14,8 @@ type Request = FindCategoryByIdDTO & Pick<TokenPayloadSchema, 'sub'>;
 type Errors =
   | CategoryNotFoundError
   | CategoryHasChildrenError
-  | CategoryHasTransactionsError;
+  | CategoryHasTransactionsError
+  | SystemCategoryCannotBeModifiedError;
 
 type Response = {
   success: boolean;
@@ -38,6 +40,11 @@ export class DeleteCategoryService
 
     if (category.workspaceId !== sub) {
       return left(new CategoryNotFoundError());
+    }
+
+    // Impedir deleção de categorias do sistema
+    if (category.isSystemCategory) {
+      return left(new SystemCategoryCannotBeModifiedError());
     }
 
     // Verificar se tem transações vinculadas
