@@ -4,7 +4,7 @@ import { SubscriptionRepository } from '../repositories/contracts/SubscriptionRe
 import { CreateSubscriptionService } from './CreateSubscription.service';
 import { UpdateSubscriptionService } from './UpdateSubscription.service';
 
-interface WebhookPayload {
+export interface WebhookPayload {
   type:
     | 'subscription.created'
     | 'subscription.updated'
