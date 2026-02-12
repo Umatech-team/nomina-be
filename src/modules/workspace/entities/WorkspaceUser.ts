@@ -49,6 +49,10 @@ export class WorkspaceUser extends Entity<WorkspaceUserProps> {
     return this.props.workspaceId;
   }
 
+  set workspaceId(value: string) {
+    this.props.workspaceId = value;
+  }
+
   get userId(): string {
     return this.props.userId;
   }
