@@ -7,6 +7,7 @@ import { Category } from '../entities/Category';
 import { CategoryNotFoundError } from '../errors/CategoryNotFoundError';
 import { ConflictCategoryError } from '../errors/ConflictCategoryError';
 import { InvalidCategoryError } from '../errors/InvalidCategoryError';
+import { SystemCategoryCannotBeModifiedError } from '../errors/SystemCategoryCannotBeModifiedError';
 import { CategoryRepository } from '../repositories/contracts/CategoryRepository';
 
 type Request = UpdateCategoryDTO &
@@ -15,7 +16,8 @@ type Request = UpdateCategoryDTO &
 type Errors =
   | CategoryNotFoundError
   | ConflictCategoryError
-  | InvalidCategoryError;
+  | InvalidCategoryError
+  | SystemCategoryCannotBeModifiedError;
 
 type Response = {
   category: Category;
@@ -45,6 +47,11 @@ export class UpdateCategoryService
 
     if (category.workspaceId !== sub) {
       return left(new CategoryNotFoundError());
+    }
+
+    // Impedir modificação de categorias do sistema
+    if (category.isSystemCategory) {
+      return left(new SystemCategoryCannotBeModifiedError());
     }
 
     // Validar se o parentId mudou e prevenir auto-referência
