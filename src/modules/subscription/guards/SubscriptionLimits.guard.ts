@@ -25,14 +25,29 @@ export class SubscriptionLimitsGuard implements CanActivate {
       context.getHandler(),
     );
 
+    console.log('[SubscriptionLimitsGuard] Checking limits', {
+      resourceType,
+      hasResourceType: !!resourceType,
+    });
+
     if (!resourceType) {
+      console.log(
+        '[SubscriptionLimitsGuard] No resource type, allowing access',
+      );
       return true;
     }
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
+    console.log('[SubscriptionLimitsGuard] User info', {
+      hasUser: !!user,
+      userId: user?.sub,
+      workspaceId: user?.workspaceId,
+    });
+
     if (!user) {
+      console.log('[SubscriptionLimitsGuard] ERROR: User not authenticated');
       throw new ForbiddenException('User not authenticated');
     }
 
@@ -44,8 +59,13 @@ export class SubscriptionLimitsGuard implements CanActivate {
 
     if (result.isLeft()) {
       const error = result.value;
+      console.log('[SubscriptionLimitsGuard] ERROR: Limit check failed', {
+        error: error.message,
+      });
       throw new ForbiddenException(error.message);
     }
+
+    console.log('[SubscriptionLimitsGuard] Limit check passed');
 
     return true;
   }
