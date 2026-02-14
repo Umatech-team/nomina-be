@@ -4,8 +4,10 @@ import { CryptographyModule } from '@providers/cryptography/Cryptography.module'
 import { DateModule } from '@providers/date/Date.module';
 import { SubscriptionModule } from '../subscription/Subscription.module';
 import { UserModule } from '../user/User.module';
+import { AcceptWorkspaceInviteController } from './controllers/AcceptWorkspaceInvite.controller';
 import { AddUserToWorkspaceController } from './controllers/AddUserToWorkspace.controller';
 import { CreateWorkspaceController } from './controllers/CreateWorkspace.controller';
+import { CreateWorkspaceInviteController } from './controllers/CreateWorkspaceInvite.controller';
 import { DeleteWorkspaceController } from './controllers/DeleteWorkspace.controller';
 import { FindWorkspaceController } from './controllers/FindWorkspace.controller';
 import { ListWorkspacesController } from './controllers/ListWorkspaces.controller';
@@ -14,8 +16,10 @@ import { RemoveUserFromWorkspaceController } from './controllers/RemoveUserFromW
 import { SwitchWorkspaceController } from './controllers/SwitchWorkspace.controller';
 import { UpdateWorkspaceController } from './controllers/UpdateWorkspace.controller';
 import { UpdateWorkspaceUserController } from './controllers/UpdateWorkspaceUser.controller';
+import { AcceptWorkspaceInviteService } from './services/AcceptWorkspaceInvite.service';
 import { AddUserToWorkspaceService } from './services/AddUserToWorkspace.service';
 import { CreateWorkspaceService } from './services/CreateWorkspace.service';
+import { CreateWorkspaceInviteService } from './services/CreateWorkspaceInvite.service';
 import { DeleteWorkspaceService } from './services/DeleteWorkspace.service';
 import { FindWorkspaceByIdService } from './services/FindWorkspaceById.service';
 import { ListWorkspacesService } from './services/ListWorkspaces.service';
@@ -44,6 +48,8 @@ import { UpdateWorkspaceUserService } from './services/UpdateWorkspaceUser.servi
     UpdateWorkspaceUserController,
     ListWorkspaceUsersController,
     SwitchWorkspaceController,
+    CreateWorkspaceInviteController,
+    AcceptWorkspaceInviteController,
   ],
   providers: [
     CreateWorkspaceService,
@@ -56,6 +62,8 @@ import { UpdateWorkspaceUserService } from './services/UpdateWorkspaceUser.servi
     UpdateWorkspaceUserService,
     ListWorkspaceUsersService,
     SwitchWorkspaceService,
+    CreateWorkspaceInviteService,
+    AcceptWorkspaceInviteService,
   ],
   exports: [FindWorkspaceByIdService, ListWorkspacesService],
 })
