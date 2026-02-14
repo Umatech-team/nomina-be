@@ -29,4 +29,16 @@ export class WorkspaceInviteRepositoryImplementation
 
     return WorkspaceInviteMapper.toEntity(createdWorkspaceInvite);
   }
+
+  async update(workspaceInvite: WorkspaceInvite): Promise<WorkspaceInvite> {
+    const updatedWorkspaceInvite = await this.prisma.workspaceInvite.update({
+      where: { id: workspaceInvite.id },
+      data: {
+        usedAt: workspaceInvite.usedAt,
+        usedBy: workspaceInvite.usedBy,
+      },
+    });
+
+    return WorkspaceInviteMapper.toEntity(updatedWorkspaceInvite);
+  }
 }
