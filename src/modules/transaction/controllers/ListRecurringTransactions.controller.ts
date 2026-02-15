@@ -14,11 +14,11 @@ interface ListRecurringTransactionsQuery {
 }
 
 @ApiTags('Recurring Transaction')
-@Controller('recurring-transaction')
+@Controller('transaction')
 export class ListRecurringTransactionsController {
   constructor(private readonly listService: ListRecurringTransactionsService) {}
 
-  @Get('list')
+  @Get()
   @HttpCode(statusCode.OK)
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
