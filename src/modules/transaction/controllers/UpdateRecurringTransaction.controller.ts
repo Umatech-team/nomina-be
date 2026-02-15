@@ -20,13 +20,13 @@ interface UpdateRecurringTransactionBody {
 }
 
 @ApiTags('Recurring Transaction')
-@Controller('recurring-transaction')
+@Controller('transaction')
 export class UpdateRecurringTransactionController {
   constructor(
     private readonly updateService: UpdateRecurringTransactionService,
   ) {}
 
-  @Patch('update/:id')
+  @Patch('recurring/:id')
   @HttpCode(statusCode.OK)
   async handle(
     @Param('id') id: string,
