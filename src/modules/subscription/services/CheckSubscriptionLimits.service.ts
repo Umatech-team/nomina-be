@@ -9,6 +9,7 @@ import { SubscriptionRepository } from '../repositories/contracts/SubscriptionRe
 
 export enum ResourceType {
   WORKSPACE = 'workspace',
+  WORKSPACE_MEMBER = 'workspace_member',
   ACCOUNT = 'account',
   CATEGORY = 'category',
 }
@@ -16,7 +17,7 @@ export enum ResourceType {
 interface Request {
   userId: string;
   resourceType: ResourceType;
-  workspaceId?: string; // Para limites por workspace (ex: accounts)
+  workspaceId?: string;
 }
 
 type Errors = SubscriptionLimitExceededError;
@@ -56,6 +57,17 @@ export class CheckSubscriptionLimitsService {
     switch (resourceType) {
       case ResourceType.WORKSPACE:
         return this.checkWorkspaceLimit(userId, limits.maxWorkspaces);
+
+      case ResourceType.WORKSPACE_MEMBER:
+        if (!workspaceId) {
+          throw new Error(
+            'workspaceId required for workspace member limit check',
+          );
+        }
+        return this.checkWorkspaceMemberLimit(
+          workspaceId,
+          limits.maxMembersPerWorkspace,
+        );
 
       case ResourceType.ACCOUNT:
         if (!workspaceId) {
@@ -128,5 +140,31 @@ export class CheckSubscriptionLimitsService {
     }
 
     return right({ allowed: true, currentCount, limit: maxAccounts });
+  }
+
+  private async checkWorkspaceMemberLimit(
+    workspaceId: string,
+    maxMembers: number,
+  ): Promise<Either<Errors, Response>> {
+    if (maxMembers === -1) {
+      return right({ allowed: true, currentCount: 0, limit: -1 });
+    }
+
+    const result = await this.workspaceRepository.findUsersByWorkspaceId(
+      workspaceId,
+      1,
+      1000,
+    );
+    const currentCount = result.total;
+
+    if (currentCount >= maxMembers) {
+      return left(
+        new SubscriptionLimitExceededError(
+          `Workspace member limit reached (${currentCount}/${maxMembers}). Upgrade to add more members.`,
+        ),
+      );
+    }
+
+    return right({ allowed: true, currentCount, limit: maxMembers });
   }
 }

@@ -10,7 +10,7 @@ import { WorkspaceInvite } from '../entities/WorkspaceInvite';
 import { InvalidWorkspaceInviteError } from '../errors/InvalidWorkspaceInviteError';
 import { InvalidWorkspaceUserError } from '../errors/InvalidWorkspaceUserError';
 import { WorkspaceInviteRepository } from '../repositories/contracts/WorkspaceInviteRepository';
-import { WorkspaceUserRepository } from '../repositories/contracts/WorkspaceUserRepository';
+import { WorkspaceRepository } from '../repositories/contracts/WorkspaceRepository';
 
 type Request = CreateWorkspaceInviteDTO & TokenPayloadSchema;
 
@@ -26,7 +26,7 @@ export class CreateWorkspaceInviteService
 {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly workspaceUserRepository: WorkspaceUserRepository,
+    private readonly workspaceRepository: WorkspaceRepository,
     private readonly workspaceInviteRepository: WorkspaceInviteRepository,
   ) {}
 
@@ -36,13 +36,15 @@ export class CreateWorkspaceInviteService
     workspaceId,
   }: Request): Promise<Either<Errors, Response>> {
     const user = await this.userRepository.findUniqueById(sub);
-
     if (!user) {
       return left(new UnauthorizedError());
     }
 
     const workspaceUser =
-      await this.workspaceUserRepository.findUniqueById(workspaceId);
+      await this.workspaceRepository.findUserByWorkspaceAndUserId(
+        workspaceId,
+        sub,
+      );
 
     if (!workspaceUser) {
       return left(new UnauthorizedError());
@@ -52,7 +54,10 @@ export class CreateWorkspaceInviteService
       return left(new UnauthorizedError());
     }
 
-    if (workspaceUser.role !== UserRole.OWNER) {
+    if (
+      workspaceUser.role !== UserRole.OWNER &&
+      workspaceUser.role !== UserRole.ADMIN
+    ) {
       return left(new UnauthorizedError());
     }
 

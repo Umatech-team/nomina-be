@@ -8,6 +8,7 @@ export enum PlanType {
 export interface PlanLimits {
   maxWorkspaces: number;
   maxAccountsPerWorkspace: number;
+  maxMembersPerWorkspace: number;
   maxCategories: number;
   maxTransactionsPerMonth: number;
 }
@@ -16,24 +17,28 @@ export const PLAN_LIMITS: Record<string, PlanLimits> = {
   [PlanType.TRIAL]: {
     maxWorkspaces: 2,
     maxAccountsPerWorkspace: 2,
+    maxMembersPerWorkspace: 3,
     maxCategories: 0,
     maxTransactionsPerMonth: 25,
   },
   [PlanType.FREE]: {
     maxWorkspaces: 1,
     maxAccountsPerWorkspace: 1,
+    maxMembersPerWorkspace: 3,
     maxCategories: 0,
     maxTransactionsPerMonth: 15,
   },
   [PlanType.PRO]: {
     maxWorkspaces: 5,
     maxAccountsPerWorkspace: 5,
+    maxMembersPerWorkspace: 3,
     maxCategories: 10,
     maxTransactionsPerMonth: -1,
   },
   [PlanType.ENTERPRISE]: {
     maxWorkspaces: -1,
     maxAccountsPerWorkspace: -1,
+    maxMembersPerWorkspace: -1,
     maxCategories: -1,
     maxTransactionsPerMonth: -1,
   },
