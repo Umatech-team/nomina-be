@@ -173,10 +173,12 @@ export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
     workspaceId: string,
     userId: string,
   ): Promise<WorkspaceUser | null> {
-    const workspaceUser = await this.prisma.workspaceUser.findFirst({
+    const workspaceUser = await this.prisma.workspaceUser.findUnique({
       where: {
-        workspaceId,
-        userId,
+        workspaceId_userId: {
+          workspaceId,
+          userId,
+        },
       },
     });
 
