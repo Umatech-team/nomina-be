@@ -14,7 +14,7 @@ export class ListTransactionSummaryByWorkspaceIdController {
     private readonly listTransactionSummaryByWorkspaceIdService: ListTransactionSummaryByWorkspaceIdService,
   ) {}
 
-  @Get('/summary')
+  @Get('summary')
   @HttpCode(statusCode.OK)
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
