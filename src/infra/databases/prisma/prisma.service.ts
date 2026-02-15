@@ -10,7 +10,7 @@ export class PrismaService
     await this.$connect();
 
     this.$on('query' as never, (event: Prisma.QueryEvent) => {
-      const duration = event.duration; // in milliseconds
+      const duration = event.duration;
       const query = event.query;
       const params = event.params;
 
