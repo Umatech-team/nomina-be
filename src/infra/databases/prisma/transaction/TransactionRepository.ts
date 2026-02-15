@@ -73,38 +73,59 @@ export class TransactionRepositoryImplementation
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - (period === '7d' ? 7 : 30));
 
-    const transactions = await this.prisma.transaction.groupBy({
-      by: ['date', 'type'],
-      where: {
-        workspaceId,
-        date: { gte: startDate, lte: endDate },
-        status: 'COMPLETED',
-      },
-      _sum: {
-        amount: true,
-      },
-      _count: {
-        id: true,
-      },
-      orderBy: { date: 'asc' },
+    const [openingBalanceResult, periodTransactions] = await Promise.all([
+      this.prisma.transaction.groupBy({
+        by: ['type'],
+        where: {
+          workspaceId,
+          status: 'COMPLETED',
+          date: { lt: startDate },
+        },
+        _sum: { amount: true },
+      }),
+
+      this.prisma.transaction.groupBy({
+        by: ['date', 'type'],
+        where: {
+          workspaceId,
+          date: { gte: startDate, lte: endDate },
+          status: 'COMPLETED',
+        },
+        _sum: { amount: true },
+        orderBy: { date: 'asc' },
+      }),
+    ]);
+
+    let startIncome = 0;
+    let startExpense = 0;
+
+    openingBalanceResult.forEach((res) => {
+      const val = Number(res._sum.amount || 0);
+      if (res.type === 'INCOME') startIncome += val;
+      if (res.type === 'EXPENSE') startExpense += val;
     });
+
+    let accumulatedBalance = startIncome - startExpense;
 
     const dailySummaryMap = new Map<
       string,
       { income: number; expense: number; date: Date }
     >();
 
-    transactions.forEach((transaction) => {
+    for (
+      let d = new Date(startDate);
+      d.getTime() <= endDate.getTime();
+      d.setDate(d.getDate() + 1)
+    ) {
+      const key = d.toISOString().split('T')[0];
+      dailySummaryMap.set(key, { income: 0, expense: 0, date: new Date(d) });
+    }
+
+    periodTransactions.forEach((transaction) => {
       const dateKey = transaction.date.toISOString().split('T')[0];
       const amount = Number(transaction._sum?.amount ?? 0);
 
-      if (!dailySummaryMap.has(dateKey)) {
-        dailySummaryMap.set(dateKey, {
-          income: 0,
-          expense: 0,
-          date: transaction.date,
-        });
-      }
+      if (!dailySummaryMap.has(dateKey)) return;
 
       const summary = dailySummaryMap.get(dateKey)!;
       if (transaction.type === 'INCOME') {
@@ -118,9 +139,9 @@ export class TransactionRepositoryImplementation
       (a, b) => a.date.getTime() - b.date.getTime(),
     );
 
-    let accumulatedBalance = 0;
     const result = sortedSummaries.map((summary) => {
       accumulatedBalance += summary.income - summary.expense;
+
       return new TransactionSummary({
         date: summary.date,
         income: summary.income,
@@ -213,34 +234,35 @@ export class TransactionRepositoryImplementation
     const normalizedEndDate = new Date(endDate);
     normalizedEndDate.setHours(23, 59, 59, 999);
 
-    const incomeResult = await this.prisma.transaction.aggregate({
-      _sum: { amount: true },
+    const result = await this.prisma.transaction.groupBy({
+      by: ['type'],
       where: {
         workspaceId,
-        type: 'INCOME',
         status: 'COMPLETED',
         date: { gte: normalizedStartDate, lte: normalizedEndDate },
       },
-    });
-
-    const expenseResult = await this.prisma.transaction.aggregate({
-      _sum: { amount: true },
-      where: {
-        workspaceId,
-        type: 'EXPENSE',
-        status: 'COMPLETED',
-        date: { gte: normalizedStartDate, lte: normalizedEndDate },
+      _sum: {
+        amount: true,
       },
     });
 
-    const totalIncome = Number(incomeResult._sum.amount ?? 0n);
-    const totalExpense = Number(expenseResult._sum.amount ?? 0n);
-    const balance = totalIncome - totalExpense;
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    result.forEach((group) => {
+      const amount = Number(group._sum.amount || 0);
+
+      if (group.type === 'INCOME') {
+        totalIncome = amount;
+      } else if (group.type === 'EXPENSE') {
+        totalExpense = amount;
+      }
+    });
 
     return {
       totalIncome,
       totalExpense,
-      balance,
+      balance: totalIncome - totalExpense,
     };
   }
 
@@ -400,7 +422,8 @@ export class TransactionRepositoryImplementation
   ): Promise<
     Array<{ date: string; income: number; expense: number; balance: number }>
   > {
-    const transactions = await this.prisma.transaction.findMany({
+    const aggregates = await this.prisma.transaction.groupBy({
+      by: ['date', 'type'],
       where: {
         workspaceId,
         date: {
@@ -412,9 +435,7 @@ export class TransactionRepositoryImplementation
           in: ['INCOME', 'EXPENSE'],
         },
       },
-      select: {
-        date: true,
-        type: true,
+      _sum: {
         amount: true,
       },
       orderBy: {
@@ -422,30 +443,32 @@ export class TransactionRepositoryImplementation
       },
     });
 
-    const dailyMap = new Map<string, { income: bigint; expense: bigint }>();
+    const dailyMap = new Map<string, { income: number; expense: number }>();
 
-    for (const transaction of transactions) {
-      const dateKey = transaction.date.toISOString().split('T')[0];
+    for (const item of aggregates) {
+      const dateKey = item.date.toISOString().split('T')[0];
+
+      const amount = Number(item._sum.amount || 0);
 
       if (!dailyMap.has(dateKey)) {
-        dailyMap.set(dateKey, { income: 0n, expense: 0n });
+        dailyMap.set(dateKey, { income: 0, expense: 0 });
       }
 
-      const daily = dailyMap.get(dateKey)!;
+      const entry = dailyMap.get(dateKey)!;
 
-      if (transaction.type === 'INCOME') {
-        daily.income += transaction.amount;
+      if (item.type === 'INCOME') {
+        entry.income += amount;
       } else {
-        daily.expense += transaction.amount;
+        entry.expense += amount;
       }
     }
 
     return Array.from(dailyMap.entries())
       .map(([date, { income, expense }]) => ({
         date,
-        income: Number(income),
-        expense: Number(expense),
-        balance: Number(income - expense),
+        income,
+        expense,
+        balance: income - expense,
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
   }
