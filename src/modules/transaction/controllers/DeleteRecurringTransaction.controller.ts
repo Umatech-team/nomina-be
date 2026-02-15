@@ -7,13 +7,13 @@ import { statusCode } from '@shared/core/types/statusCode';
 import { DeleteRecurringTransactionService } from '../services/DeleteRecurringTransaction.service';
 
 @ApiTags('Recurring Transaction')
-@Controller('recurring-transaction')
+@Controller('transaction')
 export class DeleteRecurringTransactionController {
   constructor(
     private readonly deleteService: DeleteRecurringTransactionService,
   ) {}
 
-  @Delete('delete/:id')
+  @Delete('recurring/:id')
   @HttpCode(statusCode.OK)
   async handle(
     @Param('id') id: string,
