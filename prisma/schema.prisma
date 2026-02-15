@@ -89,9 +89,9 @@ model WorkspaceInvite {
 model Account {
   id          String      @id @default(uuid())
   workspaceId String      @map("workspace_id")
-  name        String // "Nubank", "Carteira", "Inter"
-  type        AccountType // CHECKING, CASH, CREDIT_CARD, INVESTMENT
-  balance     BigInt      @default(0) // Saldo atual cacheado (atualizado via triggers ou app service)
+  name        String
+  type        AccountType
+  balance     BigInt      @default(0)
   icon        String?
   color       String?
 
@@ -133,19 +133,17 @@ model Transaction {
   id          String  @id @default(uuid())
   workspaceId String  @map("workspace_id")
   accountId   String  @map("account_id")
-  categoryId  String? @map("category_id") // Pode ser null se for transferência
+  categoryId  String? @map("category_id")
 
   description String
-  amount      BigInt // Negativo para despesa, Positivo para receita
-  date        DateTime // Data da competência
+  amount      BigInt
+  date        DateTime
 
-  type   TransactionType // INCOME, EXPENSE, TRANSFER
-  status TransactionStatus @default(COMPLETED) // PENDING (agendado), COMPLETED
+  type   TransactionType
+  status TransactionStatus @default(COMPLETED)
 
-  // Relacionamento com Recorrência (de onde isso veio?)
   recurringId String? @map("recurring_transaction_id")
 
-  // Metadata
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -154,10 +152,9 @@ model Transaction {
   category        Category?             @relation(fields: [categoryId], references: [id])
   recurringOrigin RecurringTransaction? @relation(fields: [recurringId], references: [id])
 
-  @@index([workspaceId, date])
-  @@index([workspaceId, categoryId])
-  @@index([workspaceId, type, status])
+  @@index([workspaceId, date, status, type])
   @@index([accountId])
+  @@index([workspaceId, categoryId, type, date])
   @@map("transactions")
 }
 
