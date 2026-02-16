@@ -2,26 +2,16 @@ import { RecurrenceFrequency } from '@constants/enums';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
 import { Injectable } from '@nestjs/common';
+import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
+import { CreateRecurringTransactionDTO } from '../dto/CreateRecurringTransactionDTO';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 import { InvalidAmountError } from '../errors/InvalidAmountError';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
 
-interface CreateRecurringTransactionRequest {
-  workspaceId: string;
-  accountId: string;
-  categoryId?: string | null;
-  description: string;
-  amount: number; // Decimal
-  frequency: string;
-  interval?: number;
-  startDate: Date;
-  endDate?: Date | null;
-  active?: boolean;
-  sub: string;
-}
+type Request = CreateRecurringTransactionDTO & TokenPayloadBase;
 
 type Errors = UnauthorizedError | InvalidAmountError;
 
@@ -31,7 +21,7 @@ type Response = {
 
 @Injectable()
 export class CreateRecurringTransactionService
-  implements Service<CreateRecurringTransactionRequest, Errors, Response>
+  implements Service<Request, Errors, Response>
 {
   constructor(
     private readonly recurringRepository: RecurringTransactionRepository,
@@ -50,19 +40,16 @@ export class CreateRecurringTransactionService
     startDate,
     endDate,
     active,
-  }: CreateRecurringTransactionRequest): Promise<Either<Errors, Response>> {
-    // Validate amount
+  }: Request): Promise<Either<Errors, Response>> {
     if (amount <= 0) {
       return left(new InvalidAmountError());
     }
 
-    // Validate account belongs to workspace
     const account = await this.accountRepository.findById(accountId);
     if (!account || account.workspaceId !== workspaceId) {
       return left(new UnauthorizedError());
     }
 
-    // Validate category belongs to workspace if provided
     if (categoryId) {
       const category = await this.categoryRepository.findById(categoryId);
       if (!category || category.workspaceId !== workspaceId) {
@@ -70,13 +57,12 @@ export class CreateRecurringTransactionService
       }
     }
 
-    // Create entity
-    const recurring = new RecurringTransaction({
+    const recurringOrError = RecurringTransaction.create({
       workspaceId,
       accountId,
       categoryId: categoryId ?? null,
       description,
-      amount: BigInt(Math.round(amount * 100)), // Convert to cents
+      amount: BigInt(amount),
       frequency: frequency as RecurrenceFrequency,
       interval: interval ?? 1,
       startDate,
@@ -85,7 +71,12 @@ export class CreateRecurringTransactionService
       lastGenerated: null,
     });
 
-    // Persist
+    if (recurringOrError.isLeft()) {
+      return left(recurringOrError.value);
+    }
+
+    const recurring = recurringOrError.value;
+
     const created = await this.recurringRepository.create(recurring);
 
     return right({ recurringTransaction: created });
