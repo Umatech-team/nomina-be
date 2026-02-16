@@ -16,12 +16,10 @@ export abstract class RecurringTransactionRepository {
     workspaceId: string,
   ): Promise<RecurringTransaction[]>;
 
-  // Para lazy generation
   abstract findActiveByWorkspaceId(
     workspaceId: string,
   ): Promise<RecurringTransaction[]>;
 
-  // Para verificar quais precisam gerar hoje
   abstract findActiveNeedingGeneration(
     workspaceId: string,
     referenceDate: Date,
