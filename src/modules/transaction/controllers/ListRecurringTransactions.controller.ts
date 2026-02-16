@@ -8,11 +8,6 @@ import { ListRecurringTransactionsGateway } from '../gateways/ListRecurringTrans
 import { RecurringTransactionPresenter } from '../presenters/RecurringTransaction.presenter';
 import { ListRecurringTransactionsService } from '../services/ListRecurringTransactions.service';
 
-interface ListRecurringTransactionsQuery {
-  page: number;
-  pageSize: number;
-}
-
 @ApiTags('Recurring Transaction')
 @Controller('transaction')
 export class ListRecurringTransactionsController {
@@ -23,12 +18,17 @@ export class ListRecurringTransactionsController {
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Query(ListRecurringTransactionsGateway)
-    query: ListRecurringTransactionsQuery,
+    @Query('page')
+    page: string,
+    @Query('pageSize') pageSize: string,
+    @Query('activeOnly') activeOnly?: string,
   ) {
     const result = await this.listService.execute({
-      ...query,
+      page: parseInt(page, 10),
+      pageSize: parseInt(pageSize, 10),
       sub,
       workspaceId,
+      activeOnly: activeOnly === 'true',
     });
 
     if (result.isLeft()) {
