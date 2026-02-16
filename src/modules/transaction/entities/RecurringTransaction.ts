@@ -1,6 +1,8 @@
 import { RecurrenceFrequency } from '@constants/enums';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
+import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
+import { InvalidRecurringTransactionError } from '../errors/InvalidRecurringTransactionError';
 
 export interface RecurringTransactionProps {
   workspaceId: string;
@@ -17,13 +19,31 @@ export interface RecurringTransactionProps {
 }
 
 export class RecurringTransaction extends AggregateRoot<RecurringTransactionProps> {
-  constructor(
+  constructor(props: RecurringTransactionProps, id?: string) {
+    super(props, id);
+  }
+
+  static create(
     props: Optional<
       RecurringTransactionProps,
       'interval' | 'endDate' | 'lastGenerated' | 'active' | 'categoryId'
     >,
     id?: string,
-  ) {
+  ): Either<InvalidRecurringTransactionError, RecurringTransaction> {
+    if (props.amount <= 0) {
+      return left(
+        new InvalidRecurringTransactionError('O valor deve ser maior que zero'),
+      );
+    }
+
+    if (props.interval !== undefined && props.interval <= 0) {
+      return left(
+        new InvalidRecurringTransactionError(
+          'O intervalo deve ser maior que zero',
+        ),
+      );
+    }
+
     const recurringTransactionProps: RecurringTransactionProps = {
       ...props,
       interval: props.interval ?? 1,
@@ -33,7 +53,12 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
       categoryId: props.categoryId ?? null,
     };
 
-    super(recurringTransactionProps, id);
+    const recurringTransaction = new RecurringTransaction(
+      recurringTransactionProps,
+      id,
+    );
+
+    return right(recurringTransaction);
   }
 
   get workspaceId(): string {
@@ -114,10 +139,6 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
 
   set lastGenerated(value: Date | null) {
     this.props.lastGenerated = value;
-  }
-
-  set active(value: boolean) {
-    this.props.active = value;
   }
 
   deactivate(): void {
