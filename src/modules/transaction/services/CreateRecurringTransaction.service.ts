@@ -60,15 +60,14 @@ export class CreateRecurringTransactionService
     const recurringOrError = RecurringTransaction.create({
       workspaceId,
       accountId,
-      categoryId: categoryId ?? null,
+      categoryId,
       description,
       amount: BigInt(amount),
       frequency: frequency as RecurrenceFrequency,
-      interval: interval ?? 1,
+      interval,
       startDate,
-      endDate: endDate ?? null,
-      active: active ?? true,
-      lastGenerated: null,
+      endDate,
+      active,
     });
 
     if (recurringOrError.isLeft()) {
