@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
@@ -6,12 +7,7 @@ import { RecurringTransaction } from '../entities/RecurringTransaction';
 import { RecurringTransactionNotFoundError } from '../errors/RecurringTransactionNotFoundError';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
 
-interface ToggleActiveRecurringTransactionRequest {
-  recurringTransactionId: string;
-  workspaceId: string;
-  sub: string;
-}
-
+type Request = { recurringTransactionId: string } & TokenPayloadBase;
 type Errors = UnauthorizedError | RecurringTransactionNotFoundError;
 
 type Response = {
@@ -20,7 +16,7 @@ type Response = {
 
 @Injectable()
 export class ToggleActiveRecurringTransactionService
-  implements Service<ToggleActiveRecurringTransactionRequest, Errors, Response>
+  implements Service<Request, Errors, Response>
 {
   constructor(
     private readonly recurringRepository: RecurringTransactionRepository,
@@ -29,10 +25,7 @@ export class ToggleActiveRecurringTransactionService
   async execute({
     recurringTransactionId,
     workspaceId,
-  }: ToggleActiveRecurringTransactionRequest): Promise<
-    Either<Errors, Response>
-  > {
-    // Find recurring transaction
+  }: Request): Promise<Either<Errors, Response>> {
     const recurring = await this.recurringRepository.findById(
       recurringTransactionId,
     );
@@ -41,15 +34,16 @@ export class ToggleActiveRecurringTransactionService
       return left(new RecurringTransactionNotFoundError());
     }
 
-    // Validate ownership
     if (recurring.workspaceId !== workspaceId) {
       return left(new UnauthorizedError());
     }
 
-    // Toggle active status
-    recurring.active = !recurring.active;
+    if (recurring.active) {
+      recurring.deactivate();
+    } else {
+      recurring.activate();
+    }
 
-    // Persist
     const updated = await this.recurringRepository.update(recurring);
 
     return right({ recurringTransaction: updated });
