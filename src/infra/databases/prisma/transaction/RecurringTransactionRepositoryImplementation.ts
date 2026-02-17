@@ -44,16 +44,22 @@ export class RecurringTransactionRepositoryImplementation
 
   async findByWorkspaceId(
     workspaceId: string,
+    page: number,
+    pageSize: number,
   ): Promise<RecurringTransaction[]> {
     const recurrings = await this.prisma.recurringTransaction.findMany({
       where: { workspaceId },
       orderBy: { startDate: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
     return recurrings.map(RecurringTransactionMapper.toEntity);
   }
 
   async findActiveByWorkspaceId(
     workspaceId: string,
+    page: number,
+    pageSize: number,
   ): Promise<RecurringTransaction[]> {
     const recurrings = await this.prisma.recurringTransaction.findMany({
       where: {
@@ -61,6 +67,8 @@ export class RecurringTransactionRepositoryImplementation
         active: true,
       },
       orderBy: { startDate: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
     return recurrings.map(RecurringTransactionMapper.toEntity);
   }
