@@ -29,9 +29,18 @@ export class ListRecurringTransactionsService
     pageSize,
     activeOnly,
   }: Request): Promise<Either<Errors, Response>> {
+    console.log({ page, pageSize, activeOnly });
     const recurrings = activeOnly
-      ? await this.recurringRepository.findActiveByWorkspaceId(workspaceId)
-      : await this.recurringRepository.findByWorkspaceId(workspaceId);
+      ? await this.recurringRepository.findActiveByWorkspaceId(
+          workspaceId,
+          page,
+          pageSize,
+        )
+      : await this.recurringRepository.findByWorkspaceId(
+          workspaceId,
+          page,
+          pageSize,
+        );
 
     return right({ recurringTransactions: recurrings });
   }
