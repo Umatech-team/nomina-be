@@ -51,7 +51,6 @@ export class UpdateRecurringTransactionService
     startDate,
     endDate,
   }: UpdateRecurringTransactionRequest): Promise<Either<Errors, Response>> {
-    // Find recurring transaction
     const recurring = await this.recurringRepository.findById(
       recurringTransactionId,
     );
@@ -60,23 +59,21 @@ export class UpdateRecurringTransactionService
       return left(new RecurringTransactionNotFoundError());
     }
 
-    // Validate ownership
     if (recurring.workspaceId !== workspaceId) {
       return left(new UnauthorizedError());
     }
 
-    // Validate category if changing
-    if (categoryId !== undefined) {
-      if (categoryId) {
-        const category = await this.categoryRepository.findById(categoryId);
-        if (!category || category.workspaceId !== workspaceId) {
-          return left(new UnauthorizedError());
-        }
+    if (categoryId) {
+      const category = await this.categoryRepository.findById(categoryId);
+
+      const isGlobalCategory = !category?.workspaceId;
+      const belongsToWorkspace = category?.workspaceId === workspaceId;
+
+      if (!category || (!isGlobalCategory && !belongsToWorkspace)) {
+        return left(new UnauthorizedError());
       }
-      recurring.categoryId = categoryId;
     }
 
-    // Update fields
     if (description !== undefined) {
       recurring.description = description;
     }
@@ -104,7 +101,6 @@ export class UpdateRecurringTransactionService
       recurring.endDate = endDate;
     }
 
-    // Persist
     const updated = await this.recurringRepository.update(recurring);
 
     return right({ recurringTransaction: updated });
