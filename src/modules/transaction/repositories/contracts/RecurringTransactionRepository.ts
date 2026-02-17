@@ -14,10 +14,14 @@ export abstract class RecurringTransactionRepository {
 
   abstract findByWorkspaceId(
     workspaceId: string,
+    page: number,
+    pageSize: number,
   ): Promise<RecurringTransaction[]>;
 
   abstract findActiveByWorkspaceId(
     workspaceId: string,
+    page: number,
+    pageSize: number,
   ): Promise<RecurringTransaction[]>;
 
   abstract findActiveNeedingGeneration(
