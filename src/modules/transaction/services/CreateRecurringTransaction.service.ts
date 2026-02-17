@@ -52,7 +52,11 @@ export class CreateRecurringTransactionService
 
     if (categoryId) {
       const category = await this.categoryRepository.findById(categoryId);
-      if (!category || category.workspaceId !== workspaceId) {
+
+      const isGlobalCategory = !category?.workspaceId;
+      const belongsToWorkspace = category?.workspaceId === workspaceId;
+
+      if (!category || (!isGlobalCategory && !belongsToWorkspace)) {
         return left(new UnauthorizedError());
       }
     }
