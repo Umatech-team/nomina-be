@@ -15,7 +15,6 @@ const envSchema = z.object({
   JWT_USER_REFRESH_EXPIRES_IN: z.string(),
   USER_REFRESH_EXPIRES_IN: z.coerce.number(),
 
-  // Redis (optional)
   REDIS_ENABLED: z.coerce.boolean().default(false),
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.coerce.number().default(6379),
