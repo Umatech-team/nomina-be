@@ -9,7 +9,7 @@ export interface RecurringTransactionProps {
   accountId: string;
   categoryId: string | null;
   description: string;
-  amount: bigint;
+  amount: number;
   frequency: RecurrenceFrequency;
   interval: number;
   startDate: Date;
@@ -77,12 +77,12 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return this.props.description;
   }
 
-  get amount(): bigint {
+  get amount(): number {
     return this.props.amount;
   }
 
   get amountDecimal(): number {
-    return Number(this.props.amount) / 100;
+    return this.props.amount / 100;
   }
 
   get frequency(): RecurrenceFrequency {
@@ -113,7 +113,7 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     this.props.description = value;
   }
 
-  set amount(value: bigint) {
+  set amount(value: number) {
     this.props.amount = value;
   }
 
