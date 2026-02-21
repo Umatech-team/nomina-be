@@ -105,16 +105,15 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 
-  // Distributed Lock (SETNX com expiry)
   async acquireLock(key: string, ttlSeconds = 30): Promise<boolean> {
-    if (!this.client) return true; // Sem Redis, sempre permitir
+    if (!this.client) return true;
 
     try {
       const result = await this.client.set(key, '1', 'EX', ttlSeconds, 'NX');
       return result === 'OK';
     } catch (error) {
       this.logger.warn(`Redis LOCK failed for key ${key}:`, error);
-      return true; // Fallback: permitir execução
+      return true;
     }
   }
 
@@ -130,7 +129,6 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 
-  // Expor client para casos avançados (opcional)
   getClient(): Redis | null {
     return this.client;
   }
