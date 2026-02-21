@@ -40,6 +40,7 @@ export class CreateRecurringTransactionService
     interval,
     startDate,
     endDate,
+    type,
     active,
   }: Request): Promise<Either<Errors, Response>> {
     const account = await this.accountRepository.findById(accountId);
@@ -74,6 +75,7 @@ export class CreateRecurringTransactionService
       amount,
       frequency: frequency as RecurrenceFrequency,
       interval,
+      type,
       startDate,
       endDate,
       active,
