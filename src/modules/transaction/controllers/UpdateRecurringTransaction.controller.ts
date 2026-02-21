@@ -12,7 +12,7 @@ import { UpdateRecurringTransactionService } from '../services/UpdateRecurringTr
 interface UpdateRecurringTransactionBody {
   categoryId?: string | null;
   description?: string;
-  amount?: number;
+  amount?: bigint;
   frequency?: RecurrenceFrequency;
   interval?: number;
   startDate?: Date;
