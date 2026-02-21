@@ -6,7 +6,6 @@ import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
-import { isToday } from 'date-fns';
 import { CreateRecurringTransactionDTO } from '../dto/CreateRecurringTransactionDTO';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 import { InvalidRecurringTransactionError } from '../errors/InvalidRecurringTransactionError';
@@ -48,7 +47,7 @@ export class CreateRecurringTransactionService
       return left(new UnauthorizedError());
     }
 
-    if (isToday(startDate)) {
+    if (startDate <= new Date()) {
       return left(
         new InvalidRecurringTransactionError(
           'Transação recorrente não pode começar hoje.',
