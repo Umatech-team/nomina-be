@@ -6,6 +6,7 @@ import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 import { InvalidAmountError } from '../errors/InvalidAmountError';
+import { InvalidRecurringTransactionError } from '../errors/InvalidRecurringTransactionError';
 import { RecurringTransactionNotFoundError } from '../errors/RecurringTransactionNotFoundError';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
 
@@ -61,6 +62,14 @@ export class UpdateRecurringTransactionService
 
     if (recurring.workspaceId !== workspaceId) {
       return left(new UnauthorizedError());
+    }
+
+    if (startDate && startDate <= new Date()) {
+      return left(
+        new InvalidRecurringTransactionError(
+          'Transação recorrente não pode começar hoje.',
+        ),
+      );
     }
 
     if (categoryId) {
