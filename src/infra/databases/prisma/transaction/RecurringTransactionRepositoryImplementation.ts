@@ -82,7 +82,7 @@ export class RecurringTransactionRepositoryImplementation
         workspaceId,
         active: true,
         startDate: { lte: referenceDate },
-        OR: [{ endDate: null }, { endDate: { gte: referenceDate } }],
+        endDate: { gte: referenceDate },
       },
     });
     return recurrings.map(RecurringTransactionMapper.toEntity);
