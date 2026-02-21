@@ -14,7 +14,7 @@ interface UpdateRecurringTransactionRequest {
   workspaceId: string;
   categoryId?: string | null;
   description?: string;
-  amount?: number; // Decimal
+  amount?: number;
   frequency?: string;
   interval?: number;
   startDate?: Date;
@@ -82,7 +82,7 @@ export class UpdateRecurringTransactionService
       if (amount <= 0) {
         return left(new InvalidAmountError());
       }
-      recurring.amount = BigInt(Math.round(amount * 100));
+      recurring.amount = Math.round(amount * 100);
     }
 
     if (frequency !== undefined) {
