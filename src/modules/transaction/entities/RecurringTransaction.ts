@@ -1,4 +1,4 @@
-import { RecurrenceFrequency } from '@constants/enums';
+import { RecurrenceFrequency, TransactionType } from '@constants/enums';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
@@ -9,13 +9,14 @@ export interface RecurringTransactionProps {
   accountId: string;
   categoryId: string | null;
   description: string;
-  amount: number;
+  amount: bigint;
   frequency: RecurrenceFrequency;
   interval: number;
   startDate: Date;
   endDate: Date | null;
   lastGenerated: Date | null;
   active: boolean;
+  type: keyof typeof TransactionType;
 }
 
 export class RecurringTransaction extends AggregateRoot<RecurringTransactionProps> {
@@ -65,6 +66,10 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return this.props.workspaceId;
   }
 
+  get type(): keyof typeof TransactionType {
+    return this.props.type;
+  }
+
   get accountId(): string {
     return this.props.accountId;
   }
@@ -77,12 +82,12 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return this.props.description;
   }
 
-  get amount(): number {
+  get amount(): bigint {
     return this.props.amount;
   }
 
-  get amountDecimal(): number {
-    return this.props.amount / 100;
+  get amountDecimal(): bigint {
+    return this.props.amount / 100n;
   }
 
   get frequency(): RecurrenceFrequency {
@@ -113,7 +118,7 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     this.props.description = value;
   }
 
-  set amount(value: number) {
+  set amount(value: bigint) {
     this.props.amount = value;
   }
 
@@ -139,6 +144,10 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
 
   set lastGenerated(value: Date | null) {
     this.props.lastGenerated = value;
+  }
+
+  set type(value: keyof typeof TransactionType) {
+    this.props.type = value;
   }
 
   deactivate(): void {
