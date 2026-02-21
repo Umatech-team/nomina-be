@@ -1,4 +1,4 @@
-import { RecurrenceFrequency } from '@constants/enums';
+import { RecurrenceFrequency, TransactionType } from '@constants/enums';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
@@ -8,6 +8,7 @@ const createRecurringTransactionSchema = z.object({
   description: z.string().min(1, 'Descrição é obrigatória'),
   amount: z.coerce.bigint().positive('Valor deve ser positivo'),
   frequency: z.nativeEnum(RecurrenceFrequency),
+  type: z.nativeEnum(TransactionType),
   interval: z.coerce
     .number()
     .int()
