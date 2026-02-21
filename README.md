@@ -1,10 +1,10 @@
-# Lastro
+# Nomina
 
 > **O peso real do seu patrimônio.**
 
 ## 🏛️ Conceito
 
-**Lastro** — Em economia, "lastro" é a garantia de valor de uma moeda (ex: lastro em ouro). Significa ter substância, ter base real. Não é apenas ter números na tela, mas ter patrimônio real.
+**Nomina** — Em economia, "nomina" é a garantia de valor de uma moeda (ex: nomina em ouro). Significa ter substância, ter base real. Não é apenas ter números na tela, mas ter patrimônio real.
 
 Este é um backend de gestão patrimonial pessoal construído para aqueles que não estão brincando com planilhas, mas construindo garantias reais para o futuro.
 
@@ -35,7 +35,7 @@ Este é um backend de gestão patrimonial pessoal construído para aqueles que n
 
 ```bash
 git clone <repository-url>
-cd lastro-be
+cd nomina-be
 ```
 
 ### 2. Instale as dependências
@@ -55,7 +55,7 @@ cp .env.example .env
 Edite o arquivo `.env` com suas configurações:
 
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/lastro"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/nomina"
 JWT_PRIVATE_KEY_BASE64="<sua-chave-privada-base64>"
 JWT_PUBLIC_KEY_BASE64="<sua-chave-publica-base64>"
 NODE_ENV="development"
@@ -70,8 +70,8 @@ docker-compose up -d
 
 Isso iniciará:
 
-- PostgreSQL na porta `5432` (container: `lastro_postgres`)
-- Redis na porta `6379` (container: `lastro_redis`)
+- PostgreSQL na porta `5432` (container: `nomina_postgres`)
+- Redis na porta `6379` (container: `nomina_redis`)
 
 ### 5. Execute as migrations
 
@@ -253,7 +253,7 @@ npm run start:prod
 ### Variáveis de Ambiente (Produção)
 
 ```env
-DATABASE_URL="postgresql://user:pass@host:5432/lastro"
+DATABASE_URL="postgresql://user:pass@host:5432/nomina"
 JWT_PRIVATE_KEY_BASE64="..."
 JWT_PUBLIC_KEY_BASE64="..."
 NODE_ENV="production"
@@ -277,4 +277,4 @@ UNLICENSED - Proprietary Software
 
 ---
 
-**Lastro** — Construindo garantias reais para o futuro.
+**Nomina** — Construindo garantias reais para o futuro.
