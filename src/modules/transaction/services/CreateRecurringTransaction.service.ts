@@ -6,14 +6,15 @@ import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
+import { isToday } from 'date-fns';
 import { CreateRecurringTransactionDTO } from '../dto/CreateRecurringTransactionDTO';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
-import { InvalidAmountError } from '../errors/InvalidAmountError';
+import { InvalidRecurringTransactionError } from '../errors/InvalidRecurringTransactionError';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
 
 type Request = CreateRecurringTransactionDTO & TokenPayloadBase;
 
-type Errors = UnauthorizedError | InvalidAmountError;
+type Errors = UnauthorizedError | InvalidRecurringTransactionError;
 
 type Response = {
   recurringTransaction: RecurringTransaction;
@@ -41,13 +42,17 @@ export class CreateRecurringTransactionService
     endDate,
     active,
   }: Request): Promise<Either<Errors, Response>> {
-    if (amount <= 0) {
-      return left(new InvalidAmountError());
-    }
-
     const account = await this.accountRepository.findById(accountId);
     if (!account || account.workspaceId !== workspaceId) {
       return left(new UnauthorizedError());
+    }
+
+    if (isToday(startDate)) {
+      return left(
+        new InvalidRecurringTransactionError(
+          'Transação recorrente não pode começar hoje.',
+        ),
+      );
     }
 
     if (categoryId) {
@@ -66,7 +71,7 @@ export class CreateRecurringTransactionService
       accountId,
       categoryId,
       description,
-      amount: BigInt(amount),
+      amount,
       frequency: frequency as RecurrenceFrequency,
       interval,
       startDate,
