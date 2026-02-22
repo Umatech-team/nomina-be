@@ -10,6 +10,11 @@ const listTransactionsSchema = z.object({
     .max(100, 'Tamanho da página muito grande'),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
+  type: z.string().optional(),
+  categoryId: z.string().optional(),
+  accountId: z.string().optional(),
+  description: z.string().optional(),
+  status: z.string().optional(),
 });
 
 export const ListTransactionsGateway = new ZodValidationPipe(
