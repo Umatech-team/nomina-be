@@ -35,6 +35,11 @@ export class ListTransactionByIdService
     endDate,
     page,
     pageSize,
+    type,
+    categoryId,
+    accountId,
+    description,
+    status,
   }: Request): Promise<Either<Errors, Response>> {
     const user = await this.userRepository.findUniqueById(sub);
 
@@ -44,13 +49,33 @@ export class ListTransactionByIdService
 
     await this.generateRecurringService.execute({ workspaceId });
 
+    startDate = startDate
+      ? (() => {
+          const d = new Date(startDate);
+          d.setHours(0, 0, 0, 0);
+          return d;
+        })()
+      : undefined;
+    endDate = endDate
+      ? (() => {
+          const d = new Date(endDate);
+          d.setHours(23, 59, 59, 999);
+          return d;
+        })()
+      : undefined;
+
     const transaction =
-      await this.transactionRepository.listTransactionsByUserId(
+      await this.transactionRepository.listTransactionsByWorkspaceId(
         workspaceId,
         page,
         pageSize,
         startDate,
         endDate,
+        type,
+        categoryId,
+        accountId,
+        description,
+        status,
       );
 
     if (!transaction) {
