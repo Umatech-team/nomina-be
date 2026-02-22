@@ -16,13 +16,6 @@ export class GenerateRecurringTransactionJobController {
   @HttpCode(statusCode.OK)
   async handle(@ApiKey() apiKey: string) {
     if (apiKey !== process.env.CRON_API_KEY) {
-      console.log(
-        'Received API key:',
-        apiKey,
-        'Expected API key:',
-        process.env.CRON_API_KEY,
-      );
-      console.log('Invalid API key for generate-recurring-transactions job');
       return;
     }
     const result = await this.createService.execute();
