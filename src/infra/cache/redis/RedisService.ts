@@ -53,7 +53,17 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 
-  // Helpers com fallback
+  async ping(): Promise<boolean> {
+    if (!this.client) return false;
+    try {
+      const response = await this.client.ping();
+      return response === 'PONG';
+    } catch (error) {
+      this.logger.warn('Redis PING failed:', error);
+      return false;
+    }
+  }
+
   async get(key: string): Promise<string | null> {
     if (!this.client) return null;
 
