@@ -1,0 +1,18 @@
+name: Daily Backend Job
+
+on:
+  schedule:
+    # 02:00 BRT = 05:00 UTC
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run daily task
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_API_KEY }}" \
+            https://nomina-be-qico.onrender.com/internal/generate-recurring-transactions
