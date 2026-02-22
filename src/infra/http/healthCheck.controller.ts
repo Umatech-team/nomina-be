@@ -1,6 +1,13 @@
 import { RedisService } from '@infra/cache/redis/RedisService';
 import { PrismaService } from '@infra/databases/prisma/prisma.service';
-import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { Public } from '@providers/auth/decorators/IsPublic.decorator';
+import { statusCode } from '@shared/core/types/statusCode';
 
 @Controller('health')
 export class HealthController {
@@ -9,7 +16,9 @@ export class HealthController {
     private readonly redisService: RedisService,
   ) {}
 
+  @Public()
   @Get()
+  @HttpCode(statusCode.OK)
   async check() {
     try {
       await this.prisma.$queryRaw`SELECT 1`;
