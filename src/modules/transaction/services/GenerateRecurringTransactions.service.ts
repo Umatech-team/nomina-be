@@ -43,7 +43,7 @@ export class GenerateRecurringTransactionsService {
 
     try {
       const recurrings =
-        await this.recurringRepository.findActiveNeedingGeneration(
+        await this.recurringRepository.findActiveNeedingGenerationByWorkspaceId(
           workspaceId,
           referenceDate,
         );
