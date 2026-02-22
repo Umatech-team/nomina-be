@@ -3,8 +3,8 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '@providers/auth/decorators/IsPublic.decorator';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    ProcessWebhookService,
-    WebhookPayload,
+  ProcessWebhookService,
+  WebhookPayload,
 } from '../services/ProcessWebhook.service';
 
 @ApiTags('Webhook')

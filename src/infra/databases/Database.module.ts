@@ -5,6 +5,7 @@ import { RecurringTransactionRepository } from '@modules/transaction/repositorie
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { RefreshTokensRepository } from '@modules/user/repositories/contracts/RefreshTokenRepository';
 import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
+import { WorkspaceInviteRepository } from '@modules/workspace/repositories/contracts/WorkspaceInviteRepository';
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { Module } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { RecurringTransactionRepositoryImplementation } from './prisma/transacti
 import { TransactionRepositoryImplementation } from './prisma/transaction/TransactionRepository';
 import { RefreshTokensRepositoryImplementation } from './prisma/user/RefreshTokensRepositoryImplementation';
 import { UserRepositoryImplementation } from './prisma/user/UserRepository';
+import { WorkspaceInviteRepositoryImplementation } from './prisma/workspace/WorkspaceInviteRepository';
 import { WorkspaceRepositoryImplementation } from './prisma/workspace/WorkspaceRepository';
 import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/WorkspaceUserRepository';
 
@@ -33,6 +35,10 @@ import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/Worksp
     {
       provide: WorkspaceUserRepository,
       useClass: WorkspaceUserRepositoryImplementation,
+    },
+    {
+      provide: WorkspaceInviteRepository,
+      useClass: WorkspaceInviteRepositoryImplementation,
     },
     {
       provide: RefreshTokensRepository,
@@ -64,6 +70,7 @@ import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/Worksp
     UserRepository,
     WorkspaceRepository,
     WorkspaceUserRepository,
+    WorkspaceInviteRepository,
     RefreshTokensRepository,
     TransactionRepository,
     RecurringTransactionRepository,

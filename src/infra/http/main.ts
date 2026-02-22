@@ -1,7 +1,6 @@
 import { env } from '@infra/env';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
@@ -12,14 +11,6 @@ async function bootstrap() {
   const allowedOrigins = [env.PROD_URL, env.DEV_URL];
 
   app.use(helmet());
-
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    console.log(`Request received: ${req.method} ${req.url}`);
-    res.on('finish', () => {
-      console.log(`Response sent: ${res.statusCode}`);
-    });
-    next();
-  });
 
   app.enableCors({
     origin: (origin, callback) => {

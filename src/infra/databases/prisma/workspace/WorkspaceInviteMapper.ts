@@ -7,15 +7,18 @@ import {
 
 export class WorkspaceInviteMapper {
   static toEntity(raw: WorkspaceInvitePrisma): WorkspaceInvite {
-    const result = WorkspaceInvite.create({
-      code: raw.code,
-      workspaceId: raw.workspaceId,
-      role: raw.role as UserRole,
-      createdBy: raw.createdBy,
-      expiresAt: raw.expiresAt,
-      usedAt: raw.usedAt ?? null,
-      usedBy: raw.usedBy ?? null,
-    });
+    const result = WorkspaceInvite.create(
+      {
+        code: raw.code,
+        workspaceId: raw.workspaceId,
+        role: raw.role as UserRole,
+        createdBy: raw.createdBy,
+        expiresAt: raw.expiresAt,
+        usedAt: raw.usedAt ?? null,
+        usedBy: raw.usedBy ?? null,
+      },
+      raw.id,
+    );
 
     if (result.isLeft()) {
       throw result.value;

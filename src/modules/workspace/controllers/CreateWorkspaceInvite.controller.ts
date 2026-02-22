@@ -1,3 +1,4 @@
+import { UserRole } from '@constants/enums';
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import {
   CheckLimit,
@@ -7,6 +8,7 @@ import {
 import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
+import { Roles } from '@providers/auth/decorators/Roles.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { CreateWorkspaceInviteDTO } from '../dto/CreateWorkspaceInviteDTO';
@@ -16,6 +18,7 @@ import { CreateWorkspaceInviteService } from '../services/CreateWorkspaceInvite.
 
 @ApiTags('Workspace Invite')
 @Controller('workspace')
+@Roles(UserRole.OWNER, UserRole.ADMIN)
 export class CreateWorkspaceInviteController {
   constructor(
     private readonly createWorkspaceInviteService: CreateWorkspaceInviteService,
@@ -24,15 +27,14 @@ export class CreateWorkspaceInviteController {
   @Post('/invite')
   @HttpCode(statusCode.CREATED)
   @UseGuards(SubscriptionLimitsGuard)
-  @CheckLimit(ResourceType.WORKSPACE)
+  @CheckLimit(ResourceType.WORKSPACE_MEMBER)
   async handle(
-    @CurrentLoggedUser() { sub, role, workspaceId }: TokenPayloadSchema,
+    @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Body(CreateWorkspaceInviteGateway) body: CreateWorkspaceInviteDTO,
   ) {
     const result = await this.createWorkspaceInviteService.execute({
-      ...body,
+      role: body.role as UserRole,
       sub,
-      role,
       workspaceId,
     });
 
