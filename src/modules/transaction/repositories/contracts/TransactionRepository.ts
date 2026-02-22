@@ -8,12 +8,17 @@ export abstract class TransactionRepository implements Repository<Transaction> {
   abstract update(transaction: Transaction): Promise<void>;
   abstract delete(id: string): Promise<void>;
   abstract findUniqueById(id: string): Promise<Transaction | null>;
-  abstract listTransactionsByUserId(
+  abstract listTransactionsByWorkspaceId(
     workspaceId: string,
     page: number,
     pageSize: number,
     startDate?: Date,
     endDate?: Date,
+    type?: string,
+    categoryId?: string,
+    accountId?: string,
+    description?: string,
+    status?: string,
   ): Promise<Transaction[]>;
 
   abstract getTopExpensesByCategory(
