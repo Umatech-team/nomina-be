@@ -14,5 +14,5 @@ jobs:
       - name: Run daily task
         run: |
           curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.CRON_API_KEY }}" \
+            -H "x-api-key: ${{ secrets.CRON_API_KEY }}" \
             https://nomina-be-qico.onrender.com/internal/generate-recurring-transactions
