@@ -15,6 +15,7 @@ import { CryptographyModule } from '@providers/cryptography/Cryptography.module'
 import { DateModule } from '@providers/date/Date.module';
 import { RedisModule } from '../cache/Redis.module';
 import { DatabaseModule } from '../databases/Database.module';
+import { HealthController } from './healthCheck.controller';
 
 @Module({
   imports: [
@@ -42,5 +43,6 @@ import { DatabaseModule } from '../databases/Database.module';
       useClass: RolesGuard,
     },
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
