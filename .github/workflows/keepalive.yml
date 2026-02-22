@@ -12,4 +12,4 @@ jobs:
     steps:
       - name: Ping backend
         run: |
-          curl -fsS https://nomina-be-qico.onrender.com || exit 1
+          curl -fsS https://nomina-be-qico.onrender.com/health || exit 1
