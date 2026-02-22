@@ -31,7 +31,12 @@ async function bootstrap() {
     },
     credentials: true,
     methods: 'GET,PUT,PATCH,POST,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization', 'refresh_token'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'refresh_token',
+      'x-api-key',
+    ],
   });
 
   if (env.NODE_ENV === 'dev') {
