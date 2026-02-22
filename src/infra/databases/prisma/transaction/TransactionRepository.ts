@@ -12,55 +12,39 @@ export class TransactionRepositoryImplementation
 {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listTransactionsByUserId(
+  async listTransactionsByWorkspaceId(
     workspaceId: string,
     page: number,
     pageSize: number,
-    startDate: Date,
-    endDate: Date,
+    startDate?: Date,
+    endDate?: Date,
+    type?: string,
+    categoryId?: string,
+    accountId?: string,
+    description?: string,
+    status?: string,
   ): Promise<Transaction[]> {
-    const transactions =
-      startDate && endDate
-        ? await this.prisma.transaction.findMany({
-            where: {
-              workspaceId,
-              date: {
-                gte: new Date(
-                  new Date(startDate).getUTCFullYear(),
-                  new Date(startDate).getMonth(),
-                  new Date(startDate).getDate(),
-                  0,
-                  0,
-                  0,
-                  0,
-                ),
-                lte: new Date(
-                  new Date(endDate).getFullYear(),
-                  new Date(endDate).getMonth(),
-                  new Date(endDate).getDate(),
-                  23,
-                  59,
-                  59,
-                  999,
-                ),
-              },
-            },
-            skip: (page - 1) * pageSize,
-            take: pageSize,
-            orderBy: {
-              createdAt: 'desc',
-            },
-          })
-        : await this.prisma.transaction.findMany({
-            where: {
-              workspaceId,
-            },
-            skip: (page - 1) * pageSize,
-            take: pageSize,
-            orderBy: {
-              createdAt: 'desc',
-            },
-          });
+    const where: Record<string, unknown> = {
+      workspaceId,
+      ...(startDate &&
+        endDate && {
+          date: { gte: startDate, lte: endDate },
+        }),
+      ...(type && { type }),
+      ...(categoryId && { categoryId }),
+      ...(accountId && { accountId }),
+      ...(description && {
+        description: { contains: description, mode: 'insensitive' },
+      }),
+      ...(status && { status }),
+    };
+
+    const transactions = await this.prisma.transaction.findMany({
+      where,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: { date: 'desc' },
+    });
 
     return transactions.map(TransactionMapper.toEntity);
   }
