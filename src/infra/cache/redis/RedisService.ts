@@ -21,7 +21,6 @@ export class RedisService implements OnModuleDestroy {
 
   private connect(): void {
     try {
-      // Permite conexão por URL pública (ex: redis://user:pass@host:port/db)
       const redisUrl = env.REDIS_URL;
       if (redisUrl) {
         this.client = new Redis(redisUrl, {
@@ -43,7 +42,7 @@ export class RedisService implements OnModuleDestroy {
 
       this.client.on('error', (err) => {
         this.logger.error('Redis connection error:', err);
-        this.client = null; // Desabilitar após erro
+        this.client = null;
       });
     } catch (error) {
       this.logger.error('Failed to initialize Redis:', error);
