@@ -17,4 +17,19 @@ export class ListTransactionsDTO {
   @ApiProperty()
   @IsDate()
   endDate?: Date;
+
+  @ApiProperty()
+  type?: string;
+
+  @ApiProperty()
+  categoryId?: string;
+
+  @ApiProperty()
+  accountId?: string;
+
+  @ApiProperty()
+  description?: string;
+
+  @ApiProperty()
+  status?: string;
 }
