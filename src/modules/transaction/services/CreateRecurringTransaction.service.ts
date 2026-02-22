@@ -47,10 +47,13 @@ export class CreateRecurringTransactionService
       return left(new UnauthorizedError());
     }
 
-    if (startDate <= new Date()) {
+    const receivedDateString = startDate.toISOString().split('T')[0];
+    const currentDateString = new Date().toISOString().split('T')[0];
+
+    if (receivedDateString <= currentDateString) {
       return left(
         new InvalidRecurringTransactionError(
-          'Transação recorrente não pode começar hoje.',
+          'Transação recorrente não pode começar hoje ou no passado.',
         ),
       );
     }
