@@ -24,8 +24,12 @@ export abstract class RecurringTransactionRepository {
     pageSize: number,
   ): Promise<RecurringTransaction[]>;
 
-  abstract findActiveNeedingGeneration(
+  abstract findActiveNeedingGenerationByWorkspaceId(
     workspaceId: string,
+    referenceDate: Date,
+  ): Promise<RecurringTransaction[]>;
+
+  abstract listActiveNeedingGeneration(
     referenceDate: Date,
   ): Promise<RecurringTransaction[]>;
 }
