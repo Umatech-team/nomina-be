@@ -21,16 +21,21 @@ export class RedisService implements OnModuleDestroy {
 
   private connect(): void {
     try {
-      this.client = new Redis({
-        host: env.REDIS_HOST,
-        port: env.REDIS_PORT,
-        password: env.REDIS_PASSWORD,
-        db: env.REDIS_DB,
-        retryStrategy: (times) => {
-          const delay = Math.min(times * 50, 2000);
-          return delay;
-        },
-      });
+      // Permite conexão por URL pública (ex: redis://user:pass@host:port/db)
+      const redisUrl = env.REDIS_URL;
+      if (redisUrl) {
+        this.client = new Redis(redisUrl, {
+          retryStrategy: (times) => Math.min(times * 50, 2000),
+        });
+      } else {
+        this.client = new Redis({
+          host: env.REDIS_HOST,
+          port: env.REDIS_PORT,
+          password: env.REDIS_PASSWORD,
+          db: env.REDIS_DB,
+          retryStrategy: (times) => Math.min(times * 50, 2000),
+        });
+      }
 
       this.client.on('connect', () => {
         this.logger.log('Redis connected successfully');
