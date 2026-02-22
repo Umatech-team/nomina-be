@@ -9,6 +9,33 @@ export class RecurringTransactionRepositoryImplementation
   implements RecurringTransactionRepository
 {
   constructor(private readonly prisma: PrismaService) {}
+  async findActiveNeedingGenerationByWorkspaceId(
+    workspaceId: string,
+    referenceDate: Date,
+  ): Promise<RecurringTransaction[]> {
+    const recurrings = await this.prisma.recurringTransaction.findMany({
+      where: {
+        workspaceId,
+        active: true,
+        startDate: { lte: referenceDate },
+        OR: [{ endDate: null }, { endDate: { gte: referenceDate } }],
+      },
+    });
+    return recurrings.map(RecurringTransactionMapper.toEntity);
+  }
+
+  async listActiveNeedingGeneration(
+    referenceDate: Date,
+  ): Promise<RecurringTransaction[]> {
+    const recurrings = await this.prisma.recurringTransaction.findMany({
+      where: {
+        active: true,
+        startDate: { lte: referenceDate },
+        OR: [{ endDate: null }, { endDate: { gte: referenceDate } }],
+      },
+    });
+    return recurrings.map(RecurringTransactionMapper.toEntity);
+  }
 
   async create(
     recurringTransaction: RecurringTransaction,
