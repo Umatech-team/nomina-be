@@ -16,7 +16,7 @@ export class CreateTransactionController {
     private readonly createTransactionService: CreateTransactionService,
   ) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(statusCode.CREATED)
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,

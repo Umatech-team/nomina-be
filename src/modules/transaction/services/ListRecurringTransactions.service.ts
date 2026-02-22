@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, right } from '@shared/core/errors/Either';
+import { ListRecurringTransactionsDTO } from '../dto/ListRecurringTransactionsDTO';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
 
-interface ListRecurringTransactionsRequest {
-  workspaceId: string;
-  activeOnly?: boolean;
-  sub: string;
-}
+type Request = ListRecurringTransactionsDTO &
+  TokenPayloadBase & { activeOnly?: boolean };
 
 type Errors = never;
 
@@ -18,7 +17,7 @@ type Response = {
 
 @Injectable()
 export class ListRecurringTransactionsService
-  implements Service<ListRecurringTransactionsRequest, Errors, Response>
+  implements Service<Request, Errors, Response>
 {
   constructor(
     private readonly recurringRepository: RecurringTransactionRepository,
@@ -26,11 +25,22 @@ export class ListRecurringTransactionsService
 
   async execute({
     workspaceId,
+    page,
+    pageSize,
     activeOnly,
-  }: ListRecurringTransactionsRequest): Promise<Either<Errors, Response>> {
+  }: Request): Promise<Either<Errors, Response>> {
+    console.log({ page, pageSize, activeOnly });
     const recurrings = activeOnly
-      ? await this.recurringRepository.findActiveByWorkspaceId(workspaceId)
-      : await this.recurringRepository.findByWorkspaceId(workspaceId);
+      ? await this.recurringRepository.findActiveByWorkspaceId(
+          workspaceId,
+          page,
+          pageSize,
+        )
+      : await this.recurringRepository.findByWorkspaceId(
+          workspaceId,
+          page,
+          pageSize,
+        );
 
     return right({ recurringTransactions: recurrings });
   }

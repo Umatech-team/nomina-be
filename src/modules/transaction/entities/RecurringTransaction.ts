@@ -1,6 +1,8 @@
-import { RecurrenceFrequency } from '@constants/enums';
+import { RecurrenceFrequency, TransactionType } from '@constants/enums';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
+import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
+import { InvalidRecurringTransactionError } from '../errors/InvalidRecurringTransactionError';
 
 export interface RecurringTransactionProps {
   workspaceId: string;
@@ -14,16 +16,35 @@ export interface RecurringTransactionProps {
   endDate: Date | null;
   lastGenerated: Date | null;
   active: boolean;
+  type: keyof typeof TransactionType;
 }
 
 export class RecurringTransaction extends AggregateRoot<RecurringTransactionProps> {
-  constructor(
+  constructor(props: RecurringTransactionProps, id?: string) {
+    super(props, id);
+  }
+
+  static create(
     props: Optional<
       RecurringTransactionProps,
       'interval' | 'endDate' | 'lastGenerated' | 'active' | 'categoryId'
     >,
     id?: string,
-  ) {
+  ): Either<InvalidRecurringTransactionError, RecurringTransaction> {
+    if (props.amount <= 0) {
+      return left(
+        new InvalidRecurringTransactionError('O valor deve ser maior que zero'),
+      );
+    }
+
+    if (props.interval !== undefined && props.interval <= 0) {
+      return left(
+        new InvalidRecurringTransactionError(
+          'O intervalo deve ser maior que zero',
+        ),
+      );
+    }
+
     const recurringTransactionProps: RecurringTransactionProps = {
       ...props,
       interval: props.interval ?? 1,
@@ -33,11 +54,20 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
       categoryId: props.categoryId ?? null,
     };
 
-    super(recurringTransactionProps, id);
+    const recurringTransaction = new RecurringTransaction(
+      recurringTransactionProps,
+      id,
+    );
+
+    return right(recurringTransaction);
   }
 
   get workspaceId(): string {
     return this.props.workspaceId;
+  }
+
+  get type(): keyof typeof TransactionType {
+    return this.props.type;
   }
 
   get accountId(): string {
@@ -56,8 +86,8 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return this.props.amount;
   }
 
-  get amountDecimal(): number {
-    return Number(this.props.amount) / 100;
+  get amountDecimal(): bigint {
+    return this.props.amount / 100n;
   }
 
   get frequency(): RecurrenceFrequency {
@@ -116,8 +146,8 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     this.props.lastGenerated = value;
   }
 
-  set active(value: boolean) {
-    this.props.active = value;
+  set type(value: keyof typeof TransactionType) {
+    this.props.type = value;
   }
 
   deactivate(): void {

@@ -14,7 +14,7 @@ export class DeleteTransactionController {
     private readonly deleteTransactionService: DeleteTransactionService,
   ) {}
 
-  @Delete('delete')
+  @Delete()
   @HttpCode(statusCode.OK)
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,

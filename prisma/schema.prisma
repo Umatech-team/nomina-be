@@ -159,10 +159,11 @@ model Transaction {
 }
 
 model RecurringTransaction {
-  id          String  @id @default(uuid())
-  workspaceId String  @map("workspace_id")
-  accountId   String  @map("account_id")
-  categoryId  String? @map("category_id")
+  id          String          @id @default(uuid())
+  workspaceId String          @map("workspace_id")
+  accountId   String          @map("account_id")
+  categoryId  String?         @map("category_id")
+  type        TransactionType
 
   description String
   amount      BigInt

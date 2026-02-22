@@ -15,6 +15,8 @@ import { ToggleActiveRecurringTransactionController } from './controllers/Toggle
 import { ToggleTransactionStatusController } from './controllers/ToggleTransactionStatus.controller';
 import { UpdateRecurringTransactionController } from './controllers/UpdateRecurringTransaction.controller';
 import { UpdateTransactionController } from './controllers/UpdateTransaction.controller';
+import { GenerateRecurringTransactionJobController } from './jobs/CreateRecurringTransactionJob.controller';
+import { GenerateRecurringTransactionsJobService } from './jobs/GenerateRecurringTransactionsJob.service';
 import { CalculateNextGenerationDateService } from './services/CalculateNextGenerationDate.service';
 import { CreateRecurringTransactionService } from './services/CreateRecurringTransaction.service';
 import { CreateTransactionService } from './services/CreateTransaction.service';
@@ -45,6 +47,7 @@ import { UpdateTransactionService } from './services/UpdateTransaction.service';
     ToggleTransactionStatusController,
     // Recurring Transaction Controllers
     CreateRecurringTransactionController,
+    GenerateRecurringTransactionJobController,
     UpdateRecurringTransactionController,
     DeleteRecurringTransactionController,
     ListRecurringTransactionsController,
@@ -72,6 +75,7 @@ import { UpdateTransactionService } from './services/UpdateTransaction.service';
     // Recurring Generation Services
     CalculateNextGenerationDateService,
     GenerateRecurringTransactionsService,
+    GenerateRecurringTransactionsJobService,
   ],
 })
 export class TransactionModule {}

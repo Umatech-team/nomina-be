@@ -15,6 +15,7 @@ import { CryptographyModule } from '@providers/cryptography/Cryptography.module'
 import { DateModule } from '@providers/date/Date.module';
 import { RedisModule } from '../cache/Redis.module';
 import { DatabaseModule } from '../databases/Database.module';
+import { HealthController } from './healthCheck.controller';
 import { LoggingInterceptor } from './interceptors/Logging.interceptor';
 
 @Module({
@@ -47,5 +48,6 @@ import { LoggingInterceptor } from './interceptors/Logging.interceptor';
       useClass: LoggingInterceptor,
     },
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}

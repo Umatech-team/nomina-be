@@ -6,8 +6,6 @@ export class CategoryPresenter {
       id: category.id,
       workspaceId: category.workspaceId,
       name: category.name,
-      icon: category.icon,
-      color: category.color,
       type: category.type,
       parentId: category.parentId,
       isSubcategory: category.isSubcategory,

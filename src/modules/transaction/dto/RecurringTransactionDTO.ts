@@ -1,4 +1,4 @@
-import { RecurrenceFrequency } from '@constants/enums';
+import { RecurrenceFrequency, TransactionType } from '@constants/enums';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsDate, IsEnum, IsNumber, IsString } from 'class-validator';
 
@@ -25,7 +25,7 @@ export class RecurringTransactionDTO {
 
   @ApiProperty({ description: 'Valor em centavos' })
   @IsNumber()
-  amount!: number;
+  amount!: bigint;
 
   @ApiProperty({ enum: RecurrenceFrequency })
   @IsEnum(RecurrenceFrequency)
@@ -42,6 +42,10 @@ export class RecurringTransactionDTO {
   @ApiProperty()
   @IsDate()
   endDate!: Date | null;
+
+  @ApiProperty()
+  @IsString()
+  type!: keyof typeof TransactionType;
 
   @ApiProperty()
   @IsDate()

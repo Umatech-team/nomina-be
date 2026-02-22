@@ -9,6 +9,33 @@ export class RecurringTransactionRepositoryImplementation
   implements RecurringTransactionRepository
 {
   constructor(private readonly prisma: PrismaService) {}
+  async findActiveNeedingGenerationByWorkspaceId(
+    workspaceId: string,
+    referenceDate: Date,
+  ): Promise<RecurringTransaction[]> {
+    const recurrings = await this.prisma.recurringTransaction.findMany({
+      where: {
+        workspaceId,
+        active: true,
+        startDate: { lte: referenceDate },
+        OR: [{ endDate: null }, { endDate: { gte: referenceDate } }],
+      },
+    });
+    return recurrings.map(RecurringTransactionMapper.toEntity);
+  }
+
+  async listActiveNeedingGeneration(
+    referenceDate: Date,
+  ): Promise<RecurringTransaction[]> {
+    const recurrings = await this.prisma.recurringTransaction.findMany({
+      where: {
+        active: true,
+        startDate: { lte: referenceDate },
+        OR: [{ endDate: null }, { endDate: { gte: referenceDate } }],
+      },
+    });
+    return recurrings.map(RecurringTransactionMapper.toEntity);
+  }
 
   async create(
     recurringTransaction: RecurringTransaction,
@@ -44,16 +71,22 @@ export class RecurringTransactionRepositoryImplementation
 
   async findByWorkspaceId(
     workspaceId: string,
+    page: number,
+    pageSize: number,
   ): Promise<RecurringTransaction[]> {
     const recurrings = await this.prisma.recurringTransaction.findMany({
       where: { workspaceId },
       orderBy: { startDate: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
     return recurrings.map(RecurringTransactionMapper.toEntity);
   }
 
   async findActiveByWorkspaceId(
     workspaceId: string,
+    page: number,
+    pageSize: number,
   ): Promise<RecurringTransaction[]> {
     const recurrings = await this.prisma.recurringTransaction.findMany({
       where: {
@@ -61,6 +94,8 @@ export class RecurringTransactionRepositoryImplementation
         active: true,
       },
       orderBy: { startDate: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
     return recurrings.map(RecurringTransactionMapper.toEntity);
   }
@@ -74,7 +109,7 @@ export class RecurringTransactionRepositoryImplementation
         workspaceId,
         active: true,
         startDate: { lte: referenceDate },
-        OR: [{ endDate: null }, { endDate: { gte: referenceDate } }],
+        endDate: { gte: referenceDate },
       },
     });
     return recurrings.map(RecurringTransactionMapper.toEntity);

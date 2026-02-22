@@ -8,13 +8,13 @@ import { RecurringTransactionPresenter } from '../presenters/RecurringTransactio
 import { ToggleActiveRecurringTransactionService } from '../services/ToggleActiveRecurringTransaction.service';
 
 @ApiTags('Recurring Transaction')
-@Controller('recurring-transaction')
+@Controller('transaction')
 export class ToggleActiveRecurringTransactionController {
   constructor(
     private readonly toggleService: ToggleActiveRecurringTransactionService,
   ) {}
 
-  @Patch('toggle-active/:id')
+  @Patch('recurring/active/:id')
   @HttpCode(statusCode.OK)
   async handle(
     @Param('id') id: string,

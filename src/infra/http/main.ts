@@ -22,12 +22,17 @@ async function bootstrap() {
     },
     credentials: true,
     methods: 'GET,PUT,PATCH,POST,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization', 'refresh_token'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'refresh_token',
+      'x-api-key',
+    ],
   });
 
   if (env.NODE_ENV === 'dev') {
     const config = new DocumentBuilder()
-      .setTitle('Lastro API')
+      .setTitle('Nomina API')
       .setDescription('O peso real do seu patrimônio')
       .setVersion('1.0')
       .addBearerAuth()

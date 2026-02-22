@@ -1,20 +1,19 @@
-import { TransactionStatus, TransactionType } from '@constants/enums';
+import { TransactionStatus } from '@constants/enums';
 import { RedisService } from '@infra/cache/redis/RedisService';
 import { PrismaService } from '@infra/databases/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
+import { Transaction } from '../entities/Transaction';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
 import { CalculateNextGenerationDateService } from './CalculateNextGenerationDate.service';
 
 interface Request {
   workspaceId: string;
-  referenceDate?: Date; // Default: hoje
+  referenceDate?: Date;
 }
-
 interface Response {
   generatedCount: number;
 }
-
 @Injectable()
 export class GenerateRecurringTransactionsService {
   constructor(
@@ -28,28 +27,29 @@ export class GenerateRecurringTransactionsService {
     workspaceId,
     referenceDate = new Date(),
   }: Request): Promise<Response> {
-    // 1. Verificar cache Redis (opcional)
-    if (await this.wasProcessedToday(workspaceId, referenceDate)) {
-      return { generatedCount: 0 }; // Já processado hoje
+    const hasAlreadyProcessed = await this.wasProcessedToday(
+      workspaceId,
+      referenceDate,
+    );
+
+    if (hasAlreadyProcessed) {
+      return { generatedCount: 0 };
     }
 
-    // 2. Tentar adquirir lock distribuído (opcional)
     const lockAcquired = await this.acquireLock(workspaceId);
     if (!lockAcquired) {
-      return { generatedCount: 0 }; // Outro processo está gerando
+      return { generatedCount: 0 };
     }
 
     try {
-      // 3. Buscar recorrências ativas que precisam geração
       const recurrings =
-        await this.recurringRepository.findActiveNeedingGeneration(
+        await this.recurringRepository.findActiveNeedingGenerationByWorkspaceId(
           workspaceId,
           referenceDate,
         );
 
       let generatedCount = 0;
 
-      // 4. Processar cada recorrência
       for (const recurring of recurrings) {
         const generated = await this.generateTransactionsForRecurring(
           recurring,
@@ -58,12 +58,10 @@ export class GenerateRecurringTransactionsService {
         generatedCount += generated;
       }
 
-      // 5. Marcar como processado no cache
       await this.markAsProcessedToday(workspaceId, referenceDate);
 
       return { generatedCount };
     } finally {
-      // 6. Liberar lock
       await this.releaseLock(workspaceId);
     }
   }
@@ -72,60 +70,50 @@ export class GenerateRecurringTransactionsService {
     recurring: RecurringTransaction,
     referenceDate: Date,
   ): Promise<number> {
-    const transactionsToCreate: Array<{
-      workspaceId: string;
-      accountId: string;
-      categoryId: string | null;
-      description: string;
-      amount: bigint;
-      date: Date;
-      type: TransactionType;
-      status: TransactionStatus;
-      recurringId: string;
-    }> = [];
+    const transactionsToCreate: Array<Transaction> = [];
     let currentDate = recurring.lastGenerated ?? recurring.startDate;
 
-    // Calcular primeira data a gerar
     let nextDate = this.calculateNextDateService.execute(recurring);
 
-    // Gerar todas as transações pendentes até referenceDate
     while (nextDate <= referenceDate) {
-      // Verificar se já passou endDate
       if (recurring.endDate && nextDate > recurring.endDate) break;
 
-      // Inferir tipo baseado no contexto
-      const type = this.inferTransactionType(recurring);
-
-      transactionsToCreate.push({
+      const transactionOrError = new Transaction({
         workspaceId: recurring.workspaceId,
         accountId: recurring.accountId,
         categoryId: recurring.categoryId,
         description: recurring.description,
         amount: recurring.amount,
         date: nextDate,
-        type,
-        status: TransactionStatus.PENDING, // Nascem como PENDING
+        type: recurring.type,
+        status: TransactionStatus.PENDING,
         recurringId: recurring.id,
       });
+      transactionsToCreate.push(transactionOrError);
 
-      // Avançar para próxima data
       currentDate = nextDate;
 
-      // Atualizar lastGenerated temporariamente para calcular próxima
       recurring.lastGenerated = currentDate;
       nextDate = this.calculateNextDateService.execute(recurring);
     }
 
     if (transactionsToCreate.length === 0) return 0;
 
-    // Usar Prisma transaction para atomicidade
     await this.prisma.$transaction(async (tx) => {
-      // Criar transactions em batch
       await tx.transaction.createMany({
-        data: transactionsToCreate,
+        data: transactionsToCreate.map((t) => ({
+          workspaceId: t.workspaceId,
+          accountId: t.accountId,
+          categoryId: t.categoryId,
+          description: t.description,
+          amount: t.amount,
+          date: t.date,
+          type: t.type,
+          status: t.status,
+          recurringId: t.recurringId,
+        })),
       });
 
-      // Atualizar lastGenerated
       await tx.recurringTransaction.update({
         where: { id: recurring.id },
         data: { lastGenerated: currentDate },
@@ -135,37 +123,6 @@ export class GenerateRecurringTransactionsService {
     return transactionsToCreate.length;
   }
 
-  private inferTransactionType(
-    recurring: RecurringTransaction,
-  ): TransactionType {
-    // Estratégia 1: Verificar se description contém palavras-chave
-    const description = recurring.description.toLowerCase();
-
-    // Palavras de expense
-    if (
-      description.includes('pagamento') ||
-      description.includes('conta') ||
-      description.includes('despesa') ||
-      description.includes('aluguel') ||
-      description.includes('mensalidade')
-    ) {
-      return TransactionType.EXPENSE;
-    }
-
-    // Palavras de income
-    if (
-      description.includes('salário') ||
-      description.includes('receita') ||
-      description.includes('renda')
-    ) {
-      return TransactionType.INCOME;
-    }
-
-    // Default: EXPENSE (maioria das recorrências são despesas)
-    return TransactionType.EXPENSE;
-  }
-
-  // Redis Cache Helpers
   private async wasProcessedToday(
     workspaceId: string,
     date: Date,
@@ -179,15 +136,14 @@ export class GenerateRecurringTransactionsService {
     date: Date,
   ): Promise<void> {
     const key = this.getCacheKey(workspaceId, date);
-    await this.redis.set(key, '1', 86400); // TTL 24h
+    await this.redis.set(key, '1', 86400);
   }
 
   private getCacheKey(workspaceId: string, date: Date): string {
-    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
+    const dateStr = date.toISOString().split('T')[0];
     return `workspace:${workspaceId}:recurring:${dateStr}`;
   }
 
-  // Distributed Lock Helpers
   private async acquireLock(workspaceId: string): Promise<boolean> {
     const lockKey = `lock:recurring:${workspaceId}`;
     return await this.redis.acquireLock(lockKey, 30);

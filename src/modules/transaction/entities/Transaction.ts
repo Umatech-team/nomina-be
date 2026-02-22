@@ -9,7 +9,7 @@ export interface TransactionProps {
   description: string;
   amount: bigint;
   date: Date;
-  type: TransactionType;
+  type: keyof typeof TransactionType;
   status: TransactionStatus;
   recurringId: string | null;
   createdAt: Date;
@@ -64,7 +64,7 @@ export class Transaction extends AggregateRoot<TransactionProps> {
     return this.props.date;
   }
 
-  get type(): TransactionType {
+  get type(): keyof typeof TransactionType {
     return this.props.type;
   }
 
@@ -99,7 +99,7 @@ export class Transaction extends AggregateRoot<TransactionProps> {
     this.touch();
   }
 
-  set type(value: TransactionType) {
+  set type(value: keyof typeof TransactionType) {
     this.props.type = value;
     this.touch();
   }

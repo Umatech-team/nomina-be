@@ -14,7 +14,7 @@ export class ListTransactionController {
     private readonly listTransactionByIdService: ListTransactionByIdService,
   ) {}
 
-  @Get('/list')
+  @Get('list')
   @HttpCode(statusCode.OK)
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,

@@ -8,11 +8,11 @@ import { RecurringTransactionPresenter } from '../presenters/RecurringTransactio
 import { FindRecurringTransactionService } from '../services/FindRecurringTransaction.service';
 
 @ApiTags('Recurring Transaction')
-@Controller('recurring-transaction')
+@Controller('transaction')
 export class FindRecurringTransactionController {
   constructor(private readonly findService: FindRecurringTransactionService) {}
 
-  @Get('find/:id')
+  @Get(':id')
   @HttpCode(statusCode.OK)
   async handle(
     @Param('id') id: string,

@@ -6,6 +6,7 @@ import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 import { InvalidAmountError } from '../errors/InvalidAmountError';
+import { InvalidRecurringTransactionError } from '../errors/InvalidRecurringTransactionError';
 import { RecurringTransactionNotFoundError } from '../errors/RecurringTransactionNotFoundError';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
 
@@ -14,7 +15,7 @@ interface UpdateRecurringTransactionRequest {
   workspaceId: string;
   categoryId?: string | null;
   description?: string;
-  amount?: number; // Decimal
+  amount?: bigint;
   frequency?: string;
   interval?: number;
   startDate?: Date;
@@ -51,7 +52,6 @@ export class UpdateRecurringTransactionService
     startDate,
     endDate,
   }: UpdateRecurringTransactionRequest): Promise<Either<Errors, Response>> {
-    // Find recurring transaction
     const recurring = await this.recurringRepository.findById(
       recurringTransactionId,
     );
@@ -60,23 +60,29 @@ export class UpdateRecurringTransactionService
       return left(new RecurringTransactionNotFoundError());
     }
 
-    // Validate ownership
     if (recurring.workspaceId !== workspaceId) {
       return left(new UnauthorizedError());
     }
 
-    // Validate category if changing
-    if (categoryId !== undefined) {
-      if (categoryId) {
-        const category = await this.categoryRepository.findById(categoryId);
-        if (!category || category.workspaceId !== workspaceId) {
-          return left(new UnauthorizedError());
-        }
-      }
-      recurring.categoryId = categoryId;
+    if (startDate && startDate <= new Date()) {
+      return left(
+        new InvalidRecurringTransactionError(
+          'Transação recorrente não pode começar hoje.',
+        ),
+      );
     }
 
-    // Update fields
+    if (categoryId) {
+      const category = await this.categoryRepository.findById(categoryId);
+
+      const isGlobalCategory = !category?.workspaceId;
+      const belongsToWorkspace = category?.workspaceId === workspaceId;
+
+      if (!category || (!isGlobalCategory && !belongsToWorkspace)) {
+        return left(new UnauthorizedError());
+      }
+    }
+
     if (description !== undefined) {
       recurring.description = description;
     }
@@ -85,7 +91,7 @@ export class UpdateRecurringTransactionService
       if (amount <= 0) {
         return left(new InvalidAmountError());
       }
-      recurring.amount = BigInt(Math.round(amount * 100));
+      recurring.amount = amount;
     }
 
     if (frequency !== undefined) {
@@ -104,7 +110,6 @@ export class UpdateRecurringTransactionService
       recurring.endDate = endDate;
     }
 
-    // Persist
     const updated = await this.recurringRepository.update(recurring);
 
     return right({ recurringTransaction: updated });

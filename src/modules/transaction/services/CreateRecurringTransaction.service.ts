@@ -2,28 +2,18 @@ import { RecurrenceFrequency } from '@constants/enums';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
 import { Injectable } from '@nestjs/common';
+import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
+import { CreateRecurringTransactionDTO } from '../dto/CreateRecurringTransactionDTO';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
-import { InvalidAmountError } from '../errors/InvalidAmountError';
+import { InvalidRecurringTransactionError } from '../errors/InvalidRecurringTransactionError';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
 
-interface CreateRecurringTransactionRequest {
-  workspaceId: string;
-  accountId: string;
-  categoryId?: string | null;
-  description: string;
-  amount: number; // Decimal
-  frequency: string;
-  interval?: number;
-  startDate: Date;
-  endDate?: Date | null;
-  active?: boolean;
-  sub: string;
-}
+type Request = CreateRecurringTransactionDTO & TokenPayloadBase;
 
-type Errors = UnauthorizedError | InvalidAmountError;
+type Errors = UnauthorizedError | InvalidRecurringTransactionError;
 
 type Response = {
   recurringTransaction: RecurringTransaction;
@@ -31,7 +21,7 @@ type Response = {
 
 @Injectable()
 export class CreateRecurringTransactionService
-  implements Service<CreateRecurringTransactionRequest, Errors, Response>
+  implements Service<Request, Errors, Response>
 {
   constructor(
     private readonly recurringRepository: RecurringTransactionRepository,
@@ -49,43 +39,53 @@ export class CreateRecurringTransactionService
     interval,
     startDate,
     endDate,
+    type,
     active,
-  }: CreateRecurringTransactionRequest): Promise<Either<Errors, Response>> {
-    // Validate amount
-    if (amount <= 0) {
-      return left(new InvalidAmountError());
-    }
-
-    // Validate account belongs to workspace
+  }: Request): Promise<Either<Errors, Response>> {
     const account = await this.accountRepository.findById(accountId);
     if (!account || account.workspaceId !== workspaceId) {
       return left(new UnauthorizedError());
     }
 
-    // Validate category belongs to workspace if provided
+    if (startDate <= new Date()) {
+      return left(
+        new InvalidRecurringTransactionError(
+          'Transação recorrente não pode começar hoje.',
+        ),
+      );
+    }
+
     if (categoryId) {
       const category = await this.categoryRepository.findById(categoryId);
-      if (!category || category.workspaceId !== workspaceId) {
+
+      const isGlobalCategory = !category?.workspaceId;
+      const belongsToWorkspace = category?.workspaceId === workspaceId;
+
+      if (!category || (!isGlobalCategory && !belongsToWorkspace)) {
         return left(new UnauthorizedError());
       }
     }
 
-    // Create entity
-    const recurring = new RecurringTransaction({
+    const recurringOrError = RecurringTransaction.create({
       workspaceId,
       accountId,
-      categoryId: categoryId ?? null,
+      categoryId,
       description,
-      amount: BigInt(Math.round(amount * 100)), // Convert to cents
+      amount,
       frequency: frequency as RecurrenceFrequency,
-      interval: interval ?? 1,
+      interval,
+      type,
       startDate,
-      endDate: endDate ?? null,
-      active: active ?? true,
-      lastGenerated: null,
+      endDate,
+      active,
     });
 
-    // Persist
+    if (recurringOrError.isLeft()) {
+      return left(recurringOrError.value);
+    }
+
+    const recurring = recurringOrError.value;
+
     const created = await this.recurringRepository.create(recurring);
 
     return right({ recurringTransaction: created });
