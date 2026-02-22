@@ -22,6 +22,11 @@ export class ListTransactionController {
     @Query('pageSize') pageSize: string,
     @Query('startDate') startDate: Date,
     @Query('endDate') endDate: Date,
+    @Query('type') type: string,
+    @Query('categoryId') categoryId: string,
+    @Query('accountId') accountId: string,
+    @Query('description') description: string,
+    @Query('status') status: string,
   ) {
     const result = await this.listTransactionByIdService.execute({
       page: parseInt(page),
@@ -30,6 +35,11 @@ export class ListTransactionController {
       endDate,
       sub,
       workspaceId,
+      type,
+      categoryId,
+      accountId,
+      description,
+      status,
     });
 
     if (result.isLeft()) {
