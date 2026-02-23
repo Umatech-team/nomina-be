@@ -2,7 +2,6 @@ import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
 const updateWorkspaceSchema = z.object({
-  workspaceId: z.string().uuid('ID do workspace inválido'),
   name: z
     .string()
     .trim()
@@ -11,7 +10,8 @@ const updateWorkspaceSchema = z.object({
   currency: z
     .string()
     .trim()
-    .length(3, 'Moeda deve ter 3 caracteres (ex: BRL)'),
+    .length(3, 'Moeda deve ter 3 caracteres (ex: BRL)')
+    .optional(),
 });
 
 export const UpdateWorkspaceGateway = new ZodValidationPipe(
