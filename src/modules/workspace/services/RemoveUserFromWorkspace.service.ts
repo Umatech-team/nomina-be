@@ -10,7 +10,8 @@ import { InvalidWorkspaceUserError } from '../errors/InvalidWorkspaceUserError';
 import { WorkspaceUserNotFoundError } from '../errors/WorkspaceUserNotFoundError';
 import { WorkspaceRepository } from '../repositories/contracts/WorkspaceRepository';
 
-type Request = FindWorkspaceUserByIdDTO & Pick<TokenPayloadSchema, 'sub'>;
+type Request = FindWorkspaceUserByIdDTO &
+  Pick<TokenPayloadSchema, 'workspaceId'>;
 
 type Errors =
   | WorkspaceUserNotFoundError
@@ -27,20 +28,13 @@ export class RemoveUserFromWorkspaceService
   constructor(private readonly workspaceRepository: WorkspaceRepository) {}
 
   async execute({
-    workspaceUserId,
-    sub,
+    userId,
+    workspaceId,
   }: Request): Promise<Either<Errors, Response>> {
-    const workspaceUser =
-      await this.workspaceRepository.findUserById(workspaceUserId);
-
-    if (!workspaceUser) {
-      return left(new WorkspaceUserNotFoundError());
-    }
-
     const currentUserWorkspace =
       await this.workspaceRepository.findUserByWorkspaceAndUserId(
-        workspaceUser.workspaceId,
-        sub,
+        workspaceId,
+        userId,
       );
 
     if (!currentUserWorkspace) {
@@ -49,24 +43,25 @@ export class RemoveUserFromWorkspaceService
 
     if (
       currentUserWorkspace.role !== UserRole.OWNER &&
-      currentUserWorkspace.role !== UserRole.ADMIN
+      currentUserWorkspace.role !== UserRole.ADMIN &&
+      currentUserWorkspace.role !== UserRole.USER
     ) {
       return left(new UnauthorizedError());
     }
 
-    if (workspaceUser.role === UserRole.OWNER) {
+    if (currentUserWorkspace.role === UserRole.OWNER) {
       return left(new CannotRemoveOwnerError());
     }
 
-    if (workspaceUser.userId === sub) {
-      return left(
-        new InvalidWorkspaceUserError(
-          'Você não pode remover a si mesmo do workspace',
-        ),
-      );
-    }
+    // if (currentUserWorkspace.userId === sub) {
+    //   return left(
+    //     new InvalidWorkspaceUserError(
+    //       'Você não pode remover a si mesmo do workspace',
+    //     ),
+    //   );
+    // }
 
-    await this.workspaceRepository.removeUser(workspaceUserId);
+    await this.workspaceRepository.removeUser(currentUserWorkspace.id);
 
     return right({ success: true });
   }
