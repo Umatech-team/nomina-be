@@ -1,0 +1,26 @@
+import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { LoginUserService } from '@modules/user/services/LoginUser.service';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { Public } from '@providers/auth/decorators/IsPublic.decorator';
+import { statusCode } from '@shared/core/types/statusCode';
+import { LoginUserPipe, LoginUserRequest } from './login-user.dto';
+
+@ApiTags('Auth')
+@Controller('auth')
+export class LoginUserController {
+  constructor(private readonly loginUserService: LoginUserService) {}
+
+  @Public()
+  @Post('login')
+  @HttpCode(statusCode.OK)
+  async handle(@Body(LoginUserPipe) body: LoginUserRequest) {
+    const data = await this.loginUserService.execute(body);
+
+    if (data.isLeft()) {
+      return ErrorPresenter.toHTTP(data.value);
+    }
+
+    return { data: data.value };
+  }
+}
