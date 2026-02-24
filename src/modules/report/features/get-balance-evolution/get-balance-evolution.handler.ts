@@ -31,7 +31,7 @@ export class BalanceEvolutionHandler {
   }: Request): Promise<Either<Errors, Response>> {
     const userIsMemberOfWorkspace = await this.drizzle.db
       .select({
-        id: schema.workspaceUsers.id,
+        workspaceId: schema.workspaceUsers.workspaceId,
       })
       .from(schema.workspaceUsers)
       .where(
@@ -51,28 +51,17 @@ export class BalanceEvolutionHandler {
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - (period === '7d' ? 7 : 30));
 
-    const dateFormatted =
-      sql<string>`to_char(${schema.transactions.date}, 'YYYY-MM-DD')`.as(
-        'date_formatted',
-      );
+    const sumAmount = sql<number>`SUM(${schema.transactions.amount})`
+      .mapWith(Number)
+      .as('total_amount');
 
-    const incomes =
-      sql<number>`COALESCE(SUM(CASE WHEN ${schema.transactions.type} = 'INCOME' THEN ${schema.transactions.amount} ELSE 0::numeric END), 0::numeric)`
-        .mapWith(Number)
-        .as('income_total');
-
-    const expenses =
-      sql<number>`COALESCE(SUM(CASE WHEN ${schema.transactions.type} = 'EXPENSE' THEN ${schema.transactions.amount} ELSE 0::numeric END), 0::numeric)`
-        .mapWith(Number)
-        .as('expense_total');
-
-    const isCompleted = sql`${schema.transactions.status} = 'COMPLETED'`;
+    const isCompleted = eq(schema.transactions.status, 'COMPLETED');
 
     const [openingBalanceResult, periodTransactions] = await Promise.all([
       this.drizzle.db
         .select({
-          income: incomes,
-          expense: expenses,
+          type: schema.transactions.type,
+          amount: sumAmount,
         })
         .from(schema.transactions)
         .where(
@@ -81,13 +70,14 @@ export class BalanceEvolutionHandler {
             isCompleted,
             lt(schema.transactions.date, startDate),
           ),
-        ),
+        )
+        .groupBy(schema.transactions.type),
 
       this.drizzle.db
         .select({
-          date: dateFormatted,
-          income: incomes,
-          expense: expenses,
+          date: schema.transactions.date,
+          type: schema.transactions.type,
+          amount: sumAmount,
         })
         .from(schema.transactions)
         .where(
@@ -98,32 +88,46 @@ export class BalanceEvolutionHandler {
             lte(schema.transactions.date, endDate),
           ),
         )
-        .groupBy(dateFormatted),
+        .groupBy(schema.transactions.date, schema.transactions.type),
     ]);
 
-    let accumulatedBalance =
-      openingBalanceResult[0].income - openingBalanceResult[0].expense;
+    let accumulatedBalance = 0;
 
-    const transactionsMap = new Map(
-      periodTransactions.map((t) => [
-        t.date,
-        { income: t.income, expense: t.expense },
-      ]),
-    );
+    for (const res of openingBalanceResult) {
+      if (res.type === 'INCOME') accumulatedBalance += res.amount;
+      if (res.type === 'EXPENSE') accumulatedBalance -= res.amount;
+    }
 
-    const summary = [];
+    const dailySummaryMap = new Map<
+      string,
+      { income: number; expense: number }
+    >();
 
     for (
       let d = new Date(startDate);
       d.getTime() <= endDate.getTime();
       d.setDate(d.getDate() + 1)
     ) {
-      const dateKey = d.toISOString().split('T')[0];
-      const dayData = transactionsMap.get(dateKey) || { income: 0, expense: 0 };
+      const key = d.toISOString().split('T')[0];
+      dailySummaryMap.set(key, { income: 0, expense: 0 });
+    }
 
+    for (const transaction of periodTransactions) {
+      const dateKey = transaction.date.toISOString().split('T')[0];
+
+      if (!dailySummaryMap.has(dateKey)) continue;
+
+      const summary = dailySummaryMap.get(dateKey)!;
+      if (transaction.type === 'INCOME') summary.income += transaction.amount;
+      if (transaction.type === 'EXPENSE') summary.expense += transaction.amount;
+    }
+
+    const summaryResult = [];
+
+    for (const [dateKey, dayData] of dailySummaryMap.entries()) {
       accumulatedBalance += dayData.income - dayData.expense;
 
-      summary.push({
+      summaryResult.push({
         date: dateKey,
         income: MoneyUtils.centsToDecimal(dayData.income),
         expense: MoneyUtils.centsToDecimal(dayData.expense),
@@ -131,6 +135,6 @@ export class BalanceEvolutionHandler {
       });
     }
 
-    return right(summary);
+    return right(summaryResult);
   }
 }
