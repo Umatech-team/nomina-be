@@ -30,7 +30,7 @@ model User {
 }
 
 // --------------------------------------------------------
-// WORKSPACE (O Coração do Multi-tenant/Casal)
+// WORKSPACE & COLABORAÇÃO
 // --------------------------------------------------------
 
 model Workspace {
@@ -54,7 +54,7 @@ model WorkspaceUser {
   workspaceId String   @map("workspace_id")
   userId      String   @map("user_id")
   isDefault   Boolean  @default(false) @map("is_default")
-  role        UserRole @default(USER)
+  role        String
   joinedAt    DateTime @default(now()) @map("joined_at")
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -68,7 +68,7 @@ model WorkspaceInvite {
   id          String    @id @default(uuid())
   code        String    @unique @db.VarChar(8)
   workspaceId String    @map("workspace_id")
-  role        UserRole
+  role        String
   createdBy   String    @map("created_by")
   expiresAt   DateTime  @map("expires_at")
   usedAt      DateTime? @map("used_at")
@@ -87,11 +87,11 @@ model WorkspaceInvite {
 // --------------------------------------------------------
 
 model Account {
-  id          String      @id @default(uuid())
-  workspaceId String      @map("workspace_id")
+  id          String  @id @default(uuid())
+  workspaceId String  @map("workspace_id")
   name        String
-  type        AccountType
-  balance     BigInt      @default(0)
+  type        String
+  balance     BigInt  @default(0)
   icon        String?
   color       String?
 
@@ -106,11 +106,11 @@ model Account {
 }
 
 model Category {
-  id               String          @id @default(uuid())
-  workspaceId      String?         @map("workspace_id")
+  id               String  @id @default(uuid())
+  workspaceId      String? @map("workspace_id")
   name             String
-  type             TransactionType
-  isSystemCategory Boolean         @default(false) @map("is_system_category")
+  type             String
+  isSystemCategory Boolean @default(false) @map("is_system_category")
 
   parentId String?    @map("parent_id")
   parent   Category?  @relation("SubCategories", fields: [parentId], references: [id])
@@ -136,8 +136,8 @@ model Transaction {
   amount      BigInt
   date        DateTime
 
-  type   TransactionType
-  status TransactionStatus @default(COMPLETED)
+  type   String
+  status String
 
   recurringId String? @map("recurring_transaction_id")
 
@@ -156,17 +156,17 @@ model Transaction {
 }
 
 model RecurringTransaction {
-  id          String          @id @default(uuid())
-  workspaceId String          @map("workspace_id")
-  accountId   String          @map("account_id")
-  categoryId  String          @map("category_id")
-  type        TransactionType
+  id          String @id @default(uuid())
+  workspaceId String @map("workspace_id")
+  accountId   String @map("account_id")
+  categoryId  String @map("category_id")
+  type        String
 
   description String
   amount      BigInt
 
-  frequency RecurrenceFrequency // MONTHLY, WEEKLY, YEARLY
-  interval  Int                 @default(1) // "A cada 2 meses" -> frequency=MONTHLY, interval=2
+  frequency String // MONTHLY, WEEKLY, YEARLY
+  interval  Int    @default(1) // "A cada 2 meses" -> frequency=MONTHLY, interval=2
 
   startDate DateTime  @map("start_date")
   endDate   DateTime? @map("end_date") // Se null, é infinito
@@ -186,59 +186,15 @@ model RecurringTransaction {
 // --------------------------------------------------------
 
 model Subscription {
-  id               String             @id @default(uuid())
-  userId           String             @map("user_id") // Quem paga é o User
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id") // Quem paga é o User
   planId           String // ID do plano no Gateway (Stripe/Pagar.me)
-  status           SubscriptionStatus // ACTIVE, CANCELED, PAST_DUE
-  currentPeriodEnd DateTime           @map("current_period_end")
-
-  // Aqui você define limites se quiser (ex: maxWorkspaces)
+  status           String // ACTIVE, CANCELED, PAST_DUE
+  currentPeriodEnd DateTime @map("current_period_end")
 
   user User @relation(fields: [userId], references: [id])
 
   @@map("subscriptions")
-}
-
-// --------------------------------------------------------
-// ENUMS
-// --------------------------------------------------------
-
-enum UserRole {
-  OWNER
-  ADMIN
-  USER
-  VIEWER
-}
-
-enum AccountType {
-  CHECKING // Conta Corrente
-  CASH // Dinheiro
-  CREDIT_CARD // Cartão de Crédito
-  INVESTMENT // Investimento
-}
-
-enum TransactionType {
-  INCOME
-  EXPENSE
-  TRANSFER // Transferência entre contas
-}
-
-enum TransactionStatus {
-  PENDING // Agendado / Não pago
-  COMPLETED // Pago / Confirmado
-}
-
-enum RecurrenceFrequency {
-  WEEKLY
-  MONTHLY
-  YEARLY
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELED
-  PAST_DUE
-  TRIALING
 }
 
 model RefreshToken {
