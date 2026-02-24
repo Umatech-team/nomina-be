@@ -7,7 +7,7 @@ import { Either, left, right } from '@shared/core/errors/Either';
 import { UpdateUserPasswordDTO } from '../dto/UpdateMemberPasswordDTO';
 import { UserNotFoundError } from '../errors/UserNotFoundError';
 import { WrongCredentialsError } from '../errors/WrongCredentialsError';
-import { UserRepository } from '../repositories/contracts/UserRepository';
+import { UserRepository } from '../repositories/contracts/user.repository';
 
 type Request = UpdateUserPasswordDTO & Pick<TokenPayloadSchema, 'sub'>;
 
