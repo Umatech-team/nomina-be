@@ -3,5 +3,5 @@ import { RecurringTransactionDTO } from './RecurringTransactionDTO';
 
 export class CreateRecurringTransactionDTO extends OmitType(
   RecurringTransactionDTO,
-  ['id', 'workspaceId', 'lastGenerated'],
+  ['id', 'lastGenerated'],
 ) {}

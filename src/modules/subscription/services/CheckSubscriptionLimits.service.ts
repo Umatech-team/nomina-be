@@ -1,7 +1,7 @@
+import { SubscriptionStatus } from '@constants/enums';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
 import { Injectable } from '@nestjs/common';
-import { SubscriptionStatus } from '@prisma/client';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { getPlanLimits } from '../constants/PlanLimits';
 import { SubscriptionLimitExceededError } from '../errors/SubscriptionLimitExceededError';

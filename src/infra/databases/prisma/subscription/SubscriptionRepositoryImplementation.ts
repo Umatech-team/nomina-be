@@ -1,7 +1,7 @@
+import { SubscriptionStatus } from '@constants/enums';
 import { Subscription } from '@modules/subscription/entities/Subscription';
 import { SubscriptionRepository } from '@modules/subscription/repositories/contracts/SubscriptionRepository';
 import { Injectable } from '@nestjs/common';
-import { SubscriptionStatus } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { SubscriptionMapper } from './SubscriptionMapper';
 

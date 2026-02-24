@@ -15,14 +15,6 @@ export class CategoryDTO {
   @IsString()
   name!: string;
 
-  @ApiProperty()
-  @IsString()
-  icon!: string | null;
-
-  @ApiProperty()
-  @IsString()
-  color!: string | null;
-
   @ApiProperty({ enum: TransactionType })
   @IsEnum(TransactionType)
   type!: TransactionType;

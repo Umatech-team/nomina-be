@@ -7,7 +7,7 @@ import { InvalidRecurringTransactionError } from '../errors/InvalidRecurringTran
 export interface RecurringTransactionProps {
   workspaceId: string;
   accountId: string;
-  categoryId: string | null;
+  categoryId: string;
   description: string;
   amount: bigint;
   frequency: RecurrenceFrequency;
@@ -27,7 +27,7 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
   static create(
     props: Optional<
       RecurringTransactionProps,
-      'interval' | 'endDate' | 'lastGenerated' | 'active' | 'categoryId'
+      'interval' | 'endDate' | 'lastGenerated' | 'active'
     >,
     id?: string,
   ): Either<InvalidRecurringTransactionError, RecurringTransaction> {
@@ -74,7 +74,7 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return this.props.accountId;
   }
 
-  get categoryId(): string | null {
+  get categoryId(): string {
     return this.props.categoryId;
   }
 
@@ -122,7 +122,7 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     this.props.amount = value;
   }
 
-  set categoryId(value: string | null) {
+  set categoryId(value: string) {
     this.props.categoryId = value;
   }
 

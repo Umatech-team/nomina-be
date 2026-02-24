@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  HttpException,
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
@@ -23,9 +24,11 @@ export class ErrorPresenter {
     [statusCode.CONFLICT]: ConflictException,
   };
 
-  static toHTTP(error: ServiceError) {
+  static toHTTP(error: ServiceError | HttpException) {
     const Exception =
-      this.errorMap[error.statusCode] || InternalServerErrorException;
+      this.errorMap[
+        error instanceof HttpException ? error.getStatus() : error.statusCode
+      ] || InternalServerErrorException;
     throw new Exception(error.message);
   }
 }

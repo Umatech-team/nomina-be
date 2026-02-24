@@ -17,7 +17,7 @@ export class RecurringTransactionDTO {
 
   @ApiProperty()
   @IsString()
-  categoryId!: string | null;
+  categoryId!: string;
 
   @ApiProperty()
   @IsString()

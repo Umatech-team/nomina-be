@@ -6,8 +6,6 @@ import { InvalidCategoryError } from '../errors/InvalidCategoryError';
 export interface CategoryProps {
   workspaceId: string | null;
   name: string;
-  icon: string | null;
-  color: string | null;
   type: TransactionType;
   parentId: string | null;
   isSystemCategory: boolean;
@@ -56,14 +54,6 @@ export class Category extends Entity<CategoryProps> {
     return this.props.name;
   }
 
-  get icon(): string | null {
-    return this.props.icon;
-  }
-
-  get color(): string | null {
-    return this.props.color;
-  }
-
   get type(): TransactionType {
     return this.props.type;
   }
@@ -82,14 +72,6 @@ export class Category extends Entity<CategoryProps> {
 
   set name(value: string) {
     this.props.name = value;
-  }
-
-  set icon(value: string | null) {
-    this.props.icon = value;
-  }
-
-  set color(value: string | null) {
-    this.props.color = value;
   }
 
   set type(value: TransactionType) {

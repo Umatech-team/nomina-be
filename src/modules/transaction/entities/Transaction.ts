@@ -5,7 +5,7 @@ import { Optional } from '@shared/core/types/Optional';
 export interface TransactionProps {
   workspaceId: string;
   accountId: string;
-  categoryId: string | null;
+  categoryId: string;
   description: string;
   amount: bigint;
   date: Date;
@@ -20,7 +20,7 @@ export class Transaction extends AggregateRoot<TransactionProps> {
   constructor(
     props: Optional<
       TransactionProps,
-      'createdAt' | 'updatedAt' | 'status' | 'categoryId' | 'recurringId'
+      'createdAt' | 'updatedAt' | 'status' | 'recurringId'
     >,
     id?: string,
   ) {
@@ -29,7 +29,6 @@ export class Transaction extends AggregateRoot<TransactionProps> {
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? null,
       status: props.status ?? TransactionStatus.COMPLETED,
-      categoryId: props.categoryId ?? null,
       recurringId: props.recurringId ?? null,
     };
 
@@ -44,7 +43,7 @@ export class Transaction extends AggregateRoot<TransactionProps> {
     return this.props.accountId;
   }
 
-  get categoryId(): string | null {
+  get categoryId(): string {
     return this.props.categoryId;
   }
 
@@ -109,7 +108,7 @@ export class Transaction extends AggregateRoot<TransactionProps> {
     this.touch();
   }
 
-  set categoryId(value: string | null) {
+  set categoryId(value: string) {
     this.props.categoryId = value;
     this.touch();
   }
