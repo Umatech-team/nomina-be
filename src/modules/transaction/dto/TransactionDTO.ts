@@ -17,7 +17,7 @@ export class TransactionDTO {
 
   @ApiProperty()
   @IsString()
-  categoryId!: string | null;
+  categoryId!: string;
 
   @ApiProperty()
   @IsString()
