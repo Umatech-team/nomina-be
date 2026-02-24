@@ -1,7 +1,7 @@
 import { env } from '@infra/env';
 import { RefreshToken } from '@modules/user/entities/RefreshToken';
-import { RefreshTokensRepository } from '@modules/user/repositories/contracts/RefreshTokenRepository';
-import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
+import { RefreshTokensRepository } from '@modules/user/repositories/contracts/refresh-token.repository';
+import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Encrypter } from '@providers/cryptography/contracts/Encrypter';
