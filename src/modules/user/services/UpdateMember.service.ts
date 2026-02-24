@@ -4,7 +4,7 @@ import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UpdateUserGeneralInfosDTO } from '../dto/UpdateMemberGeneralInfosDTO';
 import { UserNotFoundError } from '../errors/UserNotFoundError';
-import { UserRepository } from '../repositories/contracts/UserRepository';
+import { UserRepository } from '../repositories/contracts/user.repository';
 
 type Request = UpdateUserGeneralInfosDTO & Pick<TokenPayloadSchema, 'sub'>;
 
