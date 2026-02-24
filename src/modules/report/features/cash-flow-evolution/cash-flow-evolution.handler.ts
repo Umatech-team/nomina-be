@@ -3,7 +3,7 @@ import * as schema from '@infra/databases/drizzle/schema';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { MoneyUtils } from '@utils/MoneyUtils';
-import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { CashFlowEvolutionRequest } from './cash-flow-evolution.dto';
 
 type Request = CashFlowEvolutionRequest &
@@ -58,7 +58,7 @@ export class CashFlowEvolutionHandler {
         ),
       )
       .groupBy(dateFormatted)
-      .orderBy(dateFormatted);
+      .orderBy(desc(dateFormatted));
 
     return aggregates.map((item) => ({
       date: item.date,
