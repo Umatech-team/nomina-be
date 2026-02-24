@@ -1,4 +1,4 @@
-import { RecurrenceFrequency } from '@constants/enums';
+import { RecurrenceFrequency, TransactionType } from '@constants/enums';
 import { RecurringTransaction } from '@modules/transaction/entities/RecurringTransaction';
 import {
   Prisma,
@@ -14,7 +14,7 @@ export class RecurringTransactionMapper {
         categoryId: raw.categoryId,
         description: raw.description,
         amount: raw.amount,
-        type: raw.type,
+        type: raw.type as keyof typeof TransactionType,
         frequency: raw.frequency as RecurrenceFrequency,
         interval: raw.interval,
         startDate: raw.startDate,
@@ -36,8 +36,8 @@ export class RecurringTransactionMapper {
       categoryId: entity.categoryId,
       description: entity.description,
       amount: entity.amount,
-      type: entity.type,
-      frequency: entity.frequency,
+      type: entity.type as keyof typeof TransactionType,
+      frequency: entity.frequency as keyof typeof RecurrenceFrequency,
       interval: entity.interval,
       startDate: entity.startDate,
       endDate: entity.endDate,
