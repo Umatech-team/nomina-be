@@ -1,23 +1,13 @@
 import { DatabaseModule } from '@infra/databases/Database.module';
 import { Module } from '@nestjs/common';
-import { GetCashFlowEvolutionController } from './controllers/GetCashFlowEvolution.controller';
-import { GetExpensesByCategoryController } from './controllers/GetExpensesByCategory.controller';
-import { GetFinancialPositionController } from './controllers/GetFinancialPosition.controller';
-import { GetCashFlowEvolutionService } from './services/GetCashFlowEvolution.service';
-import { GetExpensesByCategoryService } from './services/GetExpensesByCategory.service';
-import { GetFinancialPositionService } from './services/GetFinancialPosition.service';
+import { CashFlowEvolutionController } from './features/cash-flow-evolution/cash-flow-evolution.controller';
+import { CashFlowEvolutionHandler } from './features/cash-flow-evolution/cash-flow-evolution.handler';
+import { GetExpensesByCategoryController } from './features/get-expenses-by-category/get-expenses-by-category.controller';
+import { GetExpensesByCategoryHandler } from './features/get-expenses-by-category/get-expenses-by-category.handler';
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [
-    GetExpensesByCategoryController,
-    GetCashFlowEvolutionController,
-    GetFinancialPositionController,
-  ],
-  providers: [
-    GetExpensesByCategoryService,
-    GetCashFlowEvolutionService,
-    GetFinancialPositionService,
-  ],
+  controllers: [CashFlowEvolutionController, GetExpensesByCategoryController],
+  providers: [CashFlowEvolutionHandler, GetExpensesByCategoryHandler],
 })
 export class ReportModule {}
