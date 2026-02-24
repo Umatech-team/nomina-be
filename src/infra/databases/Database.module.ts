@@ -9,6 +9,8 @@ import { WorkspaceInviteRepository } from '@modules/workspace/repositories/contr
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { Module } from '@nestjs/common';
+import { DrizzleProvider } from './drizzle/drizzle.provider';
+import { DrizzleService } from './drizzle/drizzle.service';
 import { AccountRepositoryImplementation } from './prisma/account/AccountRepository';
 import { CategoryRepositoryImplementation } from './prisma/category/CategoryRepository';
 import { PrismaService } from './prisma/prisma.service';
@@ -24,6 +26,8 @@ import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/Worksp
 @Module({
   providers: [
     PrismaService,
+    DrizzleProvider,
+    DrizzleService,
     {
       provide: UserRepository,
       useClass: UserRepositoryImplementation,
@@ -67,6 +71,7 @@ import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/Worksp
   ],
   exports: [
     PrismaService,
+    DrizzleService,
     UserRepository,
     WorkspaceRepository,
     WorkspaceUserRepository,
