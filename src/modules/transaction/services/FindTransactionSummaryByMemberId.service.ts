@@ -1,4 +1,4 @@
-import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
+import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
