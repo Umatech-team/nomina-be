@@ -16,7 +16,9 @@ export const DrizzleProvider: Provider = {
 
     const queryClient = postgres(connectionString, {
       max: 10,
-      idle_timeout: 20,
+      idle_timeout: 60,
+      connect_timeout: 10,
+      ssl: env.NODE_ENV === 'production' ? 'require' : false,
     });
 
     return drizzle(queryClient, { schema, logger: false });
