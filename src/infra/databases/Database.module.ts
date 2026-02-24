@@ -3,8 +3,8 @@ import { CategoryRepository } from '@modules/category/repositories/contracts/Cat
 import { SubscriptionRepository } from '@modules/subscription/repositories/contracts/SubscriptionRepository';
 import { RecurringTransactionRepository } from '@modules/transaction/repositories/contracts/RecurringTransactionRepository';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
-import { RefreshTokensRepository } from '@modules/user/repositories/contracts/RefreshTokenRepository';
-import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
+import { RefreshTokensRepository } from '@modules/user/repositories/contracts/refresh-token.repository';
+import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import { WorkspaceInviteRepository } from '@modules/workspace/repositories/contracts/WorkspaceInviteRepository';
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
