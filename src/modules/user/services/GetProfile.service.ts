@@ -5,7 +5,7 @@ import { Either, left, right } from '@shared/core/errors/Either';
 import { User } from '../entities/User';
 import { EmailAlreadyExistsError } from '../errors/EmailAlreadyExistsError';
 import { UserNotFoundError } from '../errors/UserNotFoundError';
-import { UserRepository } from '../repositories/contracts/UserRepository';
+import { UserRepository } from '../repositories/contracts/user.repository';
 
 type Request = TokenPayloadBase;
 
