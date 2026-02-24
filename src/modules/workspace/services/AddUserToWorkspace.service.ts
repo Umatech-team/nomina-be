@@ -1,6 +1,6 @@
 import { UserRole } from '@constants/enums';
 import { UserNotFoundError } from '@modules/user/errors/UserNotFoundError';
-import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
+import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
