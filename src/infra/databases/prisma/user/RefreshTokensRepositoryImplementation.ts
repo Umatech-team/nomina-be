@@ -1,5 +1,5 @@
 import { RefreshToken } from '@modules/user/entities/RefreshToken';
-import { RefreshTokensRepository } from '@modules/user/repositories/contracts/RefreshTokenRepository';
+import { RefreshTokensRepository } from '@modules/user/repositories/contracts/refresh-token.repository';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { RefreshTokensPrismaMapper } from './RefreshTokensPrismaMapper';
