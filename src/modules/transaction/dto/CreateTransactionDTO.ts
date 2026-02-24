@@ -5,6 +5,5 @@ export class CreateTransactionDTO extends OmitType(TransactionDTO, [
   'id',
   'createdAt',
   'updatedAt',
-  'workspaceId',
   'recurringId',
 ]) {}
