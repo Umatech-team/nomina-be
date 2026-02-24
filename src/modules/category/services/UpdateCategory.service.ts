@@ -33,8 +33,6 @@ export class UpdateCategoryService
     categoryId,
     name,
     sub,
-    color,
-    icon,
     parentId,
     type,
   }: Request): Promise<Either<Errors, Response>> {
@@ -115,8 +113,6 @@ export class UpdateCategoryService
 
     // Atualizar propriedades
     if (name) category.name = name;
-    if (icon !== undefined) category.icon = icon;
-    if (color !== undefined) category.color = color;
     if (type) category.type = type;
     if (parentId !== undefined) category.parentId = parentId;
 
