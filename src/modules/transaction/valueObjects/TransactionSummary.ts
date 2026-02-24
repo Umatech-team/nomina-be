@@ -1,7 +1,7 @@
 import { ValueObject } from '@shared/core/Entities/ValueObject';
 
 type TransactionSummaryType = {
-  date: Date;
+  date: string | Date;
   income: number;
   expense: number;
   balance: number;
@@ -9,11 +9,11 @@ type TransactionSummaryType = {
 
 export class TransactionSummary extends ValueObject<TransactionSummaryType> {
   constructor(props: TransactionSummaryType) {
-    const transactionSummaryProps = {
-      ...props,
-    };
+    super(props);
+  }
 
-    super(transactionSummaryProps);
+  static create(props: TransactionSummaryType) {
+    return new TransactionSummary(props);
   }
 
   get date() {
