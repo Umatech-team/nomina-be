@@ -1,5 +1,3 @@
-import { ExpensesByCategoryPresenter } from '@modules/report/presenters/ExpensesByCategoryPresenter';
-import { GetExpensesByCategoryService } from '@modules/report/services/GetExpensesByCategory.service';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
@@ -9,13 +7,12 @@ import {
   GetExpensesByCategoryPipe,
   GetExpensesByCategoryRequest,
 } from './get-expenses-by-category.dto';
+import { GetExpensesByCategoryHandler } from './get-expenses-by-category.handler';
 
 @ApiTags('Report')
 @Controller('report')
 export class GetExpensesByCategoryController {
-  constructor(
-    private readonly getExpensesByCategoryService: GetExpensesByCategoryService,
-  ) {}
+  constructor(private readonly handler: GetExpensesByCategoryHandler) {}
 
   @Get('expenses-by-category')
   @HttpCode(statusCode.OK)
@@ -23,13 +20,11 @@ export class GetExpensesByCategoryController {
     @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
     @Query(GetExpensesByCategoryPipe) query: GetExpensesByCategoryRequest,
   ) {
-    const result = await this.getExpensesByCategoryService.execute({
+    const data = await this.handler.execute({
       ...query,
       workspaceId,
     });
 
-    return {
-      data: ExpensesByCategoryPresenter.toHTTP(result),
-    };
+    return { data };
   }
 }
