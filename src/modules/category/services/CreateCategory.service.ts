@@ -24,8 +24,6 @@ export class CreateCategoryService
   async execute({
     name,
     sub,
-    color,
-    icon,
     parentId,
     type,
   }: Request): Promise<Either<Errors, Response>> {
@@ -43,8 +41,6 @@ export class CreateCategoryService
     const categoryOrError = Category.create({
       workspaceId: sub,
       name,
-      color,
-      icon,
       parentId,
       type,
       isSystemCategory: false,
