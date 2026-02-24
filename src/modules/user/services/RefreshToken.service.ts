@@ -9,8 +9,8 @@ import { Either, left, right } from '@shared/core/errors/Either';
 import { SessionExpiredError } from '../../../shared/errors/SessionExpiredError';
 import { RefreshToken } from '../entities/RefreshToken';
 import { UserNotFoundError } from '../errors/UserNotFoundError';
-import { RefreshTokensRepository } from '../repositories/contracts/RefreshTokenRepository';
-import { UserRepository } from '../repositories/contracts/UserRepository';
+import { RefreshTokensRepository } from '../repositories/contracts/refresh-token.repository';
+import { UserRepository } from '../repositories/contracts/user.repository';
 
 type Request = string;
 
