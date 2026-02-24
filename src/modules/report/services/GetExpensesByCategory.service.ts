@@ -7,7 +7,7 @@ import {
   ExpensesByCategoryDTO,
 } from '../dto/ExpensesByCategoryDTO';
 
-type Request = ExpensesByCategoryDTO & Pick<TokenPayloadSchema, 'sub'>;
+type Request = ExpensesByCategoryDTO & Pick<TokenPayloadSchema, 'workspaceId'>;
 type Response = CategoryReportItem[];
 
 @Injectable()
@@ -17,10 +17,10 @@ export class GetExpensesByCategoryService {
     private readonly categoryRepository: CategoryRepository,
   ) {}
 
-  async execute({ month, year, sub }: Request): Promise<Response> {
+  async execute({ month, year, workspaceId }: Request): Promise<Response> {
     const aggregations =
       await this.transactionRepository.getExpensesByCategoryReport(
-        sub,
+        workspaceId,
         month,
         year,
       );
