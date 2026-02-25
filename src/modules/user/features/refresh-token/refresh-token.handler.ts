@@ -56,7 +56,7 @@ export class RefreshTokenHandler implements Service<Request, Errors, Response> {
     this.refreshTokensRepository.delete(lastRefreshTokenSaved.id);
 
     const defaultWorkspaceUser =
-      await this.workspaceUserRepository.findDefaultByUserId(user.id);
+      await this.workspaceUserRepository.findDefaultWorkspaceByUserId(user.id);
 
     if (!defaultWorkspaceUser) {
       return left(new HttpException('Session expired', 401));
@@ -66,9 +66,9 @@ export class RefreshTokenHandler implements Service<Request, Errors, Response> {
       {
         sub: user.id,
         name: user.name,
-        workspaceId: defaultWorkspaceUser.member.workspaceId,
+        workspaceId: defaultWorkspaceUser.user.workspaceId,
         workspaceName: defaultWorkspaceUser.workspaceName,
-        role: defaultWorkspaceUser.member.role,
+        role: defaultWorkspaceUser.user.role,
       },
       {
         expiresIn: env.JWT_USER_ACCESS_EXPIRES_IN,
