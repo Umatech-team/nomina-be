@@ -101,7 +101,7 @@ export class CheckSubscriptionLimitsService {
     const result = await this.workspaceRepository.findManyByUserId(
       userId,
       1,
-      1000,
+      maxWorkspaces,
     );
     const currentCount = result.workspaces.length;
 
@@ -127,7 +127,7 @@ export class CheckSubscriptionLimitsService {
     const result = await this.accountRepository.findManyByWorkspaceId(
       workspaceId,
       1,
-      1000,
+      maxAccounts,
     );
     const currentCount = result.accounts.length;
 
@@ -153,7 +153,7 @@ export class CheckSubscriptionLimitsService {
     const result = await this.workspaceRepository.findUsersByWorkspaceId(
       workspaceId,
       1,
-      1000,
+      maxMembers,
     );
     const currentCount = result.total;
 
