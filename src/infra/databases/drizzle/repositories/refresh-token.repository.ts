@@ -41,10 +41,14 @@ export class RefreshTokenRepositoryImplementation
   }
 
   async delete(id: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    await this.drizzle.db
+      .delete(schema.refreshTokens)
+      .where(eq(schema.refreshTokens.id, id));
   }
 
   async deleteManyByUserId(userId: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    await this.drizzle.db
+      .delete(schema.refreshTokens)
+      .where(eq(schema.refreshTokens.userId, userId));
   }
 }
