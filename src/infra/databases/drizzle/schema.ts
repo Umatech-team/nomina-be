@@ -1,7 +1,9 @@
 import { bigint, boolean, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const transactions = pgTable('transactions', {
-  id: text('id').primaryKey(),
+  id: text('id')
+    .primaryKey()
+    .$default(() => crypto.randomUUID()),
   workspaceId: text('workspace_id').notNull(),
   categoryId: text('category_id').notNull(),
   amount: bigint('amount', { mode: 'number' }).notNull(),
@@ -11,7 +13,9 @@ export const transactions = pgTable('transactions', {
 });
 
 export const categories = pgTable('categories', {
-  id: text('id').primaryKey(),
+  id: text('id')
+    .primaryKey()
+    .$default(() => crypto.randomUUID()),
   name: text('name').notNull(),
   type: text('type').notNull(), // 'INCOME' | 'EXPENSE'
   isSystemCategory: text('is_system_category').notNull(),
@@ -19,7 +23,9 @@ export const categories = pgTable('categories', {
 });
 
 export const users = pgTable('users', {
-  id: text('id').primaryKey(),
+  id: text('id')
+    .primaryKey()
+    .$default(() => crypto.randomUUID()),
   email: text('email').notNull(),
   passwordHash: text('password_hash').notNull(),
   name: text('name').notNull(),
@@ -36,7 +42,9 @@ export const users = pgTable('users', {
 });
 
 export const accounts = pgTable('accounts', {
-  id: text('id').primaryKey(),
+  id: text('id')
+    .primaryKey()
+    .$default(() => crypto.randomUUID()),
   workspaceId: text('workspace_id').notNull(),
   name: text('name').notNull(),
   type: text('type').notNull(), // 'CASH' | 'CREDIT_CARD' | 'BANK'
@@ -44,12 +52,16 @@ export const accounts = pgTable('accounts', {
 });
 
 export const workspaces = pgTable('workspaces', {
-  id: text('id').primaryKey(),
+  id: text('id')
+    .primaryKey()
+    .$default(() => crypto.randomUUID()),
   name: text('name').notNull(),
 });
 
 export const workspaceUsers = pgTable('workspace_users', {
-  id: text('id').primaryKey(),
+  id: text('id')
+    .primaryKey()
+    .$default(() => crypto.randomUUID()),
   workspaceId: text('workspace_id').notNull(),
   userId: text('user_id').notNull(),
   isDefault: boolean('is_default').notNull(),
@@ -61,7 +73,9 @@ export const workspaceUsers = pgTable('workspace_users', {
 });
 
 export const subscriptions = pgTable('subscriptions', {
-  id: text('id').primaryKey(),
+  id: text('id')
+    .primaryKey()
+    .$default(() => crypto.randomUUID()),
   userId: text('user_id').notNull(),
   planId: text('plan_id').notNull(),
   status: text('status').notNull(), // 'ACTIVE' | 'INACTIVE' | 'CANCELED'
@@ -72,7 +86,9 @@ export const subscriptions = pgTable('subscriptions', {
 });
 
 export const refreshTokens = pgTable('refresh_tokens', {
-  id: text('id').primaryKey(),
+  id: text('id')
+    .primaryKey()
+    .$default(() => crypto.randomUUID()),
   userId: text('user_id').notNull(),
   token: text('token').notNull(),
   expiresIn: timestamp('expires_in', {
