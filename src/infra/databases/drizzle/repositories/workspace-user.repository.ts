@@ -2,7 +2,8 @@ import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import { WorkspaceUser } from '@modules/workspace/entities/WorkspaceUser';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { Injectable } from '@nestjs/common';
-import { WorkspaceMapper } from '../mappers/workspace.mapper';
+import { and, count, eq } from 'drizzle-orm';
+import { WorkspaceUserMapper } from '../mappers/workspace-user.mapper';
 import * as schema from '../schema';
 
 @Injectable()
@@ -10,21 +11,39 @@ export class WorkspaceUserRepositoryImplementation
   implements WorkspaceUserRepository
 {
   constructor(private readonly drizzle: DrizzleService) {}
-  findDefaultByUserId(
+
+  async findDefaultWorkspaceByUserId(
     userId: string,
-  ): Promise<{ member: WorkspaceUser; workspaceName: string } | null> {
-    throw new Error('Method not implemented.');
+  ): Promise<{ user: WorkspaceUser; workspaceName: string } | null> {
+    const [result] = await this.drizzle.db
+      .select({
+        rawUser: schema.workspaceUsers,
+        workspaceName: schema.workspaces.name,
+      })
+      .from(schema.workspaceUsers)
+      .innerJoin(
+        schema.workspaces,
+        eq(schema.workspaces.id, schema.workspaceUsers.workspaceId),
+      )
+      .where(
+        and(
+          eq(schema.workspaceUsers.userId, userId),
+          eq(schema.workspaceUsers.isDefault, true),
+        ),
+      )
+      .limit(1);
+
+    if (!result) return null;
+
+    return {
+      user: WorkspaceUserMapper.toDomain(result.rawUser),
+      workspaceName: result.workspaceName,
+    };
   }
 
-  create(workspaceUser: WorkspaceUser): Promise<WorkspaceUser> {
-    throw new Error('Method not implemented.');
-  }
-
-  findUniqueById(id: string): Promise<WorkspaceUser | null> {
-    throw new Error('Method not implemented.');
-  }
-
-  async addUser(workspaceUser: WorkspaceUser): Promise<WorkspaceUser> {
+  async addUserToWorkspace(
+    workspaceUser: WorkspaceUser,
+  ): Promise<WorkspaceUser> {
     const [createdWorkspaceUser] = await this.drizzle.db
       .insert(schema.workspaceUsers)
       .values({
@@ -34,17 +53,41 @@ export class WorkspaceUserRepositoryImplementation
         role: workspaceUser.role,
         isDefault: workspaceUser.isDefault,
         joinedAt: workspaceUser.joinedAt,
-      });
+      })
+      .returning();
 
-    return WorkspaceMapper.toDomain(createdWorkspaceUser);
+    return WorkspaceUserMapper.toDomain(createdWorkspaceUser);
   }
 
-  async removeUser(id: string): Promise<void> {
-    throw new Error('Method not implemented.');
+  async removeUserFromWorkspace(id: string): Promise<void> {
+    await this.drizzle.db
+      .delete(schema.workspaceUsers)
+      .where(eq(schema.workspaceUsers.id, id));
   }
 
   async updateUser(workspaceUser: WorkspaceUser): Promise<WorkspaceUser> {
-    throw new Error('Method not implemented.');
+    const [updatedWorkspaceUser] = await this.drizzle.db
+      .update(schema.workspaceUsers)
+      .set({
+        role: workspaceUser.role,
+        isDefault: workspaceUser.isDefault,
+      })
+      .where(eq(schema.workspaceUsers.id, workspaceUser.id))
+      .returning();
+
+    return WorkspaceUserMapper.toDomain(updatedWorkspaceUser);
+  }
+
+  async findMembershipById(id: string): Promise<WorkspaceUser | null> {
+    const [workspaceUser] = await this.drizzle.db
+      .select()
+      .from(schema.workspaceUsers)
+      .where(eq(schema.workspaceUsers.id, id))
+      .limit(1);
+
+    if (!workspaceUser) return null;
+
+    return WorkspaceUserMapper.toDomain(workspaceUser);
   }
 
   async findUsersByWorkspaceId(
@@ -52,17 +95,45 @@ export class WorkspaceUserRepositoryImplementation
     page: number,
     limit: number,
   ): Promise<{ workspaceUsers: WorkspaceUser[]; total: number }> {
-    throw new Error('Method not implemented.');
+    const offset = (page - 1) * limit;
+
+    const [users, [{ totalCount }]] = await Promise.all([
+      this.drizzle.db
+        .select()
+        .from(schema.workspaceUsers)
+        .where(eq(schema.workspaceUsers.workspaceId, workspaceId))
+        .limit(limit)
+        .offset(offset),
+
+      this.drizzle.db
+        .select({ totalCount: count() })
+        .from(schema.workspaceUsers)
+        .where(eq(schema.workspaceUsers.workspaceId, workspaceId)),
+    ]);
+
+    return {
+      workspaceUsers: users.map(WorkspaceUserMapper.toDomain),
+      total: totalCount,
+    };
   }
 
   async findUserByWorkspaceAndUserId(
     workspaceId: string,
     userId: string,
   ): Promise<WorkspaceUser | null> {
-    throw new Error('Method not implemented.');
-  }
+    const [workspaceUser] = await this.drizzle.db
+      .select()
+      .from(schema.workspaceUsers)
+      .where(
+        and(
+          eq(schema.workspaceUsers.workspaceId, workspaceId),
+          eq(schema.workspaceUsers.userId, userId),
+        ),
+      )
+      .limit(1);
 
-  async findUserById(id: string): Promise<WorkspaceUser | null> {
-    throw new Error('Method not implemented.');
+    if (!workspaceUser) return null;
+
+    return WorkspaceUserMapper.toDomain(workspaceUser);
   }
 }
