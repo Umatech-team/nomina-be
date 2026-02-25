@@ -1,16 +1,21 @@
 import { WorkspaceUser } from '@modules/workspace/entities/WorkspaceUser';
 
 export abstract class WorkspaceUserRepository {
-  abstract findDefaultByUserId(userId: string): Promise<{
-    member: WorkspaceUser;
+  abstract findDefaultWorkspaceByUserId(userId: string): Promise<{
+    user: WorkspaceUser;
     workspaceName: string;
   } | null>;
 
-  abstract create(workspaceUser: WorkspaceUser): Promise<WorkspaceUser>;
-  abstract findUniqueById(id: string): Promise<WorkspaceUser | null>;
-  abstract addUser(workspaceUser: WorkspaceUser): Promise<WorkspaceUser>;
-  abstract removeUser(id: string): Promise<void>;
+  abstract addUserToWorkspace(
+    workspaceUser: WorkspaceUser,
+  ): Promise<WorkspaceUser>;
+
+  abstract removeUserFromWorkspace(id: string): Promise<void>;
+
   abstract updateUser(workspaceUser: WorkspaceUser): Promise<WorkspaceUser>;
+
+  abstract findMembershipById(id: string): Promise<WorkspaceUser | null>;
+
   abstract findUsersByWorkspaceId(
     workspaceId: string,
     page: number,
@@ -21,6 +26,4 @@ export abstract class WorkspaceUserRepository {
     workspaceId: string,
     userId: string,
   ): Promise<WorkspaceUser | null>;
-
-  abstract findUserById(id: string): Promise<WorkspaceUser | null>;
 }
