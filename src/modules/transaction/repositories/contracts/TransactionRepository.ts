@@ -17,7 +17,7 @@ export abstract class TransactionRepository {
   ): Promise<Transaction[]>;
 
   abstract getTopExpensesByCategory(
-    userId: string,
+    workspaceId: string,
     startDate: Date,
     endDate: Date,
     pageSize: number,
@@ -33,14 +33,23 @@ export abstract class TransactionRepository {
     balance: number;
   }>;
 
-  abstract createWithBalanceUpdate(transaction: Transaction): Promise<void>;
-  abstract updateWithBalanceUpdate(
-    oldTransaction: Transaction,
-    newTransaction: Transaction,
+  abstract createWithBalanceUpdate(
+    transaction: Transaction,
+    newBalance: number,
   ): Promise<void>;
 
-  abstract deleteWithBalanceReversion(transaction: Transaction): Promise<void>;
+  abstract updateWithBalanceUpdate(
+    newTransaction: Transaction,
+    newBalance: number,
+  ): Promise<void>;
+
+  abstract deleteWithBalanceReversion(
+    transaction: Transaction,
+    newBalance: number,
+  ): Promise<void>;
+
   abstract toggleStatusWithBalanceUpdate(
     transactionId: string,
+    newBalance: number,
   ): Promise<Transaction>;
 }
