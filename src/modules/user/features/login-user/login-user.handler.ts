@@ -49,7 +49,7 @@ export class LoginUserHandler implements Service<Request, Errors, Response> {
     }
 
     const defaultWorkspaceUser =
-      await this.workspaceUserRepository.findDefaultByUserId(user.id);
+      await this.workspaceUserRepository.findDefaultWorkspaceByUserId(user.id);
 
     if (!defaultWorkspaceUser) {
       return left(new HttpException('Invalid credentials', 401));
@@ -59,9 +59,9 @@ export class LoginUserHandler implements Service<Request, Errors, Response> {
       {
         sub: user.id,
         name: user.name,
-        workspaceId: defaultWorkspaceUser.member.workspaceId,
+        workspaceId: defaultWorkspaceUser.user.workspaceId,
         workspaceName: defaultWorkspaceUser.workspaceName,
-        role: defaultWorkspaceUser.member.role,
+        role: defaultWorkspaceUser.user.role,
       },
       {
         expiresIn: env.JWT_USER_ACCESS_EXPIRES_IN,
