@@ -1,0 +1,50 @@
+import { TransactionStatus, TransactionType } from '@constants/enums';
+import * as schema from '@infra/databases/drizzle/schema';
+import { Transaction } from '@modules/transaction/entities/Transaction';
+
+type TransactionDrizzle = typeof schema.transactions.$inferSelect;
+type TransactionDrizzleInsert = typeof schema.transactions.$inferInsert;
+
+export class TransactionMapper {
+  static toDomain(raw: TransactionDrizzle): Transaction {
+    const result = Transaction.create(
+      {
+        createdAt: raw.createdAt,
+        updatedAt: raw.updatedAt,
+        accountId: raw.accountId,
+        amount: BigInt(raw.amount),
+        categoryId: raw.categoryId,
+        date: raw.date,
+        description: raw.description,
+        recurringId: raw.recurringId,
+        status: raw.status as TransactionStatus,
+        type: raw.type as TransactionType,
+        workspaceId: raw.workspaceId,
+      },
+      raw.id,
+    );
+
+    if (result.isLeft()) {
+      throw result.value;
+    }
+
+    return result.value;
+  }
+
+  static toDatabase(entity: Transaction): TransactionDrizzleInsert {
+    return {
+      id: entity.id,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt as Date,
+      accountId: entity.accountId,
+      amount: Number(entity.amount),
+      categoryId: entity.categoryId,
+      date: entity.date,
+      description: entity.description,
+      recurringId: entity.recurringId,
+      status: entity.status,
+      type: entity.type,
+      workspaceId: entity.workspaceId,
+    };
+  }
+}
