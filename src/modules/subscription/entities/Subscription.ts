@@ -1,5 +1,6 @@
 import { SubscriptionStatus } from '@constants/enums';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
+import { Either, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
 
 export interface SubscriptionProps {
@@ -10,13 +11,22 @@ export interface SubscriptionProps {
 }
 
 export class Subscription extends AggregateRoot<SubscriptionProps> {
-  constructor(props: Optional<SubscriptionProps, 'status'>, id?: string) {
+  constructor(props: SubscriptionProps, id?: string) {
+    super(props, id);
+  }
+
+  static create(
+    props: Optional<SubscriptionProps, 'status'>,
+    id?: string,
+  ): Either<Error, Subscription> {
     const subscriptionProps: SubscriptionProps = {
       ...props,
       status: props.status ?? SubscriptionStatus.TRIALING,
     };
 
-    super(subscriptionProps, id);
+    const subscription = new Subscription(subscriptionProps, id);
+
+    return right(subscription);
   }
 
   get userId(): string {
