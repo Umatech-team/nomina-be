@@ -13,11 +13,9 @@ export class RefreshTokenRepositoryImplementation
   constructor(private readonly drizzle: DrizzleService) {}
   async create(refreshToken: RefreshToken): Promise<void> {
     await this.drizzle.db.insert(schema.refreshTokens).values({
-      id: refreshToken.id,
       userId: refreshToken.userId,
       token: refreshToken.token,
       expiresIn: refreshToken.expiresIn,
-      createdAt: refreshToken.createdAt,
     });
   }
 
