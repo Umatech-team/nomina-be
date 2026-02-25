@@ -5,13 +5,26 @@ import { User } from '@modules/user/entities/User';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { UserMapper } from '../mappers/user.mapper';
 import * as schema from '../schema';
 
 @Injectable()
 export class UserRepositoryImplementation implements UserRepository {
   constructor(private readonly drizzle: DrizzleService) {}
+  async findUniqueByEmail(email: string): Promise<User | null> {
+    const user = await this.drizzle.db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.email, email));
+
+    if (!user[0]) {
+      return null;
+    }
+
+    return UserMapper.toDomain(user[0]);
+  }
+
   async create(user: User): Promise<void> {
     await this.drizzle.db.transaction(async (tx) => {
       await tx.insert(schema.users).values(UserMapper.toDatabase(user));
@@ -49,23 +62,22 @@ export class UserRepositoryImplementation implements UserRepository {
     });
   }
 
-  update(user: User): Promise<void> {
-    throw new Error('Method not implemented.');
+  async update(user: User): Promise<void> {
+    await this.drizzle.db
+      .update(schema.users)
+      .set(UserMapper.toDatabase(user))
+      .where(eq(schema.users.id, user.id));
   }
 
-  delete(id: string): Promise<void> {
-    throw new Error('Method not implemented.');
+  async delete(id: string): Promise<void> {
+    await this.drizzle.db.delete(schema.users).where(eq(schema.users.id, id));
   }
 
-  findUniqueById(id: string): Promise<User | null> {
-    throw new Error('Method not implemented.');
-  }
-
-  async findUniqueByEmail(email: string): Promise<User | null> {
+  async findUniqueById(id: string): Promise<User | null> {
     const user = await this.drizzle.db
       .select()
       .from(schema.users)
-      .where(and(eq(schema.users.email, email)));
+      .where(eq(schema.users.id, id));
 
     if (!user[0]) {
       return null;
