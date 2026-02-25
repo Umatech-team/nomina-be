@@ -1,12 +1,7 @@
 import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpensesByCategory';
-import { TransactionSummary } from '@modules/transaction/valueObjects/TransactionSummary';
-import { Repository } from '@shared/core/contracts/Repository';
 import { Transaction } from '../../entities/Transaction';
 
-export abstract class TransactionRepository implements Repository<Transaction> {
-  abstract create(transaction: Transaction): Promise<void>;
-  abstract update(transaction: Transaction): Promise<void>;
-  abstract delete(id: string): Promise<void>;
+export abstract class TransactionRepository {
   abstract findUniqueById(id: string): Promise<Transaction | null>;
   abstract listTransactionsByWorkspaceId(
     workspaceId: string,
@@ -28,11 +23,6 @@ export abstract class TransactionRepository implements Repository<Transaction> {
     pageSize: number,
   ): Promise<TopExpensesByCategory[]>;
 
-  abstract listTransactionsSummaryByWorkspaceId(
-    workspaceId: string,
-    period: '7d' | '30d',
-  ): Promise<TransactionSummary[]>;
-
   abstract sumTransactionsByDateRange(
     workspaceId: string,
     startDate: Date,
@@ -53,28 +43,4 @@ export abstract class TransactionRepository implements Repository<Transaction> {
   abstract toggleStatusWithBalanceUpdate(
     transactionId: string,
   ): Promise<Transaction>;
-
-  abstract getExpensesByCategoryReport(
-    workspaceId: string,
-    month: number,
-    year: number,
-  ): Promise<
-    Array<{
-      categoryId: string | null;
-      totalAmount: number;
-    }>
-  >;
-
-  abstract getCashFlowEvolutionReport(
-    workspaceId: string,
-    startDate: Date,
-    endDate: Date,
-  ): Promise<
-    Array<{
-      date: string;
-      income: number;
-      expense: number;
-      balance: number;
-    }>
-  >;
 }
