@@ -1,0 +1,36 @@
+import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
+import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { statusCode } from '@shared/core/types/statusCode';
+import {
+  CreateTransactionPipe,
+  CreateTransactionRequest,
+} from './create-transaction.dto';
+import { CreateTransactionHandler } from './create-transaction.handle';
+
+@ApiTags('Transaction')
+@Controller('transaction')
+export class CreateTransactionController {
+  constructor(private readonly handler: CreateTransactionHandler) {}
+
+  @Post()
+  @HttpCode(statusCode.CREATED)
+  async handle(
+    @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
+    @Body(CreateTransactionPipe) body: CreateTransactionRequest,
+  ) {
+    const data = await this.handler.execute({
+      ...body,
+      sub,
+      workspaceId,
+    });
+
+    if (data.isLeft()) {
+      return ErrorPresenter.toHTTP(data.value);
+    }
+
+    return { data: data.value };
+  }
+}
