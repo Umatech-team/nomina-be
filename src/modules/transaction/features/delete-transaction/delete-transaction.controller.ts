@@ -18,19 +18,19 @@ export class DeleteTransactionController {
   ) {}
 
   @Delete()
-  @HttpCode(statusCode.OK)
+  @HttpCode(statusCode.NO_CONTENT)
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Query(DeleteTransactionPipe) { transactionId }: DeleteTransactionRequest,
   ) {
-    const result = await this.deleteTransactionService.execute({
+    const data = await this.deleteTransactionService.execute({
       transactionId,
       sub,
       workspaceId,
     });
 
-    if (result.isLeft()) {
-      return ErrorPresenter.toHTTP(result.value);
+    if (data.isLeft()) {
+      return ErrorPresenter.toHTTP(data.value);
     }
   }
 }
