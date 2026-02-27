@@ -1,6 +1,6 @@
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
-import { GenerateRecurringTransactionsService } from '@modules/transaction/services/GenerateRecurringTransactions.service';
+import { GenerateRecurringTransactionsService } from '@modules/transaction/services/generate-recurring-transactions.service';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import { HttpException, Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
