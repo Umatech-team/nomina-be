@@ -4,7 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
-import { MonthSummaryPresenter } from '../presenters/MonthlySummary.presenter';
+import { MonthSummaryPresenter } from '../../report/presenters/MonthlySummary.presenter';
 import { FindMonthSummaryService } from '../services/FindMonthSummary.service';
 
 @ApiTags('Transaction')
