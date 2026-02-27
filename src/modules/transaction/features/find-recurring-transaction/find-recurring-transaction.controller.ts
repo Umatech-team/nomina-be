@@ -9,6 +9,7 @@ import {
   FindRecurringTransactionRequest,
 } from './find-recurring-transaction.dto';
 import { FindRecurringTransactionHandler } from './find-recurring-transaction.handle';
+import { RecurringTransactionPresenter } from '@modules/transaction/presenters/RecurringTransaction.presenter';
 
 @ApiTags('Transaction')
 @Controller('transaction')
@@ -30,6 +31,6 @@ export class FindRecurringTransactionController {
       return ErrorPresenter.toHTTP(data.value);
     }
 
-    return { data: data.value };
+    return { data: RecurringTransactionPresenter.toHTTP(data.value) };
   }
 }
