@@ -1,4 +1,5 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { TransactionPresenter } from '@modules/transaction/presenters/Transaction.presenter';
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
@@ -31,6 +32,6 @@ export class CreateTransactionController {
       return ErrorPresenter.toHTTP(data.value);
     }
 
-    return { data: data.value };
+    return { data: TransactionPresenter.toHTTP(data.value) };
   }
 }
