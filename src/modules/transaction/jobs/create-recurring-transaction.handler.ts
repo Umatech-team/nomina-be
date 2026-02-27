@@ -6,7 +6,7 @@ import { Either, right } from '@shared/core/errors/Either';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 import { Transaction } from '../entities/Transaction';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
-import { CalculateNextGenerationDateService } from '../services/CalculateNextGenerationDate.service';
+import { CalculateNextGenerationDateService } from '../services/calculate-next-generation-date.service';
 
 interface Response {
   generatedCount: number;
