@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 import { Transaction } from '../entities/Transaction';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
-import { CalculateNextGenerationDateService } from './CalculateNextGenerationDate.service';
+import { CalculateNextGenerationDateService } from './calculate-next-generation-date.service';
 
 interface Request {
   workspaceId: string;
