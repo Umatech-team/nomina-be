@@ -12,10 +12,13 @@ export class WorkspaceInviteRepositoryImplementation
 {
   constructor(private readonly drizzle: DrizzleService) {}
 
-  async create(invite: WorkspaceInvite): Promise<void> {
-    await this.drizzle.db
+  async create(invite: WorkspaceInvite): Promise<WorkspaceInvite> {
+    const [rawInvite] = await this.drizzle.db
       .insert(schema.workspaceInvites)
-      .values(WorkspaceInviteMapper.toDatabase(invite));
+      .values(WorkspaceInviteMapper.toDatabase(invite))
+      .returning();
+
+    return WorkspaceInviteMapper.toDomain(rawInvite);
   }
 
   async findByCode(code: string): Promise<WorkspaceInvite | null> {
