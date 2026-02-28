@@ -4,7 +4,7 @@ import { Workspace } from '@modules/workspace/entities/Workspace';
 import { WorkspaceUser } from '@modules/workspace/entities/WorkspaceUser';
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
 import { Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 import { WorkspaceMapper } from '../mappers/workspace.mapper';
 import * as schema from '../schema';
 
@@ -99,12 +99,20 @@ export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
       role: UserRole;
       isDefault: boolean;
     }>;
+    total: number;
   }> {
     const skip = (page - 1) * limit;
 
-    const workspaceUsers = await this.drizzle.db
-      .select()
+    const workspaceUsersQuery = await this.drizzle.db
+      .select({
+        workspaceUser: schema.workspaceUsers,
+        workspace: schema.workspaces,
+      })
       .from(schema.workspaceUsers)
+      .innerJoin(
+        schema.workspaces,
+        eq(schema.workspaceUsers.workspaceId, schema.workspaces.id),
+      )
       .where(
         and(
           eq(schema.workspaceUsers.userId, userId),
@@ -114,22 +122,23 @@ export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
       .limit(limit)
       .offset(skip);
 
-    return {
-      workspaces: await Promise.all(
-        workspaceUsers.map(async (wu) => {
-          const workspace = await this.drizzle.db
-            .select()
-            .from(schema.workspaces)
-            .where(eq(schema.workspaces.id, wu.workspaceId))
-            .limit(1);
+    const [totalRecord] = await this.drizzle.db
+      .select({ value: count() })
+      .from(schema.workspaceUsers)
+      .where(
+        and(
+          eq(schema.workspaceUsers.userId, userId),
+          eq(schema.workspaceUsers.role, UserRole.OWNER),
+        ),
+      );
 
-          return {
-            workspace: WorkspaceMapper.toDomain(workspace[0]),
-            role: wu.role as UserRole,
-            isDefault: wu.isDefault,
-          };
-        }),
-      ),
+    return {
+      workspaces: workspaceUsersQuery.map((row) => ({
+        workspace: WorkspaceMapper.toDomain(row.workspace),
+        role: row.workspaceUser.role as UserRole,
+        isDefault: row.workspaceUser.isDefault,
+      })),
+      total: totalRecord.value,
     };
   }
 }
