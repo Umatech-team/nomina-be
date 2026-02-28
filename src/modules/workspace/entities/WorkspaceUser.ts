@@ -2,6 +2,7 @@ import { UserRole } from '@constants/enums';
 import { HttpException } from '@nestjs/common';
 import { Entity } from '@shared/core/Entities/Entity';
 import { Either, left, right } from '@shared/core/errors/Either';
+import { Optional } from '@shared/core/types/Optional';
 import { statusCode } from '@shared/core/types/statusCode';
 
 export interface WorkspaceUserProps {
@@ -18,7 +19,7 @@ export class WorkspaceUser extends Entity<WorkspaceUserProps> {
   }
 
   static create(
-    props: WorkspaceUserProps,
+    props: Optional<WorkspaceUserProps, 'joinedAt'>,
     id?: string,
   ): Either<HttpException, WorkspaceUser> {
     if (!props.workspaceId) {
@@ -53,7 +54,10 @@ export class WorkspaceUser extends Entity<WorkspaceUserProps> {
       joinedAt: props.joinedAt ?? new Date(),
     };
 
-    const workspaceUser = new WorkspaceUser(workspaceUserProps, id);
+    const workspaceUser = new WorkspaceUser(
+      workspaceUserProps,
+      id ?? crypto.randomUUID(),
+    );
     return right(workspaceUser);
   }
 
