@@ -1,0 +1,45 @@
+import { UserRole } from '@constants/enums';
+import { Workspace } from '@modules/workspace/entities/Workspace';
+import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
+import { Injectable } from '@nestjs/common';
+import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { Service } from '@shared/core/contracts/Service';
+import { Either, right } from '@shared/core/errors/Either';
+import { ListWorkspacesRequest } from './list-workspaces.dto';
+
+type Request = ListWorkspacesRequest & Pick<TokenPayloadSchema, 'sub'>;
+
+type Errors = never;
+
+type Response = {
+  workspaces: Array<{
+    workspace: Workspace;
+    role: UserRole;
+    isDefault: boolean;
+  }>;
+  total: number;
+};
+
+@Injectable()
+export class ListWorkspacesHandler
+  implements Service<Request, Errors, Response>
+{
+  constructor(private readonly workspaceRepository: WorkspaceRepository) {}
+
+  async execute({
+    page,
+    pageSize,
+    sub,
+  }: Request): Promise<Either<Errors, Response>> {
+    const result = await this.workspaceRepository.findManyByUserId(
+      sub,
+      page,
+      pageSize,
+    );
+
+    return right({
+      workspaces: result.workspaces,
+      total: result.total,
+    });
+  }
+}
