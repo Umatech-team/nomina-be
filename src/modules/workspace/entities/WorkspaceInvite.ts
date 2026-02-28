@@ -1,7 +1,8 @@
 import { UserRole } from '@constants/enums';
+import { HttpException } from '@nestjs/common';
 import { Entity } from '@shared/core/Entities/Entity';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { InvalidWorkspaceUserError } from '../errors/InvalidWorkspaceUserError';
+import { statusCode } from '@shared/core/types/statusCode';
 
 export interface WorkspaceInviteProps {
   code: string;
@@ -21,26 +22,40 @@ export class WorkspaceInvite extends Entity<WorkspaceInviteProps> {
   static create(
     props: WorkspaceInviteProps,
     id?: string,
-  ): Either<InvalidWorkspaceUserError, WorkspaceInvite> {
+  ): Either<HttpException, WorkspaceInvite> {
     if (!props.workspaceId) {
       return left(
-        new InvalidWorkspaceUserError('ID do workspace é obrigatório'),
+        new HttpException(
+          'ID do workspace é obrigatório',
+          statusCode.BAD_REQUEST,
+        ),
       );
     }
 
     if (!props.createdBy) {
-      return left(new InvalidWorkspaceUserError('ID do usuário é obrigatório'));
+      return left(
+        new HttpException(
+          'ID do usuário é obrigatório',
+          statusCode.BAD_REQUEST,
+        ),
+      );
     }
 
     if (!props.role) {
       return left(
-        new InvalidWorkspaceUserError('Função do usuário é obrigatória'),
+        new HttpException(
+          'Função do usuário é obrigatória',
+          statusCode.BAD_REQUEST,
+        ),
       );
     }
 
     if (!props.expiresAt) {
       return left(
-        new InvalidWorkspaceUserError('Data de expiração é obrigatória'),
+        new HttpException(
+          'Data de expiração é obrigatória',
+          statusCode.BAD_REQUEST,
+        ),
       );
     }
 
