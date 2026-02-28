@@ -22,5 +22,6 @@ export abstract class WorkspaceRepository {
       role: UserRole;
       isDefault: boolean;
     }>;
+    total: number;
   }>;
 }
