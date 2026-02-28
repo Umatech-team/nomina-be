@@ -1,7 +1,7 @@
+import { HttpException } from '@nestjs/common';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Either, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
-import { InvalidWorkspaceError } from '../errors/InvalidWorkspaceError';
 
 export interface WorkspaceProps {
   name: string;
@@ -17,14 +17,14 @@ export class Workspace extends AggregateRoot<WorkspaceProps> {
   static create(
     props: Optional<WorkspaceProps, 'createdAt' | 'currency'>,
     id?: string,
-  ): Either<InvalidWorkspaceError, Workspace> {
+  ): Either<HttpException, Workspace> {
     const workspaceProps: WorkspaceProps = {
       ...props,
       createdAt: props.createdAt ?? new Date(),
       currency: props.currency ?? 'BRL',
     };
 
-    const workspace = new Workspace(workspaceProps, id);
+    const workspace = new Workspace(workspaceProps, id ?? crypto.randomUUID());
     return right(workspace);
   }
 
