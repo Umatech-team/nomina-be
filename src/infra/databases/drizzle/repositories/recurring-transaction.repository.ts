@@ -64,7 +64,7 @@ export class RecurringTransactionRepositoryImplementation
 
     const baseConditions = and(
       eq(schema.recurringTransactions.workspaceId, workspaceId),
-      isActive !== undefined
+      isActive === true
         ? eq(schema.recurringTransactions.active, isActive)
         : undefined,
     );
