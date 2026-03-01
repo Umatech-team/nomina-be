@@ -1,4 +1,5 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { UserPresenter } from '@modules/user/presenters/user.presenter';
 import { Controller, Get, HttpCode } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
@@ -20,6 +21,6 @@ export class GetProfileController {
       return ErrorPresenter.toHTTP(data.value);
     }
 
-    return { data: data.value };
+    return { data: UserPresenter.toHTTP(data.value) };
   }
 }
