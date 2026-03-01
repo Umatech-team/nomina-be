@@ -1,4 +1,5 @@
 import {
+  AnyPgColumn,
   bigint,
   boolean,
   index,
@@ -130,64 +131,30 @@ export const accounts = pgTable('accounts', {
   dueDay: integer('due_day'),
 });
 
-export const categories = pgTable('categories', {
-  id: text('id')
-    .primaryKey()
-    .$default(() => crypto.randomUUID()),
-  workspaceId: text('workspace_id').references(() => workspaces.id, {
-    onDelete: 'cascade',
-  }),
-  name: text('name').notNull(),
-  type: text('type').notNull(),
-  isSystemCategory: boolean('is_system_category').default(false).notNull(),
-  parentId: text('parent_id'),
-});
-
-export const transactions = pgTable(
-  'transactions',
+export const categories = pgTable(
+  'categories',
   {
     id: text('id')
       .primaryKey()
       .$default(() => crypto.randomUUID()),
-    workspaceId: text('workspace_id')
-      .notNull()
-      .references(() => workspaces.id, { onDelete: 'cascade' }),
-    accountId: text('account_id')
-      .notNull()
-      .references(() => accounts.id, { onDelete: 'restrict' }),
-    categoryId: text('category_id')
-      .notNull()
-      .references(() => categories.id),
-
-    description: text('description').notNull(),
-    amount: bigint('amount', { mode: 'number' }).notNull(),
-    date: timestamp('date', { withTimezone: true, mode: 'date' }).notNull(),
+    workspaceId: text('workspace_id').references(() => workspaces.id, {
+      onDelete: 'cascade',
+    }),
+    name: text('name').notNull(),
     type: text('type').notNull(),
-    status: text('status').notNull(),
-
-    recurringId: text('recurring_transaction_id'),
-
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
-      .notNull()
-      .$onUpdate(() => new Date()),
+    isSystemCategory: boolean('is_system_category').default(false).notNull(),
+    parentId: text('parent_id').references((): AnyPgColumn => categories.id),
   },
   (table) => [
-    index('idx_trans_ws_date_status_type').on(
+    uniqueIndex('unq_cat_ws_name_type_parent').on(
       table.workspaceId,
-      table.date,
-      table.status,
+      table.name,
       table.type,
+      table.parentId,
     ),
-    index('idx_trans_account').on(table.accountId),
-    index('idx_trans_category_filter').on(
-      table.workspaceId,
-      table.categoryId,
-      table.type,
-      table.date,
-    ),
+    index('idx_cat_ws_type').on(table.workspaceId, table.type),
+    index('idx_cat_parent').on(table.parentId),
+    index('idx_cat_system').on(table.isSystemCategory),
   ],
 );
 
@@ -224,6 +191,57 @@ export const recurringTransactions = pgTable('recurring_transactions', {
   }),
   active: boolean('active').default(true).notNull(),
 });
+
+export const transactions = pgTable(
+  'transactions',
+  {
+    id: text('id')
+      .primaryKey()
+      .$default(() => crypto.randomUUID()),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    accountId: text('account_id')
+      .notNull()
+      .references(() => accounts.id, { onDelete: 'restrict' }),
+    categoryId: text('category_id')
+      .notNull()
+      .references(() => categories.id),
+
+    description: text('description').notNull(),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    date: timestamp('date', { withTimezone: true, mode: 'date' }).notNull(),
+    type: text('type').notNull(),
+    status: text('status').notNull(),
+
+    recurringId: text('recurring_transaction_id').references(
+      () => recurringTransactions.id,
+    ),
+
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', {
+      withTimezone: true,
+      mode: 'date',
+    }).$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index('idx_trans_ws_date_status_type').on(
+      table.workspaceId,
+      table.date,
+      table.status,
+      table.type,
+    ),
+    index('idx_trans_account').on(table.accountId),
+    index('idx_trans_category_filter').on(
+      table.workspaceId,
+      table.categoryId,
+      table.type,
+      table.date,
+    ),
+  ],
+);
 
 // --------------------------------------------------------
 // FATURAMENTO (SAAS)
