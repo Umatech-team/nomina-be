@@ -79,17 +79,20 @@ export class CategoryRepositoryImplementation implements CategoryRepository {
     page?: number,
     limit?: number,
   ): Promise<{ categories: Category[]; total: number }> {
+    const parentIdCondition =
+      filters?.parentId !== undefined
+        ? filters.parentId === null
+          ? isNull(schema.categories.parentId)
+          : eq(schema.categories.parentId, filters.parentId)
+        : undefined;
+
     const conditions = and(
       or(
         eq(schema.categories.workspaceId, workspaceId),
         eq(schema.categories.isSystemCategory, true),
       ),
       filters?.type ? eq(schema.categories.type, filters.type) : undefined,
-      filters?.parentId !== undefined
-        ? filters.parentId === null
-          ? isNull(schema.categories.parentId)
-          : eq(schema.categories.parentId, filters.parentId)
-        : undefined,
+      parentIdCondition,
     );
 
     const query = this.drizzle.db
