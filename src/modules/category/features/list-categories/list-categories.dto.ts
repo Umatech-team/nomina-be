@@ -1,3 +1,4 @@
+import { TransactionType } from '@constants/enums';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
@@ -8,6 +9,7 @@ const listCategoriesSchema = z.object({
     .int()
     .positive('Tamanho da página deve ser um número positivo')
     .max(100, 'Tamanho da página muito grande'),
+  type: z.nativeEnum(TransactionType).optional(),
 });
 
 export const ListCategoriesPipe = new ZodValidationPipe(listCategoriesSchema);
