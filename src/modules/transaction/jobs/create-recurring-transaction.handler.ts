@@ -1,6 +1,5 @@
 import { TransactionStatus } from '@constants/enums';
 import { RedisService } from '@infra/cache/redis/RedisService';
-import { PrismaService } from '@infra/databases/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Either, right } from '@shared/core/errors/Either';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
@@ -17,7 +16,6 @@ export class GenerateRecurringTransactionsJobHandler {
   constructor(
     private readonly recurringRepository: RecurringTransactionRepository,
     private readonly calculateNextDateService: CalculateNextGenerationDateService,
-    private readonly prisma: PrismaService,
     private readonly redis: RedisService,
   ) {}
 
@@ -141,30 +139,10 @@ export class GenerateRecurringTransactionsJobHandler {
       return 0;
     }
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.transaction.createMany({
-        data: transactionsToCreate.map((t) => ({
-          workspaceId: t.workspaceId,
-          accountId: t.accountId,
-          categoryId: t.categoryId,
-          description: t.description,
-          amount: t.amount,
-          date: t.date,
-          type: t.type,
-          status: t.status,
-          recurringId: t.recurringId,
-        })),
-      });
-
-      await tx.recurringTransaction.update({
-        where: { id: recurring.id },
-        data: { lastGenerated: recurring.lastGenerated },
-      });
-
-      console.log(
-        `Updated lastGenerated for recurring ${recurring.id} to ${recurring.lastGenerated?.toISOString()}`,
-      );
-    });
+    await this.recurringRepository.createGeneratedTransactions(
+      transactionsToCreate,
+      recurring,
+    );
 
     return transactionsToCreate.length;
   }
