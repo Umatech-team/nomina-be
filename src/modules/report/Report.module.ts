@@ -1,5 +1,4 @@
 import { DatabaseModule } from '@infra/databases/Database.module';
-import { FindMonthSummaryController } from '@modules/transaction/controllers/FindMonthSummary.controller';
 import { Module } from '@nestjs/common';
 import { BalanceEvolutionController } from './features/get-balance-evolution/get-balance-evolution.controller';
 import { BalanceEvolutionHandler } from './features/get-balance-evolution/get-balance-evolution.handler';
@@ -8,6 +7,7 @@ import { CashFlowEvolutionHandler } from './features/get-cash-flow-evolution/cas
 import { GetExpensesByCategoryController } from './features/get-expenses-by-category/get-expenses-by-category.controller';
 import { GetExpensesByCategoryHandler } from './features/get-expenses-by-category/get-expenses-by-category.handler';
 import { FindMonthSummaryHandler } from './features/get-month-summary/get-month-summary.handler';
+import { FindMonthSummaryController } from './features/get-month-summary/get-month-summary.controller';
 
 @Module({
   imports: [DatabaseModule],
