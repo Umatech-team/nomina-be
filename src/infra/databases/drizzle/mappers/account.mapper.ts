@@ -7,21 +7,19 @@ type AccountDrizzleInsert = typeof schema.accounts.$inferInsert;
 
 export class AccountMapper {
   static toDomain(raw: AccountDrizzle): Account {
-    const result = Account.create(
+    return new Account(
       {
         balance: BigInt(raw.balance),
         name: raw.name,
         type: raw.type as AccountType,
         workspaceId: raw.workspaceId,
+        icon: raw.icon ?? null,
+        color: raw.color ?? null,
+        closingDay: raw.closingDay ?? null,
+        dueDay: raw.dueDay ?? null,
       },
       raw.id,
     );
-
-    if (result.isLeft()) {
-      throw result.value;
-    }
-
-    return result.value;
   }
 
   static toDatabase(entity: Account): AccountDrizzleInsert {
@@ -31,6 +29,10 @@ export class AccountMapper {
       name: entity.name,
       type: entity.type,
       workspaceId: entity.workspaceId,
+      icon: entity.icon,
+      color: entity.color,
+      closingDay: entity.closingDay,
+      dueDay: entity.dueDay,
     };
   }
 }
