@@ -1,5 +1,5 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
-import { Controller, Delete, HttpCode, Query } from '@nestjs/common';
+import { Controller, Delete, HttpCode, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
@@ -17,11 +17,11 @@ export class DeleteTransactionController {
     private readonly deleteTransactionService: DeleteTransactionHandler,
   ) {}
 
-  @Delete()
+  @Delete(':transactionId')
   @HttpCode(statusCode.NO_CONTENT)
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
-    @Query(DeleteTransactionPipe) { transactionId }: DeleteTransactionRequest,
+    @Param(DeleteTransactionPipe) { transactionId }: DeleteTransactionRequest,
   ) {
     const data = await this.deleteTransactionService.execute({
       transactionId,
