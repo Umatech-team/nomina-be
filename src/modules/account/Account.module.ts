@@ -1,17 +1,16 @@
 import { DatabaseModule } from '@infra/databases/Database.module';
 import { Module } from '@nestjs/common';
 import { SubscriptionModule } from '../subscription/Subscription.module';
-import { CreateAccountController } from './controllers/CreateAccount.controller';
-import { DeleteAccountController } from './controllers/DeleteAccount.controller';
-import { FindAccountController } from './controllers/FindAccount.controller';
-import { ListAccountsController } from './controllers/ListAccounts.controller';
-import { UpdateAccountController } from './controllers/UpdateAccount.controller';
-import { CreateAccountService } from './services/CreateAccount.service';
-import { DeleteAccountService } from './services/DeleteAccount.service';
-import { FindAccountByIdService } from './services/FindAccountById.service';
-import { ListAccountsService } from './services/ListAccounts.service';
-import { UpdateAccountService } from './services/UpdateAccount.service';
-
+import { CreateAccountController } from './features/create-account/create-account.controller';
+import { CreateAccountHandler } from './features/create-account/create-account.handler';
+import { DeleteAccountController } from './features/delete-account/delete-account.controller';
+import { DeleteAccountHandler } from './features/delete-account/delete-account.handler';
+import { FindAccountController } from './features/find-account/find-account.controller';
+import { FindAccountByIdHandler } from './features/find-account/find-account.handler';
+import { ListAccountsController } from './features/list-accounts/list-accounts.controller';
+import { ListAccountsHandler } from './features/list-accounts/list-accounts.handler';
+import { UpdateAccountController } from './features/update-account/update-account.controller';
+import { UpdateAccountHandler } from './features/update-account/update-account.handler';
 @Module({
   imports: [DatabaseModule, SubscriptionModule],
   controllers: [
@@ -22,18 +21,18 @@ import { UpdateAccountService } from './services/UpdateAccount.service';
     ListAccountsController,
   ],
   providers: [
-    CreateAccountService,
-    UpdateAccountService,
-    DeleteAccountService,
-    FindAccountByIdService,
-    ListAccountsService,
+    CreateAccountHandler,
+    UpdateAccountHandler,
+    DeleteAccountHandler,
+    FindAccountByIdHandler,
+    ListAccountsHandler,
   ],
   exports: [
-    CreateAccountService,
-    UpdateAccountService,
-    DeleteAccountService,
-    FindAccountByIdService,
-    ListAccountsService,
+    CreateAccountHandler,
+    UpdateAccountHandler,
+    DeleteAccountHandler,
+    FindAccountByIdHandler,
+    ListAccountsHandler,
   ],
 })
 export class AccountModule {}
