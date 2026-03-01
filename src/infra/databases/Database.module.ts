@@ -9,22 +9,26 @@ import { WorkspaceInviteRepository } from '@modules/workspace/repositories/contr
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { Module } from '@nestjs/common';
-import { DrizzleProvider } from './drizzle/drizzle.provider';
+import {
+  DrizzleProvider,
+  DrizzleTokenProvider,
+} from './drizzle/drizzle.provider';
 import { DrizzleService } from './drizzle/drizzle.service';
-import { AccountRepositoryImplementation } from './prisma/account/AccountRepository';
-import { CategoryRepositoryImplementation } from './prisma/category/CategoryRepository';
-import { SubscriptionRepositoryImplementation } from './prisma/subscription/SubscriptionRepositoryImplementation';
-import { RecurringTransactionRepositoryImplementation } from './prisma/transaction/RecurringTransactionRepositoryImplementation';
-import { TransactionRepositoryImplementation } from './prisma/transaction/TransactionRepository';
-import { RefreshTokensRepositoryImplementation } from './prisma/user/RefreshTokensRepositoryImplementation';
-import { UserRepositoryImplementation } from './prisma/user/UserRepository';
-import { WorkspaceInviteRepositoryImplementation } from './prisma/workspace/WorkspaceInviteRepository';
-import { WorkspaceRepositoryImplementation } from './prisma/workspace/WorkspaceRepository';
-import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/WorkspaceUserRepository';
+import { AccountRepositoryImplementation } from './drizzle/repositories/account.repository';
+import { CategoryRepositoryImplementation } from './drizzle/repositories/category.repository';
+import { RecurringTransactionRepositoryImplementation } from './drizzle/repositories/recurring-transaction.repository';
+import { RefreshTokenRepositoryImplementation } from './drizzle/repositories/refresh-token.repository';
+import { SubscriptionRepositoryImplementation } from './drizzle/repositories/subscription.repository';
+import { TransactionRepositoryImplementation } from './drizzle/repositories/transaction.repository';
+import { UserRepositoryImplementation } from './drizzle/repositories/user.repository';
+import { WorkspaceInviteRepositoryImplementation } from './drizzle/repositories/workspace-invite.repository';
+import { WorkspaceUserRepositoryImplementation } from './drizzle/repositories/workspace-user.repository';
+import { WorkspaceRepositoryImplementation } from './drizzle/repositories/workspace.repository';
 
 @Module({
   providers: [
     DrizzleProvider,
+    DrizzleTokenProvider,
     DrizzleService,
     {
       provide: UserRepository,
@@ -44,7 +48,7 @@ import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/Worksp
     },
     {
       provide: RefreshTokensRepository,
-      useClass: RefreshTokensRepositoryImplementation,
+      useClass: RefreshTokenRepositoryImplementation,
     },
     {
       provide: TransactionRepository,
