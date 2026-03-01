@@ -8,7 +8,9 @@ import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UpdateTransactionRequest } from './update-transaction.dto';
 
-type Request = UpdateTransactionRequest & TokenPayloadBase;
+type Request = UpdateTransactionRequest & {
+  transactionId: string;
+} & TokenPayloadBase;
 type Errors = HttpException;
 type Response = Transaction;
 
