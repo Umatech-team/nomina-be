@@ -1,4 +1,5 @@
 import { RecurringTransaction } from '@modules/transaction/entities/RecurringTransaction';
+import { Transaction } from '@modules/transaction/entities/Transaction';
 
 export abstract class RecurringTransactionRepository {
   abstract create(
@@ -30,4 +31,9 @@ export abstract class RecurringTransactionRepository {
     limit: number,
     offset: number,
   ): Promise<RecurringTransaction[]>;
+
+  abstract createGeneratedTransactions(
+    transactions: Transaction[],
+    updatedRecurring: RecurringTransaction,
+  ): Promise<void>;
 }
