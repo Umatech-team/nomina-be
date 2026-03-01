@@ -10,7 +10,6 @@ export abstract class CategoryRepository {
 
   abstract findById(id: string): Promise<Category | null>;
 
-  // Busca baseada na chave composta real do seu domínio
   abstract findUniqueByAttributes(
     name: string,
     type: TransactionType,
