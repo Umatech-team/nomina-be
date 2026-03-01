@@ -9,6 +9,14 @@ import { CategoryMapper } from './CategoryMapper';
 @Injectable()
 export class CategoryRepositoryImplementation implements CategoryRepository {
   constructor(private readonly prisma: PrismaService) {}
+  findUniqueByAttributes(
+    name: string,
+    type: TransactionType,
+    workspaceId: string,
+    parentId?: string | null,
+  ): Promise<Category | null> {
+    throw new Error('Method not implemented.');
+  }
 
   async create(category: Category): Promise<Category> {
     const data = CategoryMapper.toPrisma(category);
