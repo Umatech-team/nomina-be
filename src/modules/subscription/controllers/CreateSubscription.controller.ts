@@ -28,7 +28,7 @@ export class CreateSubscriptionController {
   ) {
     const result = await this.createSubscriptionService.execute({
       ...body,
-      userId: sub, // Criar para o usuário logado
+      userId: sub,
     });
 
     if (result.isLeft()) {
