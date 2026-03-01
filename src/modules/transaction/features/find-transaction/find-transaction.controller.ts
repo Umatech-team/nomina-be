@@ -1,4 +1,5 @@
 import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { TransactionPresenter } from '@modules/transaction/presenters/Transaction.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
@@ -9,7 +10,6 @@ import {
   FindTransactionRequest,
 } from './find-transaction.dto';
 import { FindTransactionByIdHandler } from './find-transaction.handle';
-import { TransactionPresenter } from '@modules/transaction/presenters/Transaction.presenter';
 
 @ApiTags('Transaction')
 @Controller('transaction')
