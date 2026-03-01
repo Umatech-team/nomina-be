@@ -13,7 +13,6 @@ import { DrizzleProvider } from './drizzle/drizzle.provider';
 import { DrizzleService } from './drizzle/drizzle.service';
 import { AccountRepositoryImplementation } from './prisma/account/AccountRepository';
 import { CategoryRepositoryImplementation } from './prisma/category/CategoryRepository';
-import { PrismaService } from './prisma/prisma.service';
 import { SubscriptionRepositoryImplementation } from './prisma/subscription/SubscriptionRepositoryImplementation';
 import { RecurringTransactionRepositoryImplementation } from './prisma/transaction/RecurringTransactionRepositoryImplementation';
 import { TransactionRepositoryImplementation } from './prisma/transaction/TransactionRepository';
@@ -25,7 +24,6 @@ import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/Worksp
 
 @Module({
   providers: [
-    PrismaService,
     DrizzleProvider,
     DrizzleService,
     {
@@ -70,7 +68,6 @@ import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/Worksp
     },
   ],
   exports: [
-    PrismaService,
     DrizzleService,
     UserRepository,
     WorkspaceRepository,
