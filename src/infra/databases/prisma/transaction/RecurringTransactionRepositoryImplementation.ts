@@ -1,8 +1,10 @@
 import { RecurringTransaction } from '@modules/transaction/entities/RecurringTransaction';
+import { Transaction } from '@modules/transaction/entities/Transaction';
 import { RecurringTransactionRepository } from '@modules/transaction/repositories/contracts/RecurringTransactionRepository';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { RecurringTransactionMapper } from './RecurringTransactionMapper';
+import { TransactionMapper } from './TransactionMapper';
 
 @Injectable()
 export class RecurringTransactionRepositoryImplementation
@@ -113,5 +115,79 @@ export class RecurringTransactionRepositoryImplementation
       },
     });
     return recurrings.map(RecurringTransactionMapper.toEntity);
+  }
+
+  async findManyByWorkspaceId(
+    workspaceId: string,
+    page: number,
+    pageSize: number,
+    isActive?: boolean,
+  ): Promise<{ recurrings: RecurringTransaction[]; total: number }> {
+    const where = {
+      workspaceId,
+      ...(isActive !== undefined ? { active: isActive } : {}),
+    };
+    const [recurrings, total] = await Promise.all([
+      this.prisma.recurringTransaction.findMany({
+        where,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.recurringTransaction.count({ where }),
+    ]);
+    return { recurrings: recurrings.map(RecurringTransactionMapper.toEntity), total };
+  }
+
+  async findNeedingGenerationByWorkspaceId(
+    workspaceId: string,
+    referenceDate: Date,
+  ): Promise<RecurringTransaction[]> {
+    const recurrings = await this.prisma.recurringTransaction.findMany({
+      where: {
+        workspaceId,
+        active: true,
+        startDate: { lte: referenceDate },
+        OR: [
+          { lastGenerated: null },
+          { lastGenerated: { lt: referenceDate } },
+        ],
+      },
+    });
+    return recurrings.map(RecurringTransactionMapper.toEntity);
+  }
+
+  async listNeedingGeneration(
+    referenceDate: Date,
+    limit: number,
+    offset: number,
+  ): Promise<RecurringTransaction[]> {
+    const recurrings = await this.prisma.recurringTransaction.findMany({
+      where: {
+        active: true,
+        startDate: { lte: referenceDate },
+        OR: [
+          { lastGenerated: null },
+          { lastGenerated: { lt: referenceDate } },
+        ],
+      },
+      take: limit,
+      skip: offset,
+    });
+    return recurrings.map(RecurringTransactionMapper.toEntity);
+  }
+
+  async createGeneratedTransactions(
+    transactions: Transaction[],
+    updatedRecurring: RecurringTransaction,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.transaction.createMany({
+        data: transactions.map(TransactionMapper.toPrisma),
+      });
+      await tx.recurringTransaction.update({
+        where: { id: updatedRecurring.id },
+        data: { lastGenerated: updatedRecurring.lastGenerated },
+      });
+    });
   }
 }
