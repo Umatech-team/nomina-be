@@ -3,9 +3,6 @@ import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
 const updateRecurringTransactionSchema = z.object({
-  recurringTransactionId: z
-    .string()
-    .uuid('ID da transação recorrente inválido'),
   categoryId: z.string().uuid('ID da categoria inválido').nullable().optional(),
   description: z.string().min(1, 'Descrição é obrigatória').optional(),
   amount: z.coerce.number().positive('Valor deve ser positivo').optional(),
