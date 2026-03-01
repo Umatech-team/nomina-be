@@ -7,7 +7,6 @@ export abstract class SubscriptionRepository {
 
   abstract findById(id: string): Promise<Subscription | null>;
 
-  // Fundido: Aceita buscar a assinatura geral mais recente ou a mais recente de um status específico (ex: 'ACTIVE')
   abstract findByUserId(
     userId: string,
     status?: string,
