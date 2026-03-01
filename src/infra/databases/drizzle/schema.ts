@@ -236,7 +236,7 @@ export const subscriptions = pgTable('subscriptions', {
   userId: text('user_id')
     .notNull()
     .references(() => users.id),
-  planId: text('plan_id').notNull(),
+  planId: text('planId').notNull(),
   status: text('status').notNull(),
   currentPeriodEnd: timestamp('current_period_end', {
     withTimezone: true,
