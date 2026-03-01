@@ -11,7 +11,6 @@ export class RefreshTokenMapper {
         userId: raw.userId,
         token: raw.token,
         expiresIn: raw.expiresIn,
-        createdAt: raw.createdAt,
       },
       raw.id,
     );
@@ -25,7 +24,6 @@ export class RefreshTokenMapper {
       userId: entity.userId,
       token: entity.token,
       expiresIn: entity.expiresIn,
-      createdAt: entity.createdAt,
     };
   }
 }
