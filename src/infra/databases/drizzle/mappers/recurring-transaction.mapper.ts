@@ -9,7 +9,7 @@ type RecurringTransactionDrizzleInsert =
 
 export class RecurringTransactionMapper {
   static toDomain(raw: RecurringTransactionDrizzle): RecurringTransaction {
-    const result = RecurringTransaction.create(
+    return new RecurringTransaction(
       {
         accountId: raw.accountId,
         amount: BigInt(raw.amount),
@@ -26,12 +26,6 @@ export class RecurringTransactionMapper {
       },
       raw.id,
     );
-
-    if (result.isLeft()) {
-      throw result.value;
-    }
-
-    return result.value;
   }
 
   static toDatabase(
