@@ -1,5 +1,5 @@
 import { RedisService } from '@infra/cache/redis/RedisService';
-import { PrismaService } from '@infra/databases/prisma/prisma.service';
+import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import {
   Controller,
   Get,
@@ -8,11 +8,12 @@ import {
 } from '@nestjs/common';
 import { Public } from '@providers/auth/decorators/IsPublic.decorator';
 import { statusCode } from '@shared/core/types/statusCode';
+import { sql } from 'drizzle-orm';
 
 @Controller('health')
 export class HealthController {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly drizzle: DrizzleService,
     private readonly redisService: RedisService,
   ) {}
 
@@ -21,7 +22,9 @@ export class HealthController {
   @HttpCode(statusCode.OK)
   async check() {
     try {
-      await this.prisma.$queryRaw`SELECT 1`;
+      await this.drizzle.db.transaction(async (tx) => {
+        await tx.execute(sql`SELECT 1`);
+      });
 
       const isRedisEnabled = process.env.REDIS_ENABLED === 'true';
       if (isRedisEnabled) {
