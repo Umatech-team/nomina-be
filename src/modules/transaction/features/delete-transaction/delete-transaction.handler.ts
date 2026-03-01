@@ -1,3 +1,4 @@
+import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { HttpException, Injectable } from '@nestjs/common';
@@ -14,7 +15,10 @@ type Response = Transaction;
 export class DeleteTransactionHandler
   implements Service<Request, Errors, Response>
 {
-  constructor(private readonly transactionRepository: TransactionRepository) {}
+  constructor(
+    private readonly transactionRepository: TransactionRepository,
+    private readonly accountRepository: AccountRepository,
+  ) {}
 
   async execute({
     workspaceId,
@@ -31,7 +35,7 @@ export class DeleteTransactionHandler
       return left(new HttpException('Não autorizado', 403));
     }
 
-    const account = await this.transactionRepository.findUniqueById(
+    const account = await this.accountRepository.findById(
       transaction.accountId,
     );
 
@@ -39,7 +43,7 @@ export class DeleteTransactionHandler
       return left(new HttpException('Conta associada não encontrada', 404));
     }
 
-    const newBalance = account.amount - transaction.amount;
+    const newBalance = account.balance - transaction.amount;
 
     await this.transactionRepository.deleteWithBalanceReversion(
       transaction,
