@@ -1,7 +1,8 @@
 import { TransactionType } from '@constants/enums';
+import { HttpException } from '@nestjs/common';
 import { Entity } from '@shared/core/Entities/Entity';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { InvalidCategoryError } from '../errors/InvalidCategoryError';
+import { statusCode } from '@shared/core/types/statusCode';
 
 export interface CategoryProps {
   workspaceId: string | null;
@@ -19,23 +20,24 @@ export class Category extends Entity<CategoryProps> {
   static create(
     props: CategoryProps,
     id?: string,
-  ): Either<InvalidCategoryError, Category> {
+  ): Either<HttpException, Category> {
     if (!props.name) {
       return left(
-        new InvalidCategoryError('O nome da categoria é obrigatório.'),
+        new HttpException('Category name is required.', statusCode.BAD_REQUEST),
       );
     }
 
     if (!props.type) {
       return left(
-        new InvalidCategoryError('O tipo da categoria é obrigatório.'),
+        new HttpException('Category type is required.', statusCode.BAD_REQUEST),
       );
     }
 
     if (props.parentId === '') {
       return left(
-        new InvalidCategoryError(
-          'O ID da categoria pai, se fornecido, não pode ser uma string vazia.',
+        new HttpException(
+          'Parent category ID, if provided, cannot be an empty string.',
+          statusCode.BAD_REQUEST,
         ),
       );
     }
