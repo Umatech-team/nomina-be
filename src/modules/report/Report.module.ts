@@ -6,6 +6,8 @@ import { CashFlowEvolutionController } from './features/get-cash-flow-evolution/
 import { CashFlowEvolutionHandler } from './features/get-cash-flow-evolution/cash-flow-evolution.handler';
 import { GetExpensesByCategoryController } from './features/get-expenses-by-category/get-expenses-by-category.controller';
 import { GetExpensesByCategoryHandler } from './features/get-expenses-by-category/get-expenses-by-category.handler';
+import { FindMonthSummaryHandler } from './features/get-month-summary/get-month-summary.handler';
+import { FindMonthSummaryController } from './features/get-month-summary/get-month-summary.controller';
 
 @Module({
   imports: [DatabaseModule],
@@ -13,11 +15,13 @@ import { GetExpensesByCategoryHandler } from './features/get-expenses-by-categor
     CashFlowEvolutionController,
     GetExpensesByCategoryController,
     BalanceEvolutionController,
+    FindMonthSummaryController,
   ],
   providers: [
     CashFlowEvolutionHandler,
     GetExpensesByCategoryHandler,
     BalanceEvolutionHandler,
+    FindMonthSummaryHandler,
   ],
 })
 export class ReportModule {}

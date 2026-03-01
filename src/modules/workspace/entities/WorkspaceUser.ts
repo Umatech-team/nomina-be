@@ -1,7 +1,9 @@
 import { UserRole } from '@constants/enums';
+import { HttpException } from '@nestjs/common';
 import { Entity } from '@shared/core/Entities/Entity';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { InvalidWorkspaceUserError } from '../errors/InvalidWorkspaceUserError';
+import { Optional } from '@shared/core/types/Optional';
+import { statusCode } from '@shared/core/types/statusCode';
 
 export interface WorkspaceUserProps {
   workspaceId: string;
@@ -17,22 +19,33 @@ export class WorkspaceUser extends Entity<WorkspaceUserProps> {
   }
 
   static create(
-    props: WorkspaceUserProps,
+    props: Optional<WorkspaceUserProps, 'joinedAt'>,
     id?: string,
-  ): Either<InvalidWorkspaceUserError, WorkspaceUser> {
+  ): Either<HttpException, WorkspaceUser> {
     if (!props.workspaceId) {
       return left(
-        new InvalidWorkspaceUserError('ID do workspace é obrigatório'),
+        new HttpException(
+          'ID do workspace é obrigatório',
+          statusCode.BAD_REQUEST,
+        ),
       );
     }
 
     if (!props.userId) {
-      return left(new InvalidWorkspaceUserError('ID do usuário é obrigatório'));
+      return left(
+        new HttpException(
+          'ID do usuário é obrigatório',
+          statusCode.BAD_REQUEST,
+        ),
+      );
     }
 
     if (!props.role) {
       return left(
-        new InvalidWorkspaceUserError('Função do usuário é obrigatória'),
+        new HttpException(
+          'Função do usuário é obrigatória',
+          statusCode.BAD_REQUEST,
+        ),
       );
     }
 
@@ -41,7 +54,10 @@ export class WorkspaceUser extends Entity<WorkspaceUserProps> {
       joinedAt: props.joinedAt ?? new Date(),
     };
 
-    const workspaceUser = new WorkspaceUser(workspaceUserProps, id);
+    const workspaceUser = new WorkspaceUser(
+      workspaceUserProps,
+      id ?? crypto.randomUUID(),
+    );
     return right(workspaceUser);
   }
 

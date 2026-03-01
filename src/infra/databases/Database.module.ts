@@ -3,30 +3,32 @@ import { CategoryRepository } from '@modules/category/repositories/contracts/Cat
 import { SubscriptionRepository } from '@modules/subscription/repositories/contracts/SubscriptionRepository';
 import { RecurringTransactionRepository } from '@modules/transaction/repositories/contracts/RecurringTransactionRepository';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
-import { RefreshTokensRepository } from '@modules/user/repositories/contracts/RefreshTokenRepository';
-import { UserRepository } from '@modules/user/repositories/contracts/UserRepository';
+import { RefreshTokensRepository } from '@modules/user/repositories/contracts/refresh-token.repository';
+import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import { WorkspaceInviteRepository } from '@modules/workspace/repositories/contracts/WorkspaceInviteRepository';
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { Module } from '@nestjs/common';
-import { DrizzleProvider } from './drizzle/drizzle.provider';
+import {
+  DrizzleProvider,
+  DrizzleTokenProvider,
+} from './drizzle/drizzle.provider';
 import { DrizzleService } from './drizzle/drizzle.service';
-import { AccountRepositoryImplementation } from './prisma/account/AccountRepository';
-import { CategoryRepositoryImplementation } from './prisma/category/CategoryRepository';
-import { PrismaService } from './prisma/prisma.service';
-import { SubscriptionRepositoryImplementation } from './prisma/subscription/SubscriptionRepositoryImplementation';
-import { RecurringTransactionRepositoryImplementation } from './prisma/transaction/RecurringTransactionRepositoryImplementation';
-import { TransactionRepositoryImplementation } from './prisma/transaction/TransactionRepository';
-import { RefreshTokensRepositoryImplementation } from './prisma/user/RefreshTokensRepositoryImplementation';
-import { UserRepositoryImplementation } from './prisma/user/UserRepository';
-import { WorkspaceInviteRepositoryImplementation } from './prisma/workspace/WorkspaceInviteRepository';
-import { WorkspaceRepositoryImplementation } from './prisma/workspace/WorkspaceRepository';
-import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/WorkspaceUserRepository';
+import { AccountRepositoryImplementation } from './drizzle/repositories/account.repository';
+import { CategoryRepositoryImplementation } from './drizzle/repositories/category.repository';
+import { RecurringTransactionRepositoryImplementation } from './drizzle/repositories/recurring-transaction.repository';
+import { RefreshTokenRepositoryImplementation } from './drizzle/repositories/refresh-token.repository';
+import { SubscriptionRepositoryImplementation } from './drizzle/repositories/subscription.repository';
+import { TransactionRepositoryImplementation } from './drizzle/repositories/transaction.repository';
+import { UserRepositoryImplementation } from './drizzle/repositories/user.repository';
+import { WorkspaceInviteRepositoryImplementation } from './drizzle/repositories/workspace-invite.repository';
+import { WorkspaceUserRepositoryImplementation } from './drizzle/repositories/workspace-user.repository';
+import { WorkspaceRepositoryImplementation } from './drizzle/repositories/workspace.repository';
 
 @Module({
   providers: [
-    PrismaService,
     DrizzleProvider,
+    DrizzleTokenProvider,
     DrizzleService,
     {
       provide: UserRepository,
@@ -46,7 +48,7 @@ import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/Worksp
     },
     {
       provide: RefreshTokensRepository,
-      useClass: RefreshTokensRepositoryImplementation,
+      useClass: RefreshTokenRepositoryImplementation,
     },
     {
       provide: TransactionRepository,
@@ -70,7 +72,6 @@ import { WorkspaceUserRepositoryImplementation } from './prisma/workspace/Worksp
     },
   ],
   exports: [
-    PrismaService,
     DrizzleService,
     UserRepository,
     WorkspaceRepository,

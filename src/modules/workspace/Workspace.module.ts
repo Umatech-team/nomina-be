@@ -4,30 +4,30 @@ import { CryptographyModule } from '@providers/cryptography/Cryptography.module'
 import { DateModule } from '@providers/date/Date.module';
 import { SubscriptionModule } from '../subscription/Subscription.module';
 import { UserModule } from '../user/User.module';
-import { AcceptWorkspaceInviteController } from './controllers/AcceptWorkspaceInvite.controller';
-import { AddUserToWorkspaceController } from './controllers/AddUserToWorkspace.controller';
-import { CreateWorkspaceController } from './controllers/CreateWorkspace.controller';
-import { CreateWorkspaceInviteController } from './controllers/CreateWorkspaceInvite.controller';
-import { DeleteWorkspaceController } from './controllers/DeleteWorkspace.controller';
-import { FindWorkspaceController } from './controllers/FindWorkspace.controller';
-import { ListWorkspacesController } from './controllers/ListWorkspaces.controller';
-import { ListWorkspaceUsersController } from './controllers/ListWorkspaceUsers.controller';
-import { RemoveUserFromWorkspaceController } from './controllers/RemoveUserFromWorkspace.controller';
-import { SwitchWorkspaceController } from './controllers/SwitchWorkspace.controller';
-import { UpdateWorkspaceController } from './controllers/UpdateWorkspace.controller';
-import { UpdateWorkspaceUserController } from './controllers/UpdateWorkspaceUser.controller';
-import { AcceptWorkspaceInviteService } from './services/AcceptWorkspaceInvite.service';
-import { AddUserToWorkspaceService } from './services/AddUserToWorkspace.service';
-import { CreateWorkspaceService } from './services/CreateWorkspace.service';
-import { CreateWorkspaceInviteService } from './services/CreateWorkspaceInvite.service';
-import { DeleteWorkspaceService } from './services/DeleteWorkspace.service';
-import { FindWorkspaceByIdService } from './services/FindWorkspaceById.service';
-import { ListWorkspacesService } from './services/ListWorkspaces.service';
-import { ListWorkspaceUsersService } from './services/ListWorkspaceUsers.service';
-import { RemoveUserFromWorkspaceService } from './services/RemoveUserFromWorkspace.service';
-import { SwitchWorkspaceService } from './services/SwitchWorkspace.service';
-import { UpdateWorkspaceService } from './services/UpdateWorkspace.service';
-import { UpdateWorkspaceUserService } from './services/UpdateWorkspaceUser.service';
+import { AcceptWorkspaceInviteController } from './features/accept-workspace-invite/accept-workspace-invite.controller';
+import { AcceptWorkspaceInviteHandler } from './features/accept-workspace-invite/accept-workspace-invite.handler';
+import { AddUserToWorkspaceController } from './features/add-user-to-workspace/add-user-to-workspace.controller';
+import { AddUserToWorkspaceHandler } from './features/add-user-to-workspace/add-user-to-workspace.handler';
+import { CreateWorkspaceInviteController } from './features/create-workspace-invite/create-workspace-invite.controller';
+import { CreateWorkspaceInviteHandler } from './features/create-workspace-invite/create-workspace-invite.handler';
+import { CreateWorkspaceController } from './features/create-workspace/create-workspace.controller';
+import { CreateWorkspaceHandler } from './features/create-workspace/create-workspace.handler';
+import { DeleteWorkspaceController } from './features/delete-workspace/delete-workspace.controller';
+import { DeleteWorkspaceHandler } from './features/delete-workspace/delete-workspace.handler';
+import { FindWorkspaceController } from './features/find-workspace/find-workspace.controller';
+import { FindWorkspaceByIdHandler } from './features/find-workspace/find-workspace.handler';
+import { ListUsersFromWorkspaceController } from './features/list-user-from-workspace/list-user-from-workspace.controller';
+import { ListUsersFromWorkspaceHandler } from './features/list-user-from-workspace/list-user-from-workspace.handler';
+import { ListWorkspacesController } from './features/list-workspaces/list-workspaces.controller';
+import { ListWorkspacesHandler } from './features/list-workspaces/list-workspaces.handler';
+import { RemoveUserFromWorkspaceController } from './features/remove-user-from-workspace/remove-user-from-workspace.controller';
+import { RemoveUserFromWorkspaceHandler } from './features/remove-user-from-workspace/remove-user-from-workspace.handler';
+import { SwitchWorkspaceController } from './features/switch-workspace/switch-workspace.controller';
+import { SwitchWorkspaceHandler } from './features/switch-workspace/switch-workspace.handler';
+import { UpdateWorkspaceUserController } from './features/update-workspace-user/update-workspace-user.controller';
+import { UpdateWorkspaceUserHandler } from './features/update-workspace-user/update-workspace-user.handler';
+import { UpdateWorkspaceController } from './features/update-workspace/update-workspace.controller';
+import { UpdateWorkspaceHandler } from './features/update-workspace/update-workspace.handler';
 
 @Module({
   imports: [
@@ -46,25 +46,25 @@ import { UpdateWorkspaceUserService } from './services/UpdateWorkspaceUser.servi
     AddUserToWorkspaceController,
     RemoveUserFromWorkspaceController,
     UpdateWorkspaceUserController,
-    ListWorkspaceUsersController,
+    ListUsersFromWorkspaceController,
     SwitchWorkspaceController,
     CreateWorkspaceInviteController,
     AcceptWorkspaceInviteController,
   ],
   providers: [
-    CreateWorkspaceService,
-    UpdateWorkspaceService,
-    DeleteWorkspaceService,
-    FindWorkspaceByIdService,
-    ListWorkspacesService,
-    AddUserToWorkspaceService,
-    RemoveUserFromWorkspaceService,
-    UpdateWorkspaceUserService,
-    ListWorkspaceUsersService,
-    SwitchWorkspaceService,
-    CreateWorkspaceInviteService,
-    AcceptWorkspaceInviteService,
+    CreateWorkspaceHandler,
+    UpdateWorkspaceHandler,
+    DeleteWorkspaceHandler,
+    FindWorkspaceByIdHandler,
+    ListWorkspacesHandler,
+    AddUserToWorkspaceHandler,
+    RemoveUserFromWorkspaceHandler,
+    UpdateWorkspaceUserHandler,
+    ListUsersFromWorkspaceHandler,
+    SwitchWorkspaceHandler,
+    CreateWorkspaceInviteHandler,
+    AcceptWorkspaceInviteHandler,
   ],
-  exports: [FindWorkspaceByIdService, ListWorkspacesService],
+  exports: [FindWorkspaceByIdHandler, ListWorkspacesHandler],
 })
 export class WorkspaceModule {}

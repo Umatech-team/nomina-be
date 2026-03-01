@@ -1,7 +1,7 @@
+import { HttpException } from '@nestjs/common';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
-import { InvalidUserError } from '../errors/InvalidUserError';
 
 export interface UserProps {
   name: string;
@@ -24,15 +24,18 @@ export class User extends AggregateRoot<UserProps> {
       'createdAt' | 'updatedAt' | 'phone' | 'avatarUrl'
     >,
     id?: string,
-  ): Either<InvalidUserError, User> {
+  ): Either<HttpException, User> {
     if (!props.name || props.name.trim().length < 4) {
       return left(
-        new InvalidUserError('O nome deve ter no mínimo 4 caracteres.'),
+        new HttpException(
+          'Name is required and must be at least 4 characters long.',
+          400,
+        ),
       );
     }
 
     if (!User.isValidEmail(props.email)) {
-      return left(new InvalidUserError('O e-mail informado é inválido.'));
+      return left(new HttpException('Invalid email address.', 400));
     }
 
     const userProps: UserProps = {

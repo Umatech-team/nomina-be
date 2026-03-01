@@ -1,8 +1,9 @@
 import { RecurrenceFrequency, TransactionType } from '@constants/enums';
+import { HttpException } from '@nestjs/common';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
-import { InvalidRecurringTransactionError } from '../errors/InvalidRecurringTransactionError';
+import { statusCode } from '@shared/core/types/statusCode';
 
 export interface RecurringTransactionProps {
   workspaceId: string;
@@ -30,17 +31,21 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
       'interval' | 'endDate' | 'lastGenerated' | 'active'
     >,
     id?: string,
-  ): Either<InvalidRecurringTransactionError, RecurringTransaction> {
+  ): Either<HttpException, RecurringTransaction> {
     if (props.amount <= 0) {
       return left(
-        new InvalidRecurringTransactionError('O valor deve ser maior que zero'),
+        new HttpException(
+          'O valor deve ser maior que zero',
+          statusCode.BAD_REQUEST,
+        ),
       );
     }
 
     if (props.interval !== undefined && props.interval <= 0) {
       return left(
-        new InvalidRecurringTransactionError(
+        new HttpException(
           'O intervalo deve ser maior que zero',
+          statusCode.BAD_REQUEST,
         ),
       );
     }

@@ -1,8 +1,9 @@
 import { ValueObject } from '@shared/core/Entities/ValueObject';
 
 type TopExpensesByCategoryType = {
-  category: string;
-  total: number;
+  categoryId: string;
+  categoryName: string;
+  amount: number;
 };
 
 export class TopExpensesByCategory extends ValueObject<TopExpensesByCategoryType> {
@@ -14,11 +15,15 @@ export class TopExpensesByCategory extends ValueObject<TopExpensesByCategoryType
     super(topExpensesByCategoryProps);
   }
 
-  get category() {
-    return this.props.category;
+  get categoryId() {
+    return this.props.categoryId;
   }
 
-  get total() {
-    return this.props.total;
+  get categoryName() {
+    return this.props.categoryName;
+  }
+
+  get amount() {
+    return this.props.amount;
   }
 }

@@ -2,16 +2,14 @@ import { DatabaseModule } from '@infra/databases/Database.module';
 import { Module } from '@nestjs/common';
 import { CryptographyModule } from '@providers/cryptography/Cryptography.module';
 import { DateModule } from '@providers/date/Date.module';
-import { CreateUserController } from './controllers/CreateUser.controller';
-import { GetProfileController } from './controllers/GetProfile.controller';
-import { LoginUserController } from './controllers/LoginUser.controller';
-import { RefreshTokenController } from './controllers/RefreshToken.controller';
-import { CreateUserService } from './services/CreateUser.service';
-import { GetProfileService } from './services/GetProfile.service';
-import { LoginUserService } from './services/LoginUser.service';
-import { RefreshTokenService } from './services/RefreshToken.service';
-import { UpdateUserGeneralInfosService } from './services/UpdateMember.service';
-import { UpdateUserPasswordService } from './services/UpdateMemberPassword.service';
+import { CreateUserController } from './features/create-user/create-user.controller';
+import { CreateUserHandler } from './features/create-user/create-user.handler';
+import { GetProfileController } from './features/get-profile/get-profile.controller';
+import { GetProfileHandler } from './features/get-profile/get-profile.handler';
+import { LoginUserController } from './features/login-user/login-user.controller';
+import { LoginUserHandler } from './features/login-user/login-user.handler';
+import { RefreshTokenController } from './features/refresh-token/refresh-token.controller';
+import { RefreshTokenHandler } from './features/refresh-token/refresh-token.handler';
 
 @Module({
   controllers: [
@@ -22,12 +20,10 @@ import { UpdateUserPasswordService } from './services/UpdateMemberPassword.servi
   ],
   imports: [DatabaseModule, CryptographyModule, DateModule],
   providers: [
-    CreateUserService,
-    GetProfileService,
-    LoginUserService,
-    UpdateUserGeneralInfosService,
-    UpdateUserPasswordService,
-    RefreshTokenService,
+    CreateUserHandler,
+    GetProfileHandler,
+    LoginUserHandler,
+    RefreshTokenHandler,
   ],
 })
 export class UserModule {}

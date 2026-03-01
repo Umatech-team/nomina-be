@@ -1,0 +1,47 @@
+import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { RecurringTransactionPresenter } from '@modules/transaction/presenters/RecurringTransaction.presenter';
+import { Controller, Get, HttpCode, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
+import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { statusCode } from '@shared/core/types/statusCode';
+import {
+  ListRecurringTransactionsPipe,
+  ListRecurringTransactionsRequest,
+} from './list-recurring-transactions.dto';
+import { ListRecurringTransactionsHandler } from './list-recurring-transactions.handler';
+
+@ApiTags('Recurring Transaction')
+@Controller('transaction')
+export class ListRecurringTransactionsController {
+  constructor(private readonly handler: ListRecurringTransactionsHandler) {}
+
+  @Get('recurring')
+  @HttpCode(statusCode.OK)
+  async handle(
+    @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
+    @Query(ListRecurringTransactionsPipe)
+    { page, pageSize, activeOnly }: ListRecurringTransactionsRequest,
+  ) {
+    const data = await this.handler.execute({
+      page,
+      pageSize,
+      sub,
+      workspaceId,
+      activeOnly,
+    });
+
+    if (data.isLeft()) {
+      return ErrorPresenter.toHTTP(data.value);
+    }
+
+    return {
+      data: {
+        recurrings: data.value.recurrings.map(
+          RecurringTransactionPresenter.toHTTP,
+        ),
+        total: data.value.total,
+      },
+    };
+  }
+}

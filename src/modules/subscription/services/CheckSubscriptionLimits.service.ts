@@ -1,10 +1,10 @@
 import { SubscriptionStatus } from '@constants/enums';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
-import { Injectable } from '@nestjs/common';
+import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
+import { HttpException, Injectable } from '@nestjs/common';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { getPlanLimits } from '../constants/PlanLimits';
-import { SubscriptionLimitExceededError } from '../errors/SubscriptionLimitExceededError';
 import { SubscriptionRepository } from '../repositories/contracts/SubscriptionRepository';
 
 export enum ResourceType {
@@ -20,7 +20,7 @@ interface Request {
   workspaceId?: string;
 }
 
-type Errors = SubscriptionLimitExceededError;
+type Errors = HttpException;
 
 interface Response {
   allowed: boolean;
@@ -33,6 +33,7 @@ export class CheckSubscriptionLimitsService {
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly workspaceRepository: WorkspaceRepository,
+    private readonly workspaceUserRepository: WorkspaceUserRepository,
     private readonly accountRepository: AccountRepository,
   ) {}
 
@@ -48,8 +49,9 @@ export class CheckSubscriptionLimitsService {
 
     if (subscription && subscription.status !== SubscriptionStatus.ACTIVE) {
       return left(
-        new SubscriptionLimitExceededError(
+        new HttpException(
           'Subscription is not active. Please renew your plan.',
+          403,
         ),
       );
     }
@@ -101,14 +103,15 @@ export class CheckSubscriptionLimitsService {
     const result = await this.workspaceRepository.findManyByUserId(
       userId,
       1,
-      1000,
+      maxWorkspaces,
     );
     const currentCount = result.workspaces.length;
 
     if (currentCount >= maxWorkspaces) {
       return left(
-        new SubscriptionLimitExceededError(
+        new HttpException(
           `Workspace limit reached (${currentCount}/${maxWorkspaces}). Upgrade to create more.`,
+          403,
         ),
       );
     }
@@ -127,14 +130,15 @@ export class CheckSubscriptionLimitsService {
     const result = await this.accountRepository.findManyByWorkspaceId(
       workspaceId,
       1,
-      1000,
+      maxAccounts,
     );
     const currentCount = result.accounts.length;
 
     if (currentCount >= maxAccounts) {
       return left(
-        new SubscriptionLimitExceededError(
+        new HttpException(
           `Account limit reached (${currentCount}/${maxAccounts}). Upgrade to create more.`,
+          403,
         ),
       );
     }
@@ -150,17 +154,18 @@ export class CheckSubscriptionLimitsService {
       return right({ allowed: true, currentCount: 0, limit: -1 });
     }
 
-    const result = await this.workspaceRepository.findUsersByWorkspaceId(
+    const result = await this.workspaceUserRepository.findUsersByWorkspaceId(
       workspaceId,
       1,
-      1000,
+      maxMembers,
     );
     const currentCount = result.total;
 
     if (currentCount >= maxMembers) {
       return left(
-        new SubscriptionLimitExceededError(
+        new HttpException(
           `Workspace member limit reached (${currentCount}/${maxMembers}). Upgrade to add more members.`,
+          403,
         ),
       );
     }

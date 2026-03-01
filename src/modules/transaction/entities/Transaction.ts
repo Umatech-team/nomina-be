@@ -1,5 +1,7 @@
 import { TransactionStatus, TransactionType } from '@constants/enums';
+import { HttpException } from '@nestjs/common';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
+import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
 
 export interface TransactionProps {
@@ -17,13 +19,35 @@ export interface TransactionProps {
 }
 
 export class Transaction extends AggregateRoot<TransactionProps> {
-  constructor(
+  constructor(props: TransactionProps, id?: string) {
+    super(props, id);
+  }
+
+  static create(
     props: Optional<
       TransactionProps,
       'createdAt' | 'updatedAt' | 'status' | 'recurringId'
     >,
     id?: string,
-  ) {
+  ): Either<Error, Transaction> {
+    if (props.amount <= 0) {
+      return left(
+        new HttpException('The amount must be greater than zero', 400),
+      );
+    }
+
+    if (!props.description || props.description.trim() === '') {
+      return left(new HttpException('The description is required', 400));
+    }
+
+    if (!props.date) {
+      return left(new HttpException('The date is required', 400));
+    }
+
+    if (!props.type) {
+      return left(new HttpException('The type is required', 400));
+    }
+
     const transactionProps: TransactionProps = {
       ...props,
       createdAt: props.createdAt ?? new Date(),
@@ -32,7 +56,8 @@ export class Transaction extends AggregateRoot<TransactionProps> {
       recurringId: props.recurringId ?? null,
     };
 
-    super(transactionProps, id);
+    const createdTransaction = new Transaction(transactionProps, id);
+    return right(createdTransaction);
   }
 
   get workspaceId(): string {

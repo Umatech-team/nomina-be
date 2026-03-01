@@ -1,8 +1,9 @@
 import { AccountType } from '@constants/enums';
+import { HttpException } from '@nestjs/common';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
-import { InvalidAccountError } from '../errors/InvalidAccountError';
+import { statusCode } from '@shared/core/types/statusCode';
 
 export interface AccountProps {
   workspaceId: string;
@@ -23,24 +24,31 @@ export class Account extends AggregateRoot<AccountProps> {
   static create(
     props: Optional<AccountProps, 'icon' | 'color' | 'closingDay' | 'dueDay'>,
     id?: string,
-  ): Either<InvalidAccountError, Account> {
+  ): Either<HttpException, Account> {
     if (!props.workspaceId) {
       return left(
-        new InvalidAccountError('O ID do espaço de trabalho é obrigatório.'),
+        new HttpException(
+          'Workspace ID is required to create an account.',
+          statusCode.BAD_REQUEST,
+        ),
       );
     }
 
     if (props.name.length < 2 || props.name.length > 50) {
       return left(
-        new InvalidAccountError(
-          'O nome da conta deve ter entre 2 e 50 caracteres.',
+        new HttpException(
+          'Account name must be between 2 and 50 characters.',
+          statusCode.BAD_REQUEST,
         ),
       );
     }
 
     if (props.balance < 0n) {
       return left(
-        new InvalidAccountError('O saldo inicial não pode ser negativo.'),
+        new HttpException(
+          'Initial balance cannot be negative.',
+          statusCode.BAD_REQUEST,
+        ),
       );
     }
 

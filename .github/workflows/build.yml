@@ -41,3 +41,8 @@ jobs:
           exit 1
         fi
         echo "Build successful - dist directory created"
+
+    - name: Run database migrations
+      run: npx prisma migrate deploy
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}

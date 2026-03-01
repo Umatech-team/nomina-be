@@ -1,4 +1,5 @@
 import { RecurringTransaction } from '@modules/transaction/entities/RecurringTransaction';
+import { Transaction } from '@modules/transaction/entities/Transaction';
 
 export abstract class RecurringTransactionRepository {
   abstract create(
@@ -10,26 +11,29 @@ export abstract class RecurringTransactionRepository {
   ): Promise<RecurringTransaction>;
 
   abstract delete(id: string): Promise<void>;
+
   abstract findById(id: string): Promise<RecurringTransaction | null>;
 
-  abstract findByWorkspaceId(
+  abstract findManyByWorkspaceId(
     workspaceId: string,
     page: number,
     pageSize: number,
-  ): Promise<RecurringTransaction[]>;
+    isActive?: boolean,
+  ): Promise<{ recurrings: RecurringTransaction[]; total: number }>;
 
-  abstract findActiveByWorkspaceId(
-    workspaceId: string,
-    page: number,
-    pageSize: number,
-  ): Promise<RecurringTransaction[]>;
-
-  abstract findActiveNeedingGenerationByWorkspaceId(
+  abstract findNeedingGenerationByWorkspaceId(
     workspaceId: string,
     referenceDate: Date,
   ): Promise<RecurringTransaction[]>;
 
-  abstract listActiveNeedingGeneration(
+  abstract listNeedingGeneration(
     referenceDate: Date,
+    limit: number,
+    offset: number,
   ): Promise<RecurringTransaction[]>;
+
+  abstract createGeneratedTransactions(
+    transactions: Transaction[],
+    updatedRecurring: RecurringTransaction,
+  ): Promise<void>;
 }
