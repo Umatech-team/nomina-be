@@ -6,9 +6,6 @@ import * as schema from './schema';
 
 export const DRIZZLE_TOKEN = Symbol('DRIZZLE_CONNECTION');
 
-const SLOW_QUERY_WARN_MS = 300;
-const SLOW_QUERY_ERROR_MS = 1000;
-
 @Injectable()
 export class DrizzleProvider implements OnModuleDestroy {
   private readonly logger = new Logger(DrizzleProvider.name);
@@ -26,9 +23,8 @@ export class DrizzleProvider implements OnModuleDestroy {
       idle_timeout: 60,
       connect_timeout: 10,
       ssl: env.NODE_ENV === 'production' ? 'require' : false,
+      debug: (_, query, params) => this.onQuery(String(query), params),
     });
-
-    this.patchUnsafeForSlowQueryLogging();
 
     this.db = drizzle(this.queryClient, { schema, logger: false });
   }
@@ -39,58 +35,13 @@ export class DrizzleProvider implements OnModuleDestroy {
     this.logger.log('PostgreSQL connection pool closed.');
   }
 
-  // ---------------------------------------------------------------------------
-  // Slow-query instrumentation
-  // postgres-js does not expose per-query timing, so we wrap sql.unsafe()
-  // which is the single code-path drizzle-orm uses for every ORM query.
-  // ---------------------------------------------------------------------------
-  private patchUnsafeForSlowQueryLogging(): void {
-    const originalUnsafe = this.queryClient.unsafe.bind(this.queryClient);
-
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const provider = this;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this.queryClient as any).unsafe = function (
-      query: string,
-      params?: unknown[],
-    ) {
-      const start = performance.now();
-      const pending = originalUnsafe(
-        query,
-        (params ?? []) as Parameters<typeof originalUnsafe>[1],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private onQuery(query: string, params: any[]): void {
+    if (env.NODE_ENV === 'dev') {
+      const preview = query.length > 200 ? `${query.slice(0, 200)}…` : query;
+      this.logger.debug(
+        `query: ${preview} | params: ${JSON.stringify(params)}`,
       );
-
-      return new Promise((resolve, reject) => {
-        Promise.resolve(pending).then(
-          (rows) => {
-            provider.reportSlowQuery(
-              query,
-              Math.round(performance.now() - start),
-            );
-            resolve(rows);
-          },
-          (err: unknown) => {
-            provider.reportSlowQuery(
-              query,
-              Math.round(performance.now() - start),
-            );
-            reject(err);
-          },
-        );
-      });
-    };
-  }
-
-  private reportSlowQuery(query: string, ms: number): void {
-    if (ms < SLOW_QUERY_WARN_MS) return;
-
-    const preview = query.length > 200 ? `${query.slice(0, 200)}…` : query;
-
-    if (ms >= SLOW_QUERY_ERROR_MS) {
-      this.logger.error(`Slow query (${ms}ms): ${preview}`);
-    } else {
-      this.logger.warn(`Slow query (${ms}ms): ${preview}`);
     }
   }
 }
