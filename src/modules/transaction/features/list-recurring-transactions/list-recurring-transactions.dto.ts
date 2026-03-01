@@ -8,7 +8,10 @@ const listRecurringTransactionsSchema = z.object({
     .int()
     .positive('Tamanho da página deve ser um número positivo')
     .max(50, 'Tamanho da página muito grande'),
-  activeOnly: z.boolean().optional(),
+  activeOnly: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
 });
 
 export const ListRecurringTransactionsPipe = new ZodValidationPipe(
