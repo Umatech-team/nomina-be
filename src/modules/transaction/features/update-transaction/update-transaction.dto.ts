@@ -3,7 +3,6 @@ import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
 const updateTransaction = z.object({
-  transactionId: z.string().uuid('ID da transação inválido'),
   accountId: z.string().uuid('ID da conta inválido'),
   categoryId: z.string().uuid('ID da categoria inválido'),
   description: z.string().min(1, 'Descrição é obrigatória'),
