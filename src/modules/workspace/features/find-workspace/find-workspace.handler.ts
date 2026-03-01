@@ -1,8 +1,8 @@
 import { UserRole } from '@constants/enums';
+import { Workspace } from '@modules/workspace/entities/Workspace';
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { HttpException, Injectable } from '@nestjs/common';
-import { Workspace } from '@prisma/client';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
