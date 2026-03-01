@@ -1,6 +1,5 @@
 import { TransactionStatus } from '@constants/enums';
 import { RedisService } from '@infra/cache/redis/RedisService';
-import { PrismaService } from '@infra/databases/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 import { Transaction } from '../entities/Transaction';
@@ -19,7 +18,6 @@ export class GenerateRecurringTransactionsService {
   constructor(
     private readonly recurringRepository: RecurringTransactionRepository,
     private readonly calculateNextDateService: CalculateNextGenerationDateService,
-    private readonly prisma: PrismaService,
     private readonly redis: RedisService,
   ) {}
 
@@ -43,7 +41,7 @@ export class GenerateRecurringTransactionsService {
 
     try {
       const recurrings =
-        await this.recurringRepository.findActiveNeedingGenerationByWorkspaceId(
+        await this.recurringRepository.findNeedingGenerationByWorkspaceId(
           workspaceId,
           referenceDate,
         );
@@ -78,7 +76,7 @@ export class GenerateRecurringTransactionsService {
     while (nextDate <= referenceDate) {
       if (recurring.endDate && nextDate > recurring.endDate) break;
 
-      const transactionOrError = new Transaction({
+      const transactionOrError = Transaction.create({
         workspaceId: recurring.workspaceId,
         accountId: recurring.accountId,
         categoryId: recurring.categoryId,
@@ -89,7 +87,19 @@ export class GenerateRecurringTransactionsService {
         status: TransactionStatus.PENDING,
         recurringId: recurring.id,
       });
-      transactionsToCreate.push(transactionOrError);
+
+      if (transactionOrError.isLeft()) {
+        console.error(
+          `Failed to create transaction for recurring ${recurring.id} on date ${nextDate.toISOString()}:`,
+          transactionOrError.value,
+        );
+        currentDate = nextDate;
+        recurring.lastGenerated = currentDate;
+        nextDate = this.calculateNextDateService.execute(recurring);
+        continue;
+      }
+
+      transactionsToCreate.push(transactionOrError.value);
 
       currentDate = nextDate;
 
@@ -99,26 +109,10 @@ export class GenerateRecurringTransactionsService {
 
     if (transactionsToCreate.length === 0) return 0;
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.transaction.createMany({
-        data: transactionsToCreate.map((t) => ({
-          workspaceId: t.workspaceId,
-          accountId: t.accountId,
-          categoryId: t.categoryId,
-          description: t.description,
-          amount: t.amount,
-          date: t.date,
-          type: t.type,
-          status: t.status,
-          recurringId: t.recurringId,
-        })),
-      });
-
-      await tx.recurringTransaction.update({
-        where: { id: recurring.id },
-        data: { lastGenerated: currentDate },
-      });
-    });
+    await this.recurringRepository.createGeneratedTransactions(
+      transactionsToCreate,
+      recurring,
+    );
 
     return transactionsToCreate.length;
   }
