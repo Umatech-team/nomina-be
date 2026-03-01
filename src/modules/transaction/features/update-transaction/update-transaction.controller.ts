@@ -19,7 +19,7 @@ export class UpdateTransactionController {
   @Put(':transactionId') @HttpCode(statusCode.OK) async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Body(UpdateTransactionPipe)
-    body: Omit<UpdateTransactionRequest, 'transactionId'>,
+    body: UpdateTransactionRequest,
     @Param('transactionId') transactionId: string,
   ) {
     const data = await this.handler.execute({
