@@ -3,7 +3,7 @@ import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import { Category } from '@modules/category/entities/Category';
 import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
 import { Injectable } from '@nestjs/common';
-import { and, count, eq, inArray, isNull } from 'drizzle-orm';
+import { and, count, eq, inArray, isNull, or } from 'drizzle-orm';
 import { CategoryMapper } from '../mappers/category.mapper';
 import * as schema from '../schema';
 
@@ -80,7 +80,10 @@ export class CategoryRepositoryImplementation implements CategoryRepository {
     limit?: number,
   ): Promise<{ categories: Category[]; total: number }> {
     const conditions = and(
-      eq(schema.categories.workspaceId, workspaceId),
+      or(
+        eq(schema.categories.workspaceId, workspaceId),
+        eq(schema.categories.isSystemCategory, true),
+      ),
       filters?.type ? eq(schema.categories.type, filters.type) : undefined,
       filters?.parentId !== undefined
         ? filters.parentId === null
@@ -94,7 +97,6 @@ export class CategoryRepositoryImplementation implements CategoryRepository {
       .from(schema.categories)
       .where(conditions);
 
-    // Aplica paginação apenas se os parâmetros foram enviados
     if (page !== undefined && limit !== undefined) {
       query.limit(limit).offset((page - 1) * limit);
     }
