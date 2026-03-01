@@ -1,9 +1,11 @@
 import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import { RecurringTransaction } from '@modules/transaction/entities/RecurringTransaction';
+import { Transaction } from '@modules/transaction/entities/Transaction';
 import { RecurringTransactionRepository } from '@modules/transaction/repositories/contracts/RecurringTransactionRepository';
 import { Injectable } from '@nestjs/common';
 import { and, count, eq, isNull, lt, lte, or } from 'drizzle-orm';
 import { RecurringTransactionMapper } from '../mappers/recurring-transaction.mapper';
+import { TransactionMapper } from '../mappers/transaction.mapper';
 import * as schema from '../schema';
 
 @Injectable()
@@ -131,5 +133,21 @@ export class RecurringTransactionRepositoryImplementation
       .offset(offset);
 
     return recurrings.map(RecurringTransactionMapper.toDomain);
+  }
+
+  async createGeneratedTransactions(
+    transactions: Transaction[],
+    updatedRecurring: RecurringTransaction,
+  ): Promise<void> {
+    await this.drizzle.db.transaction(async (tx) => {
+      await tx
+        .insert(schema.transactions)
+        .values(transactions.map(TransactionMapper.toDatabase));
+
+      await tx
+        .update(schema.recurringTransactions)
+        .set({ lastGenerated: updatedRecurring.lastGenerated })
+        .where(eq(schema.recurringTransactions.id, updatedRecurring.id));
+    });
   }
 }
