@@ -1,10 +1,10 @@
 import { Category } from '@modules/category/entities/Category';
+import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, right } from '@shared/core/errors/Either';
 import { ListCategoriesRequest } from './list-categories.dto';
-import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
 
 type Request = ListCategoriesRequest & Pick<TokenPayloadSchema, 'sub'>;
 
@@ -25,11 +25,12 @@ export class ListCategoriesHandler
     sub,
     page,
     pageSize,
+    type,
   }: Request): Promise<Either<Errors, Response>> {
     const { categories, total } =
       await this.categoryRepository.findManyByWorkspaceId(
         sub,
-        undefined,
+        { type },
         page,
         pageSize,
       );
