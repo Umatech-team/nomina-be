@@ -7,7 +7,7 @@ const listAccountsSchema = z.object({
     .number()
     .int()
     .positive('Tamanho da página deve ser um número positivo')
-    .max(100, 'Tamanho da página muito grande'),
+    .max(50, 'Tamanho da página muito grande'),
 });
 
 export const ListAccountsPipe = new ZodValidationPipe(listAccountsSchema);
