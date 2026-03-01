@@ -19,13 +19,10 @@ export class UpdateRecurringTransactionController {
   @Patch('recurring/:recurringTransactionId')
   @HttpCode(statusCode.OK)
   async handle(
-    @Param('recurringTransactionId')
-    {
-      recurringTransactionId,
-    }: Pick<UpdateRecurringTransactionRequest, 'recurringTransactionId'>,
+    @Param('recurringTransactionId') recurringTransactionId: string,
     @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
     @Body(UpdateRecurringTransactionPipe)
-    body: Omit<UpdateRecurringTransactionRequest, 'recurringTransactionId'>,
+    body: UpdateRecurringTransactionRequest,
   ) {
     const data = await this.handler.execute({
       ...body,
