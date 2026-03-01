@@ -8,8 +8,9 @@ import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UpdateRecurringTransactionRequest } from './update-recurring-transaction.dto';
 
-type Request = UpdateRecurringTransactionRequest &
-  Pick<TokenPayloadBase, 'workspaceId'>;
+type Request = UpdateRecurringTransactionRequest & {
+  recurringTransactionId: string;
+} & Pick<TokenPayloadBase, 'workspaceId'>;
 
 type Errors = HttpException;
 
