@@ -34,7 +34,7 @@ export class UpdateTransactionController {
     }
 
     return {
-      transaction: TransactionPresenter.toHTTP(data.value),
+      data: TransactionPresenter.toHTTP(data.value),
     };
   }
 }
