@@ -6,14 +6,17 @@ const createRecurringTransactionSchema = z.object({
   accountId: z.string().uuid('ID da conta inválido'),
   categoryId: z.string().uuid('ID da categoria inválido'),
   description: z.string().min(1, 'Descrição é obrigatória'),
-  amount: z.coerce.bigint().positive('Valor deve ser positivo'),
+  amount: z.coerce
+    .bigint()
+    .positive('Valor deve ser positivo')
+    .max(9999999999n, 'Valor é muito grande'),
   frequency: z.nativeEnum(RecurrenceFrequency),
   type: z.nativeEnum(TransactionType),
   interval: z.coerce
     .number()
     .int()
     .positive('Intervalo deve ser um número positivo')
-    .optional(),
+    .max(365, 'Intervalo deve ser no máximo 365'),
   startDate: z
     .string()
     .refine(
