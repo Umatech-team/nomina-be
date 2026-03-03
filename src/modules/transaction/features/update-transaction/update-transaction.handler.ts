@@ -35,18 +35,14 @@ export class UpdateTransactionHandler
     type,
     status,
   }: Request): Promise<Either<Errors, Response>> {
-    if (amount <= 0) {
-      return left(new HttpException('Amount must be greater than zero', 400));
-    }
-
-    const oldTransaction =
+    const currentTransaction =
       await this.transactionRepository.findUniqueById(transactionId);
 
-    if (!oldTransaction) {
+    if (!currentTransaction) {
       return left(new HttpException('Transaction not found', 404));
     }
 
-    if (oldTransaction.workspaceId !== workspaceId) {
+    if (currentTransaction.workspaceId !== workspaceId) {
       return left(new HttpException('Unauthorized', 403));
     }
 
@@ -75,8 +71,8 @@ export class UpdateTransactionHandler
         date,
         type,
         status,
-        recurringId: oldTransaction.recurringId,
-        createdAt: oldTransaction.createdAt,
+        recurringId: currentTransaction.recurringId,
+        createdAt: currentTransaction.createdAt,
         updatedAt: new Date(),
       },
       transactionId,
@@ -88,7 +84,7 @@ export class UpdateTransactionHandler
 
     const newTransaction = newTransactionOrError.value;
     const newBalance =
-      account.balance - oldTransaction.amount + newTransaction.amount;
+      account.balance - currentTransaction.amount + newTransaction.amount;
 
     await this.transactionRepository.updateWithBalanceUpdate(
       newTransaction,
