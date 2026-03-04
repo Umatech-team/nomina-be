@@ -23,11 +23,6 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Generate Prisma client
-      run: npx prisma generate
-      env:
-        DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
-
     - name: Check TypeScript compilation
       run: npx tsc --noEmit
 
@@ -43,6 +38,6 @@ jobs:
         echo "Build successful - dist directory created"
 
     - name: Run database migrations
-      run: npx prisma migrate deploy
+      run: npx drizzle-kit migrate
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
