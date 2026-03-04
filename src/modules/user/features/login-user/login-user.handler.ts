@@ -1,3 +1,4 @@
+import { env } from '@infra/env';
 import { RefreshToken } from '@modules/user/entities/RefreshToken';
 import { RefreshTokensRepository } from '@modules/user/repositories/contracts/refresh-token.repository';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
@@ -8,7 +9,6 @@ import { HashComparer } from '@providers/cryptography/contracts/HashComparer';
 import { DateAddition } from '@providers/date/contracts/DateAddition';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { env } from 'process';
 import { LoginUserRequest } from './login-user.dto';
 
 type Request = LoginUserRequest;
