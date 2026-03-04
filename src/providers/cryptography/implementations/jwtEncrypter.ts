@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Decoder } from '../contracts/Decoder';
 import { Encrypter } from '../contracts/Encrypter';
@@ -17,7 +17,7 @@ export class JwtEncrypter implements Encrypter, Decoder {
 
   async decrypt(
     token: string,
-    options: JwtSignOptions = {},
+    options: JwtVerifyOptions = {},
   ): Promise<{ payload?: TokenPayloadSchema; isValid: boolean }> {
     try {
       const payload = await this.jwtService.verifyAsync(token, options);
