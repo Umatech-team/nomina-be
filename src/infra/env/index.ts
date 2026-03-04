@@ -11,8 +11,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['dev', 'production']).default('production'),
   JWT_PRIVATE_KEY: z.string(),
   JWT_PUBLIC_KEY: z.string(),
-  JWT_USER_ACCESS_EXPIRES_IN: z.string(),
-  JWT_USER_REFRESH_EXPIRES_IN: z.string(),
+  JWT_USER_ACCESS_EXPIRES_IN: z.coerce.number(),
+  JWT_USER_REFRESH_EXPIRES_IN: z.coerce.number(),
   USER_REFRESH_EXPIRES_IN: z.coerce.number(),
 
   REDIS_ENABLED: z.coerce.boolean().default(false),

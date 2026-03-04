@@ -23,9 +23,11 @@ type Response = {
 };
 
 @Injectable()
-export class SwitchWorkspaceHandler
-  implements Service<Request, Errors, Response>
-{
+export class SwitchWorkspaceHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(
     private readonly workspaceRepository: WorkspaceRepository,
     private readonly workspaceUserRepository: WorkspaceUserRepository,

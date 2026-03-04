@@ -1,4 +1,6 @@
 import { env } from '@infra/env';
+import { VersioningType } from '@nestjs/common';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
@@ -6,15 +8,25 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn'],
+    logger: ['log', 'error', 'warn', 'debug'],
   });
-  const allowedOrigins = [env.PROD_URL, env.DEV_URL];
 
   app.use(helmet());
 
-  app.enableCors({
-    origin: (origin, callback) => {
-      if (allowedOrigins.includes(origin) || !origin) {
+  app.setGlobalPrefix('api');
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
+
+  const allowedOrigins = [env.PROD_URL, env.DEV_URL];
+
+  const corsOptions: CorsOptions = {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      if (allowedOrigins.includes(origin!) || !origin) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
@@ -28,7 +40,9 @@ async function bootstrap() {
       'refresh_token',
       'x-api-key',
     ],
-  });
+  };
+
+  app.enableCors(corsOptions);
 
   if (env.NODE_ENV === 'dev') {
     const config = new DocumentBuilder()
@@ -38,7 +52,7 @@ async function bootstrap() {
       .addBearerAuth()
       .build();
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, document);
+    SwaggerModule.setup('api/docs', app, document);
   }
 
   await app.listen(env.PORT);
