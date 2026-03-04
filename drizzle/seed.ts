@@ -4,10 +4,11 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from '../src/infra/databases/drizzle/schema';
 import { categories } from '../src/infra/databases/drizzle/schema';
+import { env } from '../src/infra/env';
 
 config();
 
-const client = postgres(process.env.DATABASE_URL!);
+const client = postgres(env.DATABASE_URL);
 const db = drizzle(client, { schema });
 
 type TransactionType = 'INCOME' | 'EXPENSE';
@@ -248,12 +249,12 @@ async function main(): Promise<void> {
   }
 }
 
-main()
-  .catch((error) => {
-    console.error('Fatal error:', error);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await client.end();
-    process.exit(0);
-  });
+try {
+  await main();
+} catch (error) {
+  console.error('Fatal error:', error);
+  process.exit(1);
+} finally {
+  await client.end();
+  process.exit(0);
+}
