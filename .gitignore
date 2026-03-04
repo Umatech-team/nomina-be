@@ -190,3 +190,4 @@ public.key
 
 .github/copilot-instructions.md
 .docker/*
+src/metadata.ts
