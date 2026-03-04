@@ -36,8 +36,3 @@ jobs:
           exit 1
         fi
         echo "Build successful - dist directory created"
-
-    - name: Run database migrations
-      run: npx drizzle-kit migrate
-      env:
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
