@@ -1,7 +1,14 @@
-import { count } from 'console';
-import { and, eq, isNull } from 'drizzle-orm';
-import { db } from '../src/infra/databases/drizzle';
+import { config } from 'dotenv';
+import { isNull } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import * as schema from '../src/infra/databases/drizzle/schema';
 import { categories } from '../src/infra/databases/drizzle/schema';
+
+config();
+
+const client = postgres(process.env.DATABASE_URL!);
+const db = drizzle(client, { schema });
 
 type TransactionType = 'INCOME' | 'EXPENSE';
 
@@ -11,8 +18,18 @@ interface CategorySeed {
   children?: Omit<CategorySeed, 'children'>[];
 }
 
+interface CategoryInsert {
+  name: string;
+  type: TransactionType;
+  workspaceId: null;
+  isSystemCategory: boolean;
+}
+
+interface ChildCategoryInsert extends CategoryInsert {
+  parentId: string;
+}
+
 const categoriesData: CategorySeed[] = [
-  // ========== RECEITAS ==========
   {
     name: 'Salário',
     type: 'INCOME',
@@ -46,8 +63,6 @@ const categoriesData: CategorySeed[] = [
     name: 'Outros Ganhos',
     type: 'INCOME',
   },
-
-  // ========== DESPESAS ==========
   {
     name: 'Alimentação',
     type: 'EXPENSE',
@@ -157,7 +172,7 @@ const categoriesData: CategorySeed[] = [
       { name: 'Contador', type: 'EXPENSE' },
       { name: 'Advogado', type: 'EXPENSE' },
       { name: 'Seguros', type: 'EXPENSE' },
-      { name: 'Assinaturas', type: 'EXPENSE' }, // Adicionado
+      { name: 'Assinaturas', type: 'EXPENSE' },
     ],
   },
   {
@@ -178,28 +193,18 @@ const categoriesData: CategorySeed[] = [
   },
 ];
 
-async function main() {
-  console.log('🌱 Iniciando seed das categorias...\n');
-
+async function main(): Promise<void> {
   try {
     await db.transaction(async (tx) => {
-      // 1. Limpar categorias existentes do sistema
-      const deleted = await tx
-        .delete(categories)
-        .where(isNull(categories.workspaceId))
-        .returning({ id: categories.id });
+      await tx.delete(categories).where(isNull(categories.workspaceId));
 
-      console.log(`🧹 Removidas ${deleted.length} categorias antigas\n`);
-
-      // 2. Preparar dados para inserção em lote (Categorias Pai)
-      const parentsToInsert = categoriesData.map((c) => ({
+      const parentsToInsert: CategoryInsert[] = categoriesData.map((c) => ({
         name: c.name,
         type: c.type,
         workspaceId: null,
         isSystemCategory: true,
       }));
 
-      // 3. Inserir todos os pais de uma vez
       const insertedParents = await tx
         .insert(categories)
         .values(parentsToInsert)
@@ -209,32 +214,22 @@ async function main() {
           type: categories.type,
         });
 
-      let totalCreated = insertedParents.length;
-      const childrenToInsert: Array<{
-        name: string;
-        type: TransactionType;
-        parentId: string; // ou number, dependendo do seu schema
-        workspaceId: null;
-        isSystemCategory: boolean;
-      }> = [];
+      const childrenToInsert: ChildCategoryInsert[] = [];
 
-      // 4. Mapear IDs gerados para construir os filhos
       for (const parentData of categoriesData) {
-        if (parentData.children && parentData.children.length > 0) {
+        if (parentData.children?.length) {
           const parentRecord = insertedParents.find(
-            (p: { name: string; type: string }) =>
-              p.name === parentData.name && p.type === parentData.type,
+            (p) => p.name === parentData.name && p.type === parentData.type,
           );
 
-          if (!parentRecord)
-            throw new Error(
-              `Falha de consistência: ID não encontrado para ${parentData.name}`,
-            );
+          if (!parentRecord) {
+            throw new Error(`Parent category not found: ${parentData.name}`);
+          }
 
           for (const childData of parentData.children) {
             childrenToInsert.push({
               name: childData.name,
-              type: childData.type as TransactionType,
+              type: childData.type,
               parentId: parentRecord.id,
               workspaceId: null,
               isSystemCategory: true,
@@ -243,64 +238,22 @@ async function main() {
         }
       }
 
-      // 5. Inserir todos os filhos em lote
       if (childrenToInsert.length > 0) {
-        const insertedChildren = await tx
-          .insert(categories)
-          .values(childrenToInsert)
-          .returning({ id: categories.id });
-
-        totalCreated += insertedChildren.length;
+        await tx.insert(categories).values(childrenToInsert);
       }
-
-      // Feedback no console
-      insertedParents.forEach(
-        (p: { name: string; type: string; id: string }) => {
-          console.log(`✅ Criada: ${p.name} (${p.type})`);
-          const children = childrenToInsert.filter((c) => c.parentId === p.id);
-          children.forEach((c) => console.log(`   ↳ ${c.name}`));
-        },
-      );
-
-      console.log(
-        `\n✨ Seed concluída! Total de ${totalCreated} categorias criadas.`,
-      );
-      console.log('\n📊 Resumo:');
-
-      // 6. Contagem validando diretamente no banco
-      const [incomeResult] = await tx
-        .select({ value: count() })
-        .from(categories)
-        .where(
-          and(eq(categories.type, 'INCOME'), isNull(categories.workspaceId)),
-        );
-
-      const [expenseResult] = await tx
-        .select({ value: count() })
-        .from(categories)
-        .where(
-          and(eq(categories.type, 'EXPENSE'), isNull(categories.workspaceId)),
-        );
-
-      console.log(`   - Receitas: ${incomeResult.value}`);
-      console.log(`   - Despesas: ${expenseResult.value}`);
-      console.log(
-        `   - Total: ${Number(incomeResult.value) + Number(expenseResult.value)}`,
-      );
     });
   } catch (error) {
-    console.error('❌ Erro durante a transação do seed:', error);
+    console.error('Seed error:', error);
     process.exit(1);
   }
 }
 
 main()
-  .catch((e) => {
-    console.error('❌ Erro fatal:', e);
+  .catch((error) => {
+    console.error('Fatal error:', error);
     process.exit(1);
   })
-  .finally(() => {
-    // IMPORTANTE: Feche a conexão do pool aqui.
-    // Ex: await connection.end(); ou pool.end();
+  .finally(async () => {
+    await client.end();
     process.exit(0);
   });
