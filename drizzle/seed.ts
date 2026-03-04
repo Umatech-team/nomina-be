@@ -16,7 +16,7 @@ type TransactionType = 'INCOME' | 'EXPENSE';
 interface CategorySeed {
   name: string;
   type: TransactionType;
-  children?: Omit<CategorySeed, 'children'>[];
+  children?: string[];
 }
 
 interface CategoryInsert {
@@ -31,222 +31,147 @@ interface ChildCategoryInsert extends CategoryInsert {
 }
 
 const categoriesData: CategorySeed[] = [
-  {
-    name: 'Salário',
-    type: 'INCOME',
-  },
-  {
-    name: 'Freelance',
-    type: 'INCOME',
-  },
+  { name: 'Salário', type: 'INCOME' },
+  { name: 'Freelance', type: 'INCOME' },
   {
     name: 'Investimentos',
     type: 'INCOME',
-    children: [
-      { name: 'Dividendos', type: 'INCOME' },
-      { name: 'Juros', type: 'INCOME' },
-      { name: 'Rendimento CDB', type: 'INCOME' },
-    ],
+    children: ['Dividendos', 'Juros', 'Rendimento CDB'],
   },
-  {
-    name: 'Vendas',
-    type: 'INCOME',
-  },
-  {
-    name: 'Prêmios',
-    type: 'INCOME',
-  },
-  {
-    name: 'Reembolsos',
-    type: 'INCOME',
-  },
-  {
-    name: 'Outros Ganhos',
-    type: 'INCOME',
-  },
+  { name: 'Vendas', type: 'INCOME' },
+  { name: 'Prêmios', type: 'INCOME' },
+  { name: 'Reembolsos', type: 'INCOME' },
+  { name: 'Outros Ganhos', type: 'INCOME' },
   {
     name: 'Alimentação',
     type: 'EXPENSE',
-    children: [
-      { name: 'Restaurantes', type: 'EXPENSE' },
-      { name: 'Mercado', type: 'EXPENSE' },
-      { name: 'Lanche', type: 'EXPENSE' },
-      { name: 'Delivery', type: 'EXPENSE' },
-    ],
+    children: ['Restaurantes', 'Mercado', 'Lanche', 'Delivery'],
   },
   {
     name: 'Transporte',
     type: 'EXPENSE',
     children: [
-      { name: 'Combustível', type: 'EXPENSE' },
-      { name: 'Uber/99', type: 'EXPENSE' },
-      { name: 'Transporte Público', type: 'EXPENSE' },
-      { name: 'Estacionamento', type: 'EXPENSE' },
-      { name: 'Manutenção', type: 'EXPENSE' },
+      'Combustível',
+      'Uber/99',
+      'Transporte Público',
+      'Estacionamento',
+      'Manutenção',
     ],
   },
   {
     name: 'Moradia',
     type: 'EXPENSE',
     children: [
-      { name: 'Aluguel', type: 'EXPENSE' },
-      { name: 'Condomínio', type: 'EXPENSE' },
-      { name: 'IPTU', type: 'EXPENSE' },
-      { name: 'Água', type: 'EXPENSE' },
-      { name: 'Energia', type: 'EXPENSE' },
-      { name: 'Gás', type: 'EXPENSE' },
-      { name: 'Internet', type: 'EXPENSE' },
-      { name: 'Manutenção', type: 'EXPENSE' },
+      'Aluguel',
+      'Condomínio',
+      'IPTU',
+      'Água',
+      'Energia',
+      'Gás',
+      'Internet',
+      'Manutenção',
     ],
   },
   {
     name: 'Saúde',
     type: 'EXPENSE',
     children: [
-      { name: 'Plano de Saúde', type: 'EXPENSE' },
-      { name: 'Consultas', type: 'EXPENSE' },
-      { name: 'Medicamentos', type: 'EXPENSE' },
-      { name: 'Exames', type: 'EXPENSE' },
-      { name: 'Academia', type: 'EXPENSE' },
+      'Plano de Saúde',
+      'Consultas',
+      'Medicamentos',
+      'Exames',
+      'Academia',
     ],
   },
   {
     name: 'Educação',
     type: 'EXPENSE',
-    children: [
-      { name: 'Mensalidade', type: 'EXPENSE' },
-      { name: 'Cursos', type: 'EXPENSE' },
-      { name: 'Materiais', type: 'EXPENSE' },
-      { name: 'Livros', type: 'EXPENSE' },
-    ],
+    children: ['Mensalidade', 'Cursos', 'Materiais', 'Livros'],
   },
   {
     name: 'Lazer',
     type: 'EXPENSE',
-    children: [
-      { name: 'Cinema', type: 'EXPENSE' },
-      { name: 'Streaming', type: 'EXPENSE' },
-      { name: 'Viagens', type: 'EXPENSE' },
-      { name: 'Hobbies', type: 'EXPENSE' },
-      { name: 'Eventos', type: 'EXPENSE' },
-    ],
+    children: ['Cinema', 'Streaming', 'Viagens', 'Hobbies', 'Eventos'],
   },
   {
     name: 'Vestuário',
     type: 'EXPENSE',
-    children: [
-      { name: 'Roupas', type: 'EXPENSE' },
-      { name: 'Calçados', type: 'EXPENSE' },
-      { name: 'Acessórios', type: 'EXPENSE' },
-    ],
+    children: ['Roupas', 'Calçados', 'Acessórios'],
   },
   {
     name: 'Beleza',
     type: 'EXPENSE',
-    children: [
-      { name: 'Cabeleireiro', type: 'EXPENSE' },
-      { name: 'Cosméticos', type: 'EXPENSE' },
-      { name: 'Tratamentos', type: 'EXPENSE' },
-    ],
+    children: ['Cabeleireiro', 'Cosméticos', 'Tratamentos'],
   },
   {
     name: 'Pets',
     type: 'EXPENSE',
-    children: [
-      { name: 'Veterinário', type: 'EXPENSE' },
-      { name: 'Ração', type: 'EXPENSE' },
-      { name: 'Petshop', type: 'EXPENSE' },
-    ],
+    children: ['Veterinário', 'Ração', 'Petshop'],
   },
   {
     name: 'Impostos',
     type: 'EXPENSE',
-    children: [
-      { name: 'IRPF', type: 'EXPENSE' },
-      { name: 'IPVA', type: 'EXPENSE' },
-    ],
+    children: ['IRPF', 'IPVA'],
   },
   {
     name: 'Serviços',
     type: 'EXPENSE',
-    children: [
-      { name: 'Contador', type: 'EXPENSE' },
-      { name: 'Advogado', type: 'EXPENSE' },
-      { name: 'Seguros', type: 'EXPENSE' },
-      { name: 'Assinaturas', type: 'EXPENSE' },
-    ],
+    children: ['Contador', 'Advogado', 'Seguros', 'Assinaturas'],
   },
-  {
-    name: 'Presentes',
-    type: 'EXPENSE',
-  },
-  {
-    name: 'Doações',
-    type: 'EXPENSE',
-  },
-  {
-    name: 'Telefonia',
-    type: 'EXPENSE',
-  },
-  {
-    name: 'Outros Gastos',
-    type: 'EXPENSE',
-  },
+  { name: 'Presentes', type: 'EXPENSE' },
+  { name: 'Doações', type: 'EXPENSE' },
+  { name: 'Telefonia', type: 'EXPENSE' },
+  { name: 'Outros Gastos', type: 'EXPENSE' },
 ];
 
 async function main(): Promise<void> {
-  try {
-    await db.transaction(async (tx) => {
-      await tx.delete(categories).where(isNull(categories.workspaceId));
+  await db.transaction(async (tx) => {
+    await tx.delete(categories).where(isNull(categories.workspaceId));
 
-      const parentsToInsert: CategoryInsert[] = categoriesData.map((c) => ({
-        name: c.name,
-        type: c.type,
-        workspaceId: null,
-        isSystemCategory: true,
-      }));
+    const parentsToInsert: CategoryInsert[] = categoriesData.map((c) => ({
+      name: c.name,
+      type: c.type,
+      workspaceId: null,
+      isSystemCategory: true,
+    }));
 
-      const insertedParents = await tx
-        .insert(categories)
-        .values(parentsToInsert)
-        .returning({
-          id: categories.id,
-          name: categories.name,
-          type: categories.type,
-        });
+    const insertedParents = await tx
+      .insert(categories)
+      .values(parentsToInsert)
+      .returning({
+        id: categories.id,
+        name: categories.name,
+        type: categories.type,
+      });
 
-      const childrenToInsert: ChildCategoryInsert[] = [];
+    const childrenToInsert: ChildCategoryInsert[] = [];
 
-      for (const parentData of categoriesData) {
-        if (parentData.children?.length) {
-          const parentRecord = insertedParents.find(
-            (p) => p.name === parentData.name && p.type === parentData.type,
-          );
+    for (const parentData of categoriesData) {
+      if (parentData.children?.length) {
+        const parentRecord = insertedParents.find(
+          (p) => p.name === parentData.name && p.type === parentData.type,
+        );
 
-          if (!parentRecord) {
-            throw new Error(`Parent category not found: ${parentData.name}`);
-          }
+        if (!parentRecord) {
+          throw new Error(`Parent category not found: ${parentData.name}`);
+        }
 
-          for (const childData of parentData.children) {
-            childrenToInsert.push({
-              name: childData.name,
-              type: childData.type,
-              parentId: parentRecord.id,
-              workspaceId: null,
-              isSystemCategory: true,
-            });
-          }
+        for (const childName of parentData.children) {
+          childrenToInsert.push({
+            name: childName,
+            type: parentData.type,
+            parentId: parentRecord.id,
+            workspaceId: null,
+            isSystemCategory: true,
+          });
         }
       }
+    }
 
-      if (childrenToInsert.length > 0) {
-        await tx.insert(categories).values(childrenToInsert);
-      }
-    });
-  } catch (error) {
-    console.error('Seed error:', error);
-    process.exit(1);
-  }
+    if (childrenToInsert.length > 0) {
+      await tx.insert(categories).values(childrenToInsert);
+    }
+  });
 }
 
 try {
