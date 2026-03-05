@@ -166,9 +166,7 @@ describe('CreateAccountHandler', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(HttpException);
-        expect((result.value as HttpException).getStatus()).toBe(
-          HttpStatus.NOT_FOUND,
-        );
+        expect(result.value.getStatus()).toBe(HttpStatus.NOT_FOUND);
       }
     });
 
@@ -193,9 +191,7 @@ describe('CreateAccountHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          HttpStatus.CONFLICT,
-        );
+        expect(result.value.getStatus()).toBe(HttpStatus.CONFLICT);
       }
     });
 
@@ -221,9 +217,7 @@ describe('CreateAccountHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          HttpStatus.BAD_REQUEST,
-        );
+        expect(result.value.getStatus()).toBe(HttpStatus.BAD_REQUEST);
       }
     });
 
@@ -237,9 +231,7 @@ describe('CreateAccountHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          HttpStatus.BAD_REQUEST,
-        );
+        expect(result.value.getStatus()).toBe(HttpStatus.BAD_REQUEST);
       }
     });
   });
