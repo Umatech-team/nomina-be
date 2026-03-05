@@ -24,7 +24,7 @@ export class ErrorPresenter {
     [statusCode.CONFLICT]: ConflictException,
   };
 
-  static toHTTP(error: ServiceError | HttpException) {
+  static toHTTP(error: ServiceError | HttpException): never {
     const Exception =
       this.errorMap[
         error instanceof HttpException ? error.getStatus() : error.statusCode
