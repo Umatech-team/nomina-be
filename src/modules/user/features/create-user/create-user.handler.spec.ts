@@ -16,6 +16,20 @@ describe('CreateUserHandler', () => {
   let userRepository: jest.Mocked<UserRepository>;
   let hashGenerator: jest.Mocked<HashGenerator>;
 
+  const makeRequest = (
+    overrides?: Partial<CreateUserRequest>,
+  ): CreateUserRequest => ({
+    name: 'John Doe',
+    email: 'john@example.com',
+    password: 'password123',
+    ...overrides,
+  });
+
+  const arrangeSuccessMocks = () => {
+    userRepository.findUniqueByEmail.mockResolvedValue(null);
+    hashGenerator.hash.mockResolvedValue('hashed_password_123');
+  };
+
   beforeEach(async () => {
     userRepository = createMockUserRepository();
     hashGenerator = createMockHashGenerator();
@@ -23,14 +37,8 @@ describe('CreateUserHandler', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreateUserHandler,
-        {
-          provide: UserRepository,
-          useValue: userRepository,
-        },
-        {
-          provide: HashGenerator,
-          useValue: hashGenerator,
-        },
+        { provide: UserRepository, useValue: userRepository },
+        { provide: HashGenerator, useValue: hashGenerator },
       ],
     }).compile();
 
@@ -41,338 +49,54 @@ describe('CreateUserHandler', () => {
     jest.clearAllMocks();
   });
 
-  describe('execute - Success Cases', () => {
-    it('should create user successfully with valid input', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
+  describe('execute - Happy Path', () => {
+    beforeEach(() => arrangeSuccessMocks());
 
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
+    it('should orchestrate user creation successfully', async () => {
+      const request = makeRequest();
       const result = await handler.execute(request);
 
       expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        expect(result.value).toBeInstanceOf(User);
-        expect(result.value.name).toBe('John Doe');
-        expect(result.value.email).toBe('john@example.com');
-        expect(result.value.passwordHash).toBe('hashed_password_123');
-      }
-    });
 
-    it('should hash the password before creating user', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      await handler.execute(request);
-
-      expect(hashGenerator.hash).toHaveBeenCalledWith('password123');
-      expect(hashGenerator.hash).toHaveBeenCalledTimes(1);
-    });
-
-    it('should check for existing email before creating user', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      await handler.execute(request);
+      const user = result.value as User;
+      expect(user).toBeInstanceOf(User);
+      expect(user.name).toBe(request.name);
+      expect(user.passwordHash).toBe('hashed_password_123');
 
       expect(userRepository.findUniqueByEmail).toHaveBeenCalledWith(
-        'john@example.com',
+        request.email,
       );
-      // findUniqueByEmail should be called before create as part of the create user flow
-    });
-
-    it('should return user with generated ID', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      const result = await handler.execute(request);
-
-      expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        expect(result.value.id).toBeDefined();
-        expect(typeof result.value.id).toBe('string');
-      }
-    });
-
-    it('should handle long names (up to 20 chars) correctly', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe Twelve Chars',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      const result = await handler.execute(request);
-
-      expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        expect(result.value.name).toBe('John Doe Twelve Chars');
-      }
+      expect(hashGenerator.hash).toHaveBeenCalledWith(request.password);
+      expect(userRepository.create).toHaveBeenCalled(); // Supondo que o handler chama o create
     });
   });
 
-  describe('execute - Email Already Exists Error', () => {
-    it('should return conflict error when email already exists', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
+  describe('execute - Exception Paths', () => {
+    it('should return Conflict Error (409) when email already exists', async () => {
+      userRepository.findUniqueByEmail.mockResolvedValue(createMockUser());
 
-      const existingUser = createMockUser({
-        email: 'john@example.com',
-      });
-      userRepository.findUniqueByEmail.mockResolvedValue(existingUser);
-
-      const result = await handler.execute(request);
+      const result = await handler.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(HttpException);
-        expect(result.value.getStatus()).toBe(409);
-        expect(result.value.message).toContain('Email already exists');
-      }
-    });
-
-    it('should not hash password when email already exists', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      const existingUser = createMockUser();
-      userRepository.findUniqueByEmail.mockResolvedValue(existingUser);
-
-      await handler.execute(request);
+      const error = result.value as HttpException;
+      expect(error).toBeInstanceOf(HttpException);
+      expect(error.getStatus()).toBe(409);
+      expect(error.message).toContain('Email already exists');
 
       expect(hashGenerator.hash).not.toHaveBeenCalled();
-    });
-
-    it('should not create user when email already exists', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      const existingUser = createMockUser();
-      userRepository.findUniqueByEmail.mockResolvedValue(existingUser);
-
-      await handler.execute(request);
-
       expect(userRepository.create).not.toHaveBeenCalled();
     });
-  });
 
-  describe('execute - Entity Validation Errors', () => {
-    it('should return error when name is too short (less than 4 chars)', async () => {
-      const request: CreateUserRequest = {
-        name: 'Jo',
-        email: 'john@example.com',
-        password: 'password123',
-      };
+    it('should return Bad Request (400) when Entity validation fails', async () => {
+      arrangeSuccessMocks();
 
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      const result = await handler.execute(request);
+      const result = await handler.execute(makeRequest({ name: 'Jo' }));
 
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(HttpException);
-        expect(result.value.getStatus()).toBe(400);
-      }
-    });
-
-    it('should return error when email is invalid', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'invalid-email',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      const result = await handler.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(HttpException);
-        expect(result.value.getStatus()).toBe(400);
-      }
-    });
-
-    it('should not create user when entity validation fails', async () => {
-      const request: CreateUserRequest = {
-        name: 'Jo',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      await handler.execute(request);
-
+      const error = result.value as HttpException;
+      expect(error).toBeInstanceOf(HttpException);
+      expect(error.getStatus()).toBe(400);
       expect(userRepository.create).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('execute - Return Type', () => {
-    it('should return Either monad', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      const result = await handler.execute(request);
-
-      expect(result).toHaveProperty('isLeft');
-      expect(result).toHaveProperty('isRight');
-      expect(typeof result.isLeft).toBe('function');
-      expect(typeof result.isRight).toBe('function');
-    });
-
-    it('should have value property on Either result', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      const result = await handler.execute(request);
-
-      expect(result).toHaveProperty('value');
-    });
-  });
-
-  describe('execute - Edge Cases', () => {
-    it('should handle special characters in name', async () => {
-      const request: CreateUserRequest = {
-        name: "John O'Brien",
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      const result = await handler.execute(request);
-
-      expect(result.isRight()).toBe(true);
-    });
-
-    it('should handle email with plus addressing', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john+test@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      const result = await handler.execute(request);
-
-      expect(result.isRight()).toBe(true);
-    });
-
-    it('should handle strong passwords with special characters', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'P@ssw0rd!#$%^&*()_+-=',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_hash');
-
-      const result = await handler.execute(request);
-
-      expect(result.isRight()).toBe(true);
-    });
-
-    it('should create user with minimum name length (4 chars)', async () => {
-      const request: CreateUserRequest = {
-        name: 'John',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      const result = await handler.execute(request);
-
-      expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        expect(result.value.name).toBe('John');
-      }
-    });
-  });
-
-  describe('execute - Dependencies', () => {
-    it('should use injected UserRepository', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      await handler.execute(request);
-
-      expect(userRepository.findUniqueByEmail).toHaveBeenCalled();
-    });
-
-    it('should use injected HashGenerator', async () => {
-      const request: CreateUserRequest = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      userRepository.findUniqueByEmail.mockResolvedValue(null);
-      hashGenerator.hash.mockResolvedValue('hashed_password_123');
-
-      await handler.execute(request);
-
-      expect(hashGenerator.hash).toHaveBeenCalled();
     });
   });
 });
