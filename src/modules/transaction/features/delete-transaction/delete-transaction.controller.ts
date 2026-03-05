@@ -2,11 +2,11 @@ import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import { Controller, Delete, HttpCode, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
   DeleteTransactionPipe,
-  DeleteTransactionRequest,
+  type DeleteTransactionRequest,
 } from './delete-transaction.dto';
 import { DeleteTransactionHandler } from './delete-transaction.handler';
 
