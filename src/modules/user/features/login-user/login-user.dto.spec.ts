@@ -1,278 +1,91 @@
-import { z } from 'zod';
-import { LoginUserPipe } from './login-user.dto';
+import { LoginUserPipe, loginUserSchema } from './login-user.dto';
 
-/**
- * Zod schema for LoginUserRequest
- * Used to extract and validate the schema from the DTO
- */
-const loginUserSchema = z.object({
-  email: z.string().trim().email('E-mail inválido'),
-  password: z
-    .string()
-    .trim()
-    .min(8, 'Senha muito curta')
-    .max(255, 'Senha muito longa'),
-});
+describe('LoginUserRequest DTO Schema', () => {
+  const makePayload = (
+    overrides?: Partial<Parameters<typeof loginUserSchema.parse>[0]>,
+  ) => ({
+    email: 'john@example.com',
+    password: 'password123',
+    ...overrides,
+  });
+  const expectSuccess = (
+    payload: Parameters<typeof loginUserSchema.parse>[0],
+    expected: boolean,
+  ) => {
+    const result = loginUserSchema.safeParse(payload);
+    expect(result.success).toBe(expected);
+    return result;
+  };
 
-describe('LoginUserRequest DTO', () => {
-  describe('Schema Validation - Email Field', () => {
-    it('should accept a valid email address', () => {
-      const validData = {
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      const result = loginUserSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.email).toBe('john@example.com');
-      }
+  describe('Email Validation', () => {
+    it.each([
+      ['Valid email', 'john@example.com', true],
+      ['With subdomains', 'user@mail.example.co.uk', true],
+      ['With plus addressing', 'john+tag@example.com', true],
+      ['Missing @ symbol', 'johnexample.com', false],
+      ['Missing domain', 'john@', false],
+      ['Empty string', '', false],
+      ['With spaces', 'john doe@example.com', false],
+      ['Invalid type (number)', 12345, false],
+      ['Invalid type (object)', { value: 'john@example.com' }, false],
+    ])('should validate %s', (_, email, expected) => {
+      expectSuccess(
+        makePayload({ email: email as unknown as string }),
+        expected,
+      );
     });
 
     it('should trim whitespace from email', () => {
-      const dataWithWhitespace = {
-        email: '  john@example.com  ',
-        password: 'password123',
-      };
-
-      const result = loginUserSchema.safeParse(dataWithWhitespace);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.email).toBe('john@example.com');
-      }
-    });
-
-    it('should reject email without @ symbol', () => {
-      const invalidData = {
-        email: 'johnexample.com',
-        password: 'password123',
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject email without domain', () => {
-      const invalidData = {
-        email: 'john@',
-        password: 'password123',
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject empty email', () => {
-      const invalidData = {
-        email: '',
-        password: 'password123',
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should accept email with multiple subdomains', () => {
-      const validData = {
-        email: 'user@mail.example.co.uk',
-        password: 'password123',
-      };
-
-      const result = loginUserSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept email with plus addressing', () => {
-      const validData = {
-        email: 'john+tag@example.com',
-        password: 'password123',
-      };
-
-      const result = loginUserSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject email with spaces', () => {
-      const invalidData = {
-        email: 'john doe@example.com',
-        password: 'password123',
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
+      const result = expectSuccess(
+        makePayload({ email: '  john@example.com  ' }),
+        true,
+      );
+      if (result.success) expect(result.data.email).toBe('john@example.com');
     });
   });
 
-  describe('Schema Validation - Password Field', () => {
-    it('should accept a valid password (8+ characters)', () => {
-      const validData = {
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      const result = loginUserSchema.safeParse(validData);
-      expect(result.success).toBe(true);
+  describe('Password Validation', () => {
+    it.each([
+      ['Valid password', 'password123', true],
+      ['Exact 8 chars (boundary)', 'password', true],
+      ['Exact 255 chars (boundary)', 'a'.repeat(255), true],
+      ['With special characters', 'p@ssw0rd!#$%^&*()', true],
+      ['With numbers and uppercase', 'Password123', true],
+      ['Too short (< 8 chars)', 'pass12', false],
+      ['Too long (> 255 chars)', 'a'.repeat(256), false],
+      ['Empty string', '', false],
+      ['Invalid type (number)', 12345, false],
+      ['Invalid type (object)', { value: 'password123' }, false],
+    ])('should validate %s', (_, password, expected) => {
+      expectSuccess(
+        makePayload({ password: password as unknown as string }),
+        expected,
+      );
     });
 
     it('should trim whitespace from password', () => {
-      const dataWithWhitespace = {
-        email: 'john@example.com',
-        password: '  password123  ',
-      };
-
-      const result = loginUserSchema.safeParse(dataWithWhitespace);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.password).toBe('password123');
-      }
-    });
-
-    it('should reject password shorter than 8 characters', () => {
-      const invalidData = {
-        email: 'john@example.com',
-        password: 'pass12',
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject password longer than 255 characters', () => {
-      const invalidData = {
-        email: 'john@example.com',
-        password: 'a'.repeat(256),
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should accept password with exactly 8 characters (boundary)', () => {
-      const boundaryData = {
-        email: 'john@example.com',
-        password: 'password',
-      };
-
-      const result = loginUserSchema.safeParse(boundaryData);
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept password with exactly 255 characters (boundary)', () => {
-      const boundaryData = {
-        email: 'john@example.com',
-        password: 'a'.repeat(255),
-      };
-
-      const result = loginUserSchema.safeParse(boundaryData);
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject empty password', () => {
-      const invalidData = {
-        email: 'john@example.com',
-        password: '',
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should accept password with special characters', () => {
-      const validData = {
-        email: 'john@example.com',
-        password: 'p@ssw0rd!#$%^&*()',
-      };
-
-      const result = loginUserSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept password with numbers and uppercase', () => {
-      const validData = {
-        email: 'john@example.com',
-        password: 'Password123',
-      };
-
-      const result = loginUserSchema.safeParse(validData);
-      expect(result.success).toBe(true);
+      const result = expectSuccess(
+        makePayload({ password: '  password123  ' }),
+        true,
+      );
+      if (result.success) expect(result.data.password).toBe('password123');
     });
   });
 
-  describe('Schema Validation - All Fields Missing', () => {
-    it('should reject object with missing required fields', () => {
-      const invalidData = {};
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject object with only email field', () => {
-      const invalidData = {
-        email: 'john@example.com',
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject object with only password field', () => {
-      const invalidData = {
-        password: 'password123',
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject object with null values', () => {
-      const invalidData = {
-        email: null,
-        password: null,
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('Schema Validation - Type Checking', () => {
-    it('should reject email as number', () => {
-      const invalidData = {
-        email: 12345,
-        password: 'password123',
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject password as number', () => {
-      const invalidData = {
-        email: 'john@example.com',
-        password: 12345,
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject both fields as objects', () => {
-      const invalidData = {
-        email: { value: 'john@example.com' },
-        password: { value: 'password123' },
-      };
-
-      const result = loginUserSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
+  describe('General Payload Validation', () => {
+    it.each([
+      ['Missing all fields', {}, false],
+      ['Only email present', { email: 'john@example.com' }, false],
+      ['Only password present', { password: 'password123' }, false],
+      ['Null values', { email: null, password: null }, false],
+    ])('should reject object with %s', (_, invalidPayload, expected) => {
+      expectSuccess(invalidPayload, expected);
     });
   });
 
   describe('LoginUserPipe Integration', () => {
-    it('should exist as exported instance', () => {
+    it('should exist and have a transform method', () => {
       expect(LoginUserPipe).toBeDefined();
-    });
-
-    it('should be instance of ZodValidationPipe', () => {
       expect(LoginUserPipe).toHaveProperty('transform');
     });
   });
