@@ -9,9 +9,12 @@ import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { Roles } from '@providers/auth/decorators/Roles.decorator';
 import { RolesGuard } from '@providers/auth/guards/Roles.guard';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
-import { CreateAccountPipe, CreateAccountRequest } from './create-account.dto';
+import {
+  CreateAccountPipe,
+  type CreateAccountRequest,
+} from './create-account.dto';
 import { CreateAccountHandler } from './create-account.handler';
 
 @ApiTags('Account')
