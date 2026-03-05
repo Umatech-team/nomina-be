@@ -45,6 +45,7 @@ describe('UpdateAccountRequest DTO', () => {
     });
 
     it('should reject missing accountId', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { accountId: _, ...without } = validBase;
       const result = updateAccountSchema.safeParse(without);
       expect(result.success).toBe(false);
