@@ -3,7 +3,7 @@ import {
   createMockAccount,
   createMockAccountRepository,
 } from '@modules/account/test-helpers/mock-factories';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { FindAccountByIdHandler } from './find-account.handler';
 
@@ -99,9 +99,7 @@ describe('FindAccountByIdHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          HttpStatus.NOT_FOUND,
-        );
+        expect(result.value.getStatus()).toBe(HttpStatus.NOT_FOUND);
       }
     });
   });
@@ -118,9 +116,7 @@ describe('FindAccountByIdHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          HttpStatus.NOT_FOUND,
-        );
+        expect(result.value.getStatus()).toBe(HttpStatus.NOT_FOUND);
       }
     });
 
