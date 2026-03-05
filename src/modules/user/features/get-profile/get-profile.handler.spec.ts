@@ -115,10 +115,8 @@ describe('GetProfileHandler', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(HttpException);
-        expect((result.value as HttpException).getStatus()).toBe(404);
-        expect((result.value as HttpException).message).toContain(
-          'User not found',
-        );
+        expect(result.value.getStatus()).toBe(404);
+        expect(result.value.message).toContain('User not found');
       }
     });
 
@@ -148,7 +146,7 @@ describe('GetProfileHandler', () => {
       const result = await handler.execute(request);
 
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(404);
+        expect(result.value.getStatus()).toBe(404);
       }
     });
   });
