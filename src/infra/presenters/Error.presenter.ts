@@ -16,7 +16,7 @@ import { statusCode } from '@shared/core/types/statusCode';
  */
 export class ErrorPresenter {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static errorMap: { [key: number]: any } = {
+  private static readonly errorMap: { [key: number]: any } = {
     [statusCode.NOT_FOUND]: NotFoundException,
     [statusCode.BAD_REQUEST]: BadRequestException,
     [statusCode.FORBIDDEN]: ForbiddenException,
