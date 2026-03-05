@@ -153,10 +153,8 @@ describe('CreateUserHandler', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(HttpException);
-        expect((result.value as HttpException).getStatus()).toBe(409);
-        expect((result.value as HttpException).message).toContain(
-          'Email already exists',
-        );
+        expect(result.value.getStatus()).toBe(409);
+        expect(result.value.message).toContain('Email already exists');
       }
     });
 
@@ -207,7 +205,7 @@ describe('CreateUserHandler', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(HttpException);
-        expect((result.value as HttpException).getStatus()).toBe(400);
+        expect(result.value.getStatus()).toBe(400);
       }
     });
 
@@ -226,7 +224,7 @@ describe('CreateUserHandler', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(HttpException);
-        expect((result.value as HttpException).getStatus()).toBe(400);
+        expect(result.value.getStatus()).toBe(400);
       }
     });
 
