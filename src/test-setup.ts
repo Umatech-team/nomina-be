@@ -1,0 +1,11 @@
+process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/testdb';
+process.env.PROD_URL = 'http://localhost:8080';
+process.env.DEV_URL = 'http://localhost:8080';
+process.env.DEPLOY_URL = 'http://localhost:8080';
+process.env.NODE_ENV = 'dev';
+process.env.JWT_PRIVATE_KEY = 'test-private-key';
+process.env.JWT_PUBLIC_KEY = 'test-public-key';
+process.env.JWT_USER_ACCESS_EXPIRES_IN = '900';
+process.env.JWT_USER_REFRESH_EXPIRES_IN = '604800';
+process.env.USER_REFRESH_EXPIRES_IN = '604800';
+process.env.REDIS_ENABLED = 'false';
