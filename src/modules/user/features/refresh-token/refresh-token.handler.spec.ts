@@ -288,10 +288,8 @@ describe('RefreshTokenHandler', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(HttpException);
-        expect((result.value as HttpException).getStatus()).toBe(401);
-        expect((result.value as HttpException).message).toContain(
-          'Session expired',
-        );
+        expect(result.value.getStatus()).toBe(401);
+        expect(result.value.message).toContain('Session expired');
       }
     });
 
@@ -307,7 +305,7 @@ describe('RefreshTokenHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(401);
+        expect(result.value.getStatus()).toBe(401);
       }
     });
 
@@ -346,10 +344,8 @@ describe('RefreshTokenHandler', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(HttpException);
-        expect((result.value as HttpException).getStatus()).toBe(404);
-        expect((result.value as HttpException).message).toContain(
-          'User not found',
-        );
+        expect(result.value.getStatus()).toBe(404);
+        expect(result.value.message).toContain('User not found');
       }
     });
 
@@ -402,7 +398,7 @@ describe('RefreshTokenHandler', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(HttpException);
-        expect((result.value as HttpException).getStatus()).toBe(401);
+        expect(result.value.getStatus()).toBe(401);
       }
     });
 
@@ -462,7 +458,7 @@ describe('RefreshTokenHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(401);
+        expect(result.value.getStatus()).toBe(401);
       }
     });
 
