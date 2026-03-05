@@ -3,11 +3,11 @@ import { WorkspaceUserPresenter } from '@modules/workspace/presenters/WorkspaceU
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
   AcceptWorkspaceInvitePipe,
-  AcceptWorkspaceInviteRequest,
+  type AcceptWorkspaceInviteRequest,
 } from './accept-workspace-invite.dto';
 import { AcceptWorkspaceInviteHandler } from './accept-workspace-invite.handler';
 
