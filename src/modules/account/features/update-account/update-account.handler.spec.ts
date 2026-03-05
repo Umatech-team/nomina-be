@@ -4,7 +4,7 @@ import {
   createMockAccount,
   createMockAccountRepository,
 } from '@modules/account/test-helpers/mock-factories';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UpdateAccountRequest } from './update-account.dto';
 import { UpdateAccountHandler } from './update-account.handler';
@@ -151,9 +151,7 @@ describe('UpdateAccountHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          HttpStatus.NOT_FOUND,
-        );
+        expect(result.value.getStatus()).toBe(HttpStatus.NOT_FOUND);
       }
     });
 
@@ -179,9 +177,7 @@ describe('UpdateAccountHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          HttpStatus.FORBIDDEN,
-        );
+        expect(result.value.getStatus()).toBe(HttpStatus.FORBIDDEN);
       }
     });
   });
@@ -205,9 +201,7 @@ describe('UpdateAccountHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          HttpStatus.CONFLICT,
-        );
+        expect(result.value.getStatus()).toBe(HttpStatus.CONFLICT);
       }
     });
 
