@@ -2,11 +2,11 @@ import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
   BalanceEvolutionPipe,
-  BalanceEvolutionRequest,
+  type BalanceEvolutionRequest,
 } from './get-balance-evolution.dto';
 import { BalanceEvolutionHandler } from './get-balance-evolution.handler';
 
