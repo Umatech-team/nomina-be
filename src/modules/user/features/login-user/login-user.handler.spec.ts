@@ -248,10 +248,8 @@ describe('LoginUserHandler', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(HttpException);
-        expect((result.value as HttpException).getStatus()).toBe(401);
-        expect((result.value as HttpException).message).toContain(
-          'Invalid credentials',
-        );
+        expect(result.value.getStatus()).toBe(401);
+        expect(result.value.message).toContain('Invalid credentials');
       }
     });
 
@@ -300,7 +298,7 @@ describe('LoginUserHandler', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(HttpException);
-        expect((result.value as HttpException).getStatus()).toBe(401);
+        expect(result.value.getStatus()).toBe(401);
       }
     });
 
@@ -359,7 +357,7 @@ describe('LoginUserHandler', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(HttpException);
-        expect((result.value as HttpException).getStatus()).toBe(401);
+        expect(result.value.getStatus()).toBe(401);
       }
     });
 
