@@ -90,6 +90,7 @@ describe('CreateAccountRequest DTO', () => {
     });
 
     it('should reject missing type', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { type: _, ...withoutType } = validBase;
       const result = createAccountSchema.safeParse(withoutType);
       expect(result.success).toBe(false);
