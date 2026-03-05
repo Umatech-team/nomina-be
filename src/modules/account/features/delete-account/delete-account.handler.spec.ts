@@ -3,7 +3,7 @@ import {
   createMockAccount,
   createMockAccountRepository,
 } from '@modules/account/test-helpers/mock-factories';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeleteAccountHandler } from './delete-account.handler';
 
@@ -91,9 +91,7 @@ describe('DeleteAccountHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          HttpStatus.FORBIDDEN,
-        );
+        expect(result.value.getStatus()).toBe(HttpStatus.FORBIDDEN);
       }
     });
 
@@ -118,9 +116,7 @@ describe('DeleteAccountHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          HttpStatus.FORBIDDEN,
-        );
+        expect(result.value.getStatus()).toBe(HttpStatus.FORBIDDEN);
       }
     });
 
