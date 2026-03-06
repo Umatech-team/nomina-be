@@ -9,12 +9,12 @@ type Request = RemoveWorkspaceRequest & Pick<TokenPayloadSchema, 'workspaceId'>;
 
 type Errors = HttpException;
 
-type Response = null;
-
 @Injectable()
-export class RemoveUserFromWorkspaceHandler
-  implements Service<Request, Errors, Response>
-{
+export class RemoveUserFromWorkspaceHandler implements Service<
+  Request,
+  Errors,
+  null
+> {
   constructor(
     private readonly workspaceUserRepository: WorkspaceUserRepository,
   ) {}
@@ -22,7 +22,7 @@ export class RemoveUserFromWorkspaceHandler
   async execute({
     userId,
     workspaceId,
-  }: Request): Promise<Either<Errors, Response>> {
+  }: Request): Promise<Either<Errors, null>> {
     const currentUserWorkspace =
       await this.workspaceUserRepository.findUserByWorkspaceAndUserId(
         workspaceId,
