@@ -18,9 +18,11 @@ type Response = {
 };
 
 @Injectable()
-export class CreateWorkspaceHandler
-  implements Service<Request, Errors, Response>
-{
+export class CreateWorkspaceHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(private readonly workspaceRepository: WorkspaceRepository) {}
 
   async execute({
