@@ -20,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: env.JWT_PUBLIC_KEY.replace(/\\n/g, '\n'),
+      secretOrKey: env.JWT_PUBLIC_KEY.replaceAll(String.raw`\n`, '\n'),
       algorithms: ['RS256'],
     });
   }
