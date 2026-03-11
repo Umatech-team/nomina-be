@@ -163,9 +163,7 @@ describe('CreateWorkspaceInviteHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          statusCode.NOT_FOUND,
-        );
+        expect(result.value.getStatus()).toBe(statusCode.NOT_FOUND);
       }
       expect(
         workspaceUserRepo.findUserByWorkspaceAndUserId,
@@ -181,9 +179,7 @@ describe('CreateWorkspaceInviteHandler', () => {
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect((result.value as HttpException).getStatus()).toBe(
-          statusCode.NOT_FOUND,
-        );
+        expect(result.value.getStatus()).toBe(statusCode.NOT_FOUND);
       }
       expect(inviteRepo.create).not.toHaveBeenCalled();
     });
@@ -200,9 +196,7 @@ describe('CreateWorkspaceInviteHandler', () => {
 
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
-          expect((result.value as HttpException).getStatus()).toBe(
-            statusCode.BAD_REQUEST,
-          );
+          expect(result.value.getStatus()).toBe(statusCode.BAD_REQUEST);
         }
         expect(inviteRepo.create).not.toHaveBeenCalled();
       },
