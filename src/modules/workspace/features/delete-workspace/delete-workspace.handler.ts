@@ -12,9 +12,11 @@ type Errors = HttpException;
 type Response = null;
 
 @Injectable()
-export class DeleteWorkspaceHandler
-  implements Service<Request, Errors, Response>
-{
+export class DeleteWorkspaceHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(private readonly workspaceRepository: WorkspaceRepository) {}
 
   async execute({ workspaceId }: Request): Promise<Either<Errors, Response>> {
