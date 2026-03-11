@@ -15,9 +15,11 @@ type Errors = HttpException;
 type Response = Transaction;
 
 @Injectable()
-export class FindTransactionByIdHandler
-  implements Service<Request, Errors, Response>
-{
+export class FindTransactionByIdHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(
     private readonly transactionRepository: TransactionRepository,
     private readonly userRepository: UserRepository,
