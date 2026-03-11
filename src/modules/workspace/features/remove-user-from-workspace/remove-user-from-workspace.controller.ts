@@ -6,7 +6,7 @@ import { Roles } from '@providers/auth/decorators/Roles.decorator';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
   RemoveWorkspacePipe,
-  RemoveWorkspaceRequest,
+  type RemoveWorkspaceRequest,
 } from './remove-user-from-workspace.dto';
 import { RemoveUserFromWorkspaceHandler } from './remove-user-from-workspace.handler';
 

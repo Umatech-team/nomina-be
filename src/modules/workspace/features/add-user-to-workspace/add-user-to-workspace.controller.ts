@@ -5,12 +5,12 @@ import { Body, Controller, HttpCode, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { Roles } from '@providers/auth/decorators/Roles.decorator';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 
 import {
   AddWorkspaceUserPipe,
-  AddWorkspaceUserRequest,
+  type AddWorkspaceUserRequest,
 } from './add-user-to-workspace.dto';
 import { AddUserToWorkspaceHandler } from './add-user-to-workspace.handler';
 

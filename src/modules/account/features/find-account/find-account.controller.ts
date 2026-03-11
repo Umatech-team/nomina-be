@@ -5,9 +5,9 @@ import { Controller, Get, HttpCode, Param, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { Roles } from '@providers/auth/decorators/Roles.decorator';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
-import { FindAccountPipe, FindAccountRequest } from './find-account.dto';
+import { FindAccountPipe, type FindAccountRequest } from './find-account.dto';
 import { FindAccountByIdHandler } from './find-account.handler';
 
 @ApiTags('Account')

@@ -4,9 +4,12 @@ import { Controller, Delete, HttpCode, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { Roles } from '@providers/auth/decorators/Roles.decorator';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
-import { DeleteAccountPipe, DeleteAccountRequest } from './delete-account.dto';
+import {
+  DeleteAccountPipe,
+  type DeleteAccountRequest,
+} from './delete-account.dto';
 import { DeleteAccountHandler } from './delete-account.handler';
 
 @ApiTags('Account')

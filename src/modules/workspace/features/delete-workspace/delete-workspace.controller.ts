@@ -5,7 +5,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Roles } from '@providers/auth/decorators/Roles.decorator';
 import { RolesGuard } from '@providers/auth/guards/Roles.guard';
 import { statusCode } from '@shared/core/types/statusCode';
-import { DeleteWorkspaceRequest } from './delete-workspace.dto';
+import { type DeleteWorkspaceRequest } from './delete-workspace.dto';
 import { DeleteWorkspaceHandler } from './delete-workspace.handler';
 
 @ApiTags('Workspace')

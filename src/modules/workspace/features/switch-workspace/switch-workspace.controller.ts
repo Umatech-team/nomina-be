@@ -2,11 +2,11 @@ import { ErrorPresenter } from '@infra/presenters/Error.presenter';
 import { Body, Controller, HttpCode, Patch } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
   SwitchWorkspacePipe,
-  SwitchWorkspaceRequest,
+  type SwitchWorkspaceRequest,
 } from './switch-workspace.dto';
 import { SwitchWorkspaceHandler } from './switch-workspace.handler';
 

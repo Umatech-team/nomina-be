@@ -14,9 +14,11 @@ type Errors = HttpException;
 type Response = Workspace;
 
 @Injectable()
-export class UpdateWorkspaceHandler
-  implements Service<Request, Errors, Response>
-{
+export class UpdateWorkspaceHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(private readonly workspaceRepository: WorkspaceRepository) {}
 
   async execute({

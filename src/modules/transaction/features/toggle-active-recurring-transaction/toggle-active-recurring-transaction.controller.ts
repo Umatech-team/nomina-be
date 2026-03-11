@@ -3,7 +3,7 @@ import { RecurringTransactionPresenter } from '@modules/transaction/presenters/R
 import { Controller, HttpCode, Param, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { ToggleActiveRecurringTransactionHandler } from './toggle-active-recurring-transaction.handler';
 

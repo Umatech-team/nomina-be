@@ -14,9 +14,11 @@ type Errors = HttpException;
 type Response = RecurringTransaction;
 
 @Injectable()
-export class CreateRecurringTransactionHandler
-  implements Service<Request, Errors, Response>
-{
+export class CreateRecurringTransactionHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(
     private readonly recurringRepository: RecurringTransactionRepository,
     private readonly accountRepository: AccountRepository,
@@ -37,7 +39,7 @@ export class CreateRecurringTransactionHandler
     active,
   }: Request): Promise<Either<Errors, Response>> {
     const account = await this.accountRepository.findById(accountId);
-    if (!account || account.workspaceId !== workspaceId) {
+    if (account?.workspaceId !== workspaceId) {
       return left(new HttpException('Unauthorized', 401));
     }
 

@@ -84,6 +84,9 @@
       "ts"
     ],
     "rootDir": "src",
+    "setupFiles": [
+      "<rootDir>/test-setup.ts"
+    ],
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -101,6 +104,7 @@
       "^@constants/(.*)$": "<rootDir>/constants/$1",
       "^@modules/(.*)$": "<rootDir>/modules/$1",
       "^@providers/(.*)$": "<rootDir>/providers/$1",
+      "^@utils/(.*)$": "<rootDir>/utils/$1",
       "^@test/(.*)$": "<rootDir>/test/$1"
     }
   },

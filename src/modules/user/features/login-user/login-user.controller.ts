@@ -3,7 +3,7 @@ import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from '@providers/auth/decorators/IsPublic.decorator';
 import { statusCode } from '@shared/core/types/statusCode';
-import { LoginUserPipe, LoginUserRequest } from './login-user.dto';
+import { LoginUserPipe, type LoginUserRequest } from './login-user.dto';
 import { LoginUserHandler } from './login-user.handler';
 
 @ApiTags('Auth')

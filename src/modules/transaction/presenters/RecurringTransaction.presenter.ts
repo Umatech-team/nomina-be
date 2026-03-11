@@ -14,6 +14,7 @@ export class RecurringTransactionPresenter {
       interval: recurringTransaction.interval,
       startDate: recurringTransaction.startDate,
       endDate: recurringTransaction.endDate,
+      type: recurringTransaction.type,
       lastGenerated: recurringTransaction.lastGenerated,
       active: recurringTransaction.active,
     };

@@ -5,6 +5,7 @@
     "moduleResolution": "NodeNext",
     "lib": ["ES2018", "ESNext"],
     "strict": true,
+    "isolatedModules": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

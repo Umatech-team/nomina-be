@@ -9,8 +9,6 @@ import { ListWorkspacesRequest } from './list-workspaces.dto';
 
 type Request = ListWorkspacesRequest & Pick<TokenPayloadSchema, 'sub'>;
 
-type Errors = never;
-
 type Response = {
   workspaces: Array<{
     workspace: Workspace;
@@ -21,16 +19,18 @@ type Response = {
 };
 
 @Injectable()
-export class ListWorkspacesHandler
-  implements Service<Request, Errors, Response>
-{
+export class ListWorkspacesHandler implements Service<
+  Request,
+  never,
+  Response
+> {
   constructor(private readonly workspaceRepository: WorkspaceRepository) {}
 
   async execute({
     page,
     pageSize,
     sub,
-  }: Request): Promise<Either<Errors, Response>> {
+  }: Request): Promise<Either<never, Response>> {
     const result = await this.workspaceRepository.findManyByUserId(
       sub,
       page,

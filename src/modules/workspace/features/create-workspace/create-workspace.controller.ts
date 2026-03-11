@@ -6,11 +6,11 @@ import { WorkspacePresenter } from '@modules/workspace/presenters/Workspace.pres
 import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
   CreateWorkspacePipe,
-  CreateWorkspaceRequest,
+  type CreateWorkspaceRequest,
 } from './create-workspace.dto';
 import { CreateWorkspaceHandler } from './create-workspace.handler';
 

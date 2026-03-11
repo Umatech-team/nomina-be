@@ -3,11 +3,11 @@ import { TransactionPresenter } from '@modules/transaction/presenters/Transactio
 import { Body, Controller, HttpCode, Param, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
-import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
   UpdateTransactionPipe,
-  UpdateTransactionRequest,
+  type UpdateTransactionRequest,
 } from './update-transaction.dto';
 import { UpdateTransactionHandler } from './update-transaction.handler';
 

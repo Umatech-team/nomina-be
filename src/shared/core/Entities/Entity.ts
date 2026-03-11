@@ -36,16 +36,15 @@ export abstract class Entity<T> {
     this._id = id;
   }
 
-  // Optionally, you can implement an equality check method if needed.
-  // public equals(entity: Entity<unknown>) {
-  //   if (entity === this) {
-  //     return true;
-  //   }
+  public equals(entity: Entity<unknown>) {
+    if (entity === this) {
+      return true;
+    }
 
-  //   if (entity.id === this._id) {
-  //     return true;
-  //   }
+    if (entity.id === this._id) {
+      return true;
+    }
 
-  //   return false;
-  // }
+    return false;
+  }
 }
