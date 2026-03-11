@@ -4,7 +4,6 @@ import { PlanType } from '@modules/subscription';
 import { User } from '@modules/user/entities/User';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import { Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { eq } from 'drizzle-orm';
 import { UserMapper } from '../mappers/user.mapper';
 import * as schema from '../schema';
@@ -29,14 +28,14 @@ export class UserRepositoryImplementation implements UserRepository {
     await this.drizzle.db.transaction(async (tx) => {
       await tx.insert(schema.users).values(UserMapper.toDatabase(user));
 
-      const workspaceId = randomUUID();
+      const workspaceId = crypto.randomUUID();
       await tx.insert(schema.workspaces).values({
         id: workspaceId,
         name: 'Espaço Pessoal',
       });
 
       await tx.insert(schema.subscriptions).values({
-        id: randomUUID(),
+        id: crypto.randomUUID(),
         userId: user.id,
         planId: PlanType.TRIAL,
         status: 'ACTIVE',
@@ -44,7 +43,7 @@ export class UserRepositoryImplementation implements UserRepository {
       });
 
       await tx.insert(schema.workspaceUsers).values({
-        id: randomUUID(),
+        id: crypto.randomUUID(),
         userId: user.id,
         workspaceId,
         role: UserRole.OWNER,
@@ -53,7 +52,7 @@ export class UserRepositoryImplementation implements UserRepository {
       });
 
       await tx.insert(schema.accounts).values({
-        id: randomUUID(),
+        id: crypto.randomUUID(),
         workspaceId,
         name: 'Carteira',
         type: AccountType.CASH,
