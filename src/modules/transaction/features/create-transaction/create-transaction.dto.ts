@@ -12,7 +12,7 @@ const createTransactionSchema = z.object({
     .refine(
       (dateString) => {
         const date = new Date(dateString);
-        return !isNaN(date.getTime());
+        return !Number.isNaN(date.getTime());
       },
       {
         message: 'Data deve estar em um formato válido',
