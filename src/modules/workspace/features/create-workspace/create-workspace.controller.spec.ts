@@ -78,7 +78,7 @@ describe('CreateWorkspaceController', () => {
     jest.clearAllMocks();
   });
 
-  describe('handle – Success Cases', () => {
+  describe('handle Success Cases', () => {
     it('should call handler.execute with body merged with sub from token', async () => {
       const body = makeBody();
       const workspace = makeMockWorkspace();
@@ -125,7 +125,7 @@ describe('CreateWorkspaceController', () => {
     });
   });
 
-  describe('handle – Failure Cases', () => {
+  describe('handle Failure Cases', () => {
     it.each([
       [HttpStatus.BAD_REQUEST, 'Invalid workspace data'],
       [HttpStatus.CONFLICT, 'Workspace already exists'],
