@@ -18,9 +18,11 @@ type Errors = HttpException;
 type Response = WorkspaceInvite;
 
 @Injectable()
-export class CreateWorkspaceInviteHandler
-  implements Service<Request, Errors, Response>
-{
+export class CreateWorkspaceInviteHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly workspaceRepository: WorkspaceRepository,
