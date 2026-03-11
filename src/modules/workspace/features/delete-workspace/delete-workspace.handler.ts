@@ -9,17 +9,11 @@ type Request = DeleteWorkspaceRequest;
 
 type Errors = HttpException;
 
-type Response = null;
-
 @Injectable()
-export class DeleteWorkspaceHandler implements Service<
-  Request,
-  Errors,
-  Response
-> {
+export class DeleteWorkspaceHandler implements Service<Request, Errors, null> {
   constructor(private readonly workspaceRepository: WorkspaceRepository) {}
 
-  async execute({ workspaceId }: Request): Promise<Either<Errors, Response>> {
+  async execute({ workspaceId }: Request): Promise<Either<Errors, null>> {
     const workspace = await this.workspaceRepository.findById(workspaceId);
 
     if (!workspace) {
