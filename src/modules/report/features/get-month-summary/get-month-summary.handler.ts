@@ -14,9 +14,11 @@ type Errors = HttpException;
 type Response = MonthSummary;
 
 @Injectable()
-export class FindMonthSummaryHandler
-  implements Service<Request, Errors, Response>
-{
+export class FindMonthSummaryHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(
     private readonly transactionRepository: TransactionRepository,
     private readonly userRepository: UserRepository,
