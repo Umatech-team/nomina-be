@@ -15,6 +15,8 @@ type Response = Array<{
   percentage: number;
 }>;
 
+const TOP_CATEGORIES_LIMIT = 5;
+
 @Injectable()
 export class GetExpensesByCategoryHandler {
   constructor(private readonly drizzle: DrizzleService) {}
@@ -23,38 +25,45 @@ export class GetExpensesByCategoryHandler {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0, 23, 59, 59, 999);
 
-    const totalAmount =
+    const whereConditions = and(
+      eq(schema.transactions.workspaceId, workspaceId),
+      eq(schema.transactions.status, 'COMPLETED'),
+      eq(schema.transactions.type, 'EXPENSE'),
+      gte(schema.transactions.date, startDate),
+      lte(schema.transactions.date, endDate),
+    );
+
+    const totalAmountSql =
       sql<number>`COALESCE(SUM(${schema.transactions.amount}), 0)`.mapWith(
         Number,
       );
 
-    const expenses = await this.drizzle.db
-      .select({
-        categoryId: schema.categories.id,
-        categoryName: schema.categories.name,
-        totalAmount,
-      })
-      .from(schema.transactions)
-      .leftJoin(
-        schema.categories,
-        eq(schema.transactions.categoryId, schema.categories.id),
-      )
-      .where(
-        and(
-          eq(schema.transactions.workspaceId, workspaceId),
-          eq(schema.transactions.status, 'COMPLETED'),
-          eq(schema.transactions.type, 'EXPENSE'),
-          gte(schema.transactions.date, startDate),
-          lte(schema.transactions.date, endDate),
-        ),
-      )
-      .groupBy(schema.categories.id, schema.categories.name)
-      .orderBy(desc(totalAmount));
-
-    const grandTotal = expenses.reduce(
-      (acc, curr) => acc + curr.totalAmount,
-      0,
-    );
+    const [[{ grandTotal }], expenses] = await Promise.all([
+      this.drizzle.db
+        .select({
+          grandTotal:
+            sql<number>`COALESCE(SUM(${schema.transactions.amount}), 0)`.mapWith(
+              Number,
+            ),
+        })
+        .from(schema.transactions)
+        .where(whereConditions),
+      this.drizzle.db
+        .select({
+          categoryId: schema.categories.id,
+          categoryName: schema.categories.name,
+          totalAmount: totalAmountSql,
+        })
+        .from(schema.transactions)
+        .leftJoin(
+          schema.categories,
+          eq(schema.transactions.categoryId, schema.categories.id),
+        )
+        .where(whereConditions)
+        .groupBy(schema.categories.id, schema.categories.name)
+        .orderBy(desc(totalAmountSql))
+        .limit(TOP_CATEGORIES_LIMIT),
+    ]);
 
     return expenses.map((expense) => ({
       categoryId: expense.categoryId ?? 'uncategorized',
