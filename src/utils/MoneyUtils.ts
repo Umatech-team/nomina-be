@@ -21,7 +21,7 @@ export class MoneyUtils {
    */
   static centsToDecimal(cents: number): number {
     // Verifica se o valor é um número válido
-    if (typeof cents !== 'number' || isNaN(cents)) {
+    if (typeof cents !== 'number' || Number.isNaN(cents)) {
       console.warn(
         'MoneyUtils.centsToDecimal: Valor inválido recebido:',
         cents,
@@ -65,7 +65,10 @@ export class MoneyUtils {
       return Money.fromCents(0);
     }
 
-    return amounts.reduce((acc, current) => acc.add(current));
+    return amounts.reduce(
+      (acc, current) => acc.add(current),
+      Money.fromCents(0),
+    );
   }
 
   /**
@@ -76,8 +79,9 @@ export class MoneyUtils {
       return null;
     }
 
-    return amounts.reduce((max, current) =>
-      current.isGreaterThan(max) ? current : max,
+    return amounts.reduce(
+      (max, current) => (current.isGreaterThan(max) ? current : max),
+      amounts[0],
     );
   }
 
@@ -89,8 +93,9 @@ export class MoneyUtils {
       return null;
     }
 
-    return amounts.reduce((min, current) =>
-      current.isLessThan(min) ? current : min,
+    return amounts.reduce(
+      (min, current) => (current.isLessThan(min) ? current : min),
+      amounts[0],
     );
   }
 
