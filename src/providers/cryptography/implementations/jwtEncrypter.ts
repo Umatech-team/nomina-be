@@ -6,11 +6,15 @@ import { Encrypter } from '../contracts/Encrypter';
 
 @Injectable()
 export class JwtEncrypter implements Encrypter, Decoder {
+  private static readonly DEFAULT_SIGN_OPTIONS: JwtSignOptions = {
+    algorithm: 'RS256',
+  };
+
   constructor(private readonly jwtService: JwtService) {}
 
   async encrypt(
     payload: Record<string, unknown>,
-    options: JwtSignOptions = { algorithm: 'RS256' },
+    options: JwtSignOptions = JwtEncrypter.DEFAULT_SIGN_OPTIONS,
   ): Promise<string> {
     return await this.jwtService.signAsync(payload, options);
   }
