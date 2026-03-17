@@ -69,7 +69,10 @@ export class GetExpensesByCategoryHandler {
       categoryId: expense.categoryId ?? 'uncategorized',
       categoryName: expense.categoryName ?? 'Sem Categoria',
       totalAmount: MoneyUtils.centsToDecimal(expense.totalAmount),
-      percentage: grandTotal > 0 ? (expense.totalAmount / grandTotal) * 100 : 0,
+      percentage:
+        grandTotal > 0
+          ? Number(((expense.totalAmount / grandTotal) * 100).toFixed(2))
+          : 0,
     }));
   }
 }
