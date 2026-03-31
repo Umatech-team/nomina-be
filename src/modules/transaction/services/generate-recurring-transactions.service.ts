@@ -6,6 +6,10 @@ import { Transaction } from '../entities/Transaction';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
 import { CalculateNextGenerationDateService } from './calculate-next-generation-date.service';
 
+const LOCK_TTL_SECONDS = 120;
+const CACHE_TTL_SECONDS = 86400;
+const MAX_GENERATIONS_PER_RECURRING = 365;
+
 interface Request {
   workspaceId: string;
   referenceDate?: Date;
@@ -72,14 +76,24 @@ export class GenerateRecurringTransactionsService {
     let currentDate = recurring.lastGenerated ?? recurring.startDate;
 
     let nextDate = this.calculateNextDateService.execute(recurring);
+    let generationCount = 0;
 
     while (nextDate <= referenceDate) {
+      if (generationCount >= MAX_GENERATIONS_PER_RECURRING) {
+        console.warn(
+          `[RecurringTransaction] Cap reached for recurring ${recurring.id}. ` +
+            `Generated ${generationCount} transactions. Remaining will be generated in next run.`,
+        );
+        break;
+      }
+
       if (recurring.endDate && nextDate > recurring.endDate) break;
 
       const transactionOrError = Transaction.create({
         workspaceId: recurring.workspaceId,
         accountId: recurring.accountId,
         categoryId: recurring.categoryId,
+        title: recurring.title,
         description: recurring.description,
         amount: recurring.amount,
         date: nextDate,
@@ -105,6 +119,7 @@ export class GenerateRecurringTransactionsService {
 
       recurring.lastGenerated = currentDate;
       nextDate = this.calculateNextDateService.execute(recurring);
+      generationCount++;
     }
 
     if (transactionsToCreate.length === 0) return 0;
@@ -130,7 +145,7 @@ export class GenerateRecurringTransactionsService {
     date: Date,
   ): Promise<void> {
     const key = this.getCacheKey(workspaceId, date);
-    await this.redis.set(key, '1', 86400);
+    await this.redis.set(key, '1', CACHE_TTL_SECONDS);
   }
 
   private getCacheKey(workspaceId: string, date: Date): string {
@@ -140,7 +155,7 @@ export class GenerateRecurringTransactionsService {
 
   private async acquireLock(workspaceId: string): Promise<boolean> {
     const lockKey = `lock:recurring:${workspaceId}`;
-    return await this.redis.acquireLock(lockKey, 30);
+    return await this.redis.acquireLock(lockKey, LOCK_TTL_SECONDS);
   }
 
   private async releaseLock(workspaceId: string): Promise<void> {
