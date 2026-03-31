@@ -8,12 +8,12 @@ const listTransactionsSchema = z.object({
     .int()
     .positive('Tamanho da página deve ser um número positivo')
     .max(100, 'Tamanho da página muito grande'),
-  startDate: z.date().optional(),
-  endDate: z.date().optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
   type: z.string().optional(),
   categoryId: z.string().optional(),
   accountId: z.string().optional(),
-  description: z.string().optional(),
+  title: z.string().optional(),
   status: z.string().optional(),
 });
 
