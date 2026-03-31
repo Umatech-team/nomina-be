@@ -17,9 +17,11 @@ type Errors = HttpException;
 type Response = RecurringTransaction;
 
 @Injectable()
-export class UpdateRecurringTransactionHandler
-  implements Service<Request, Errors, Response>
-{
+export class UpdateRecurringTransactionHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(
     private readonly recurringRepository: RecurringTransactionRepository,
     private readonly categoryRepository: CategoryRepository,
@@ -29,6 +31,7 @@ export class UpdateRecurringTransactionHandler
     recurringTransactionId,
     workspaceId,
     categoryId,
+    title,
     description,
     amount,
     frequency,
@@ -61,15 +64,11 @@ export class UpdateRecurringTransactionHandler
       );
     }
 
-    if (categoryId) {
-      const category = await this.categoryRepository.findById(categoryId);
+    const categoryError = await this.validateCategory(categoryId, workspaceId);
+    if (categoryError) return left(categoryError);
 
-      const isGlobalCategory = !category?.workspaceId;
-      const belongsToWorkspace = category?.workspaceId === workspaceId;
-
-      if (!category || (!isGlobalCategory && !belongsToWorkspace)) {
-        return left(new HttpException('Unauthorized', 403));
-      }
+    if (title !== undefined) {
+      recurring.title = title;
     }
 
     if (description !== undefined) {
@@ -95,5 +94,22 @@ export class UpdateRecurringTransactionHandler
     const updated = await this.recurringRepository.update(recurring);
 
     return right(updated);
+  }
+
+  private async validateCategory(
+    categoryId: string | null | undefined,
+    workspaceId: string,
+  ): Promise<HttpException | null> {
+    if (!categoryId) return null;
+
+    const category = await this.categoryRepository.findById(categoryId);
+    const isGlobalCategory = !category?.workspaceId;
+    const belongsToWorkspace = category?.workspaceId === workspaceId;
+
+    if (!category || (!isGlobalCategory && !belongsToWorkspace)) {
+      return new HttpException('Unauthorized', 403);
+    }
+
+    return null;
   }
 }
