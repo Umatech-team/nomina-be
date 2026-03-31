@@ -7,7 +7,7 @@ import Redis from 'ioredis';
 export class RedisService implements OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
   private client: Redis | null = null;
-  private isEnabled: boolean;
+  private readonly isEnabled: boolean;
 
   constructor(private readonly configService: ConfigService) {
     this.isEnabled = env.REDIS_ENABLED ?? false;
