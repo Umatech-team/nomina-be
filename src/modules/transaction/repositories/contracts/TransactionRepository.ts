@@ -12,7 +12,7 @@ export abstract class TransactionRepository {
     type?: string,
     categoryId?: string,
     accountId?: string,
-    description?: string,
+    title?: string,
     status?: string,
   ): Promise<Transaction[]>;
 
