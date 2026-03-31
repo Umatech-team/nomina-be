@@ -8,9 +8,7 @@ import { TransactionMapper } from '../mappers/transaction.mapper';
 import * as schema from '../schema';
 
 @Injectable()
-export class TransactionRepositoryImplementation
-  implements TransactionRepository
-{
+export class TransactionRepositoryImplementation implements TransactionRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
   async findUniqueById(id: string): Promise<Transaction | null> {
@@ -32,7 +30,7 @@ export class TransactionRepositoryImplementation
     type?: string,
     categoryId?: string,
     accountId?: string,
-    description?: string,
+    title?: string,
     status?: string,
   ): Promise<Transaction[]> {
     const transactions = await this.drizzle.db
@@ -48,9 +46,7 @@ export class TransactionRepositoryImplementation
             ? eq(schema.transactions.categoryId, categoryId)
             : undefined,
           accountId ? eq(schema.transactions.accountId, accountId) : undefined,
-          description
-            ? like(schema.transactions.description, `%${description}%`)
-            : undefined,
+          title ? like(schema.transactions.title, `%${title}%`) : undefined,
           status ? eq(schema.transactions.status, status) : undefined,
         ),
       )
