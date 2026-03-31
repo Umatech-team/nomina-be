@@ -5,7 +5,8 @@ import { z } from 'zod';
 const createTransactionSchema = z.object({
   accountId: z.string().uuid('ID da conta inválido'),
   categoryId: z.string().uuid('ID da categoria inválido'),
-  description: z.string().min(1, 'Descrição é obrigatória'),
+  title: z.string().min(1, 'Título é obrigatório'),
+  description: z.string().optional().nullable(),
   amount: z.coerce.number().positive('Valor deve ser positivo'),
   date: z
     .string()
