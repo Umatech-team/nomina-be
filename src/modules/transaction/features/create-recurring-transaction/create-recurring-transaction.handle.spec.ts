@@ -1,7 +1,7 @@
 import {
-  AccountType,
-  RecurrenceFrequency,
-  TransactionType,
+    AccountType,
+    RecurrenceFrequency,
+    TransactionType,
 } from '@constants/enums';
 import { Account } from '@modules/account/entities/Account';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
@@ -31,7 +31,7 @@ const makeRequest = (overrides: Partial<Request> = {}): Request => ({
   workspaceId: WORKSPACE_ID,
   accountId: ACCOUNT_ID,
   categoryId: CATEGORY_ID,
-  description: 'Monthly rent',
+  title: 'Monthly rent',
   amount: 100000n,
   frequency: RecurrenceFrequency.MONTHLY,
   interval: 1,
@@ -79,7 +79,8 @@ const makeRecurringTransaction = (): RecurringTransaction =>
       workspaceId: WORKSPACE_ID,
       accountId: ACCOUNT_ID,
       categoryId: CATEGORY_ID,
-      description: 'Monthly rent',
+      title: 'Monthly rent',
+      description: null,
       amount: 100000n,
       frequency: RecurrenceFrequency.MONTHLY,
       interval: 1,

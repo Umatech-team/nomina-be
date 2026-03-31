@@ -8,6 +8,7 @@ export class RecurringTransactionPresenter {
       workspaceId: recurringTransaction.workspaceId,
       accountId: recurringTransaction.accountId,
       categoryId: recurringTransaction.categoryId,
+      title: recurringTransaction.title,
       description: recurringTransaction.description,
       amount: MoneyUtils.centsToDecimal(Number(recurringTransaction.amount)),
       frequency: recurringTransaction.frequency,

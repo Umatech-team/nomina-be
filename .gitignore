@@ -192,3 +192,5 @@ public.key
 .docker/*
 src/metadata.ts
 .github/instructions/*
+.github/agents/*
+.github/prompts/*

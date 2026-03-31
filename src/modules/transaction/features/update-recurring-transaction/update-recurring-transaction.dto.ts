@@ -4,7 +4,8 @@ import { z } from 'zod';
 
 const updateRecurringTransactionSchema = z.object({
   categoryId: z.string().uuid('ID da categoria inválido').nullable().optional(),
-  description: z.string().min(1, 'Descrição é obrigatória').optional(),
+  title: z.string().min(1, 'Título é obrigatório').optional(),
+  description: z.string().optional().nullable(),
   amount: z.coerce.number().positive('Valor deve ser positivo').optional(),
   frequency: z.nativeEnum(RecurrenceFrequency).optional(),
   interval: z.coerce

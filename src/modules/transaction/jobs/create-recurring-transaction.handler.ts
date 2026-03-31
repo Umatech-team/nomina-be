@@ -7,6 +7,11 @@ import { Transaction } from '../entities/Transaction';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
 import { CalculateNextGenerationDateService } from '../services/calculate-next-generation-date.service';
 
+const BATCH_SIZE = 50;
+const LOCK_TTL_SECONDS = 300;
+const CACHE_TTL_SECONDS = 86400;
+const MAX_GENERATIONS_PER_RECURRING = 365;
+
 interface Response {
   generatedCount: number;
 }
@@ -44,28 +49,34 @@ export class GenerateRecurringTransactionsJobHandler {
     }
 
     try {
-      const recurrings = await this.recurringRepository.listNeedingGeneration(
-        referenceDate,
-        10,
-        0,
-      );
-      console.log(
-        `Found ${recurrings.length} recurring transactions needing generation.`,
-      );
-
       let generatedCount = 0;
+      let offset = 0;
+      let batch: RecurringTransaction[];
 
-      for (const recurring of recurrings) {
-        console.log(`Processing recurring transaction: ${recurring.id}`);
-        const generated = await this.generateTransactionsForRecurring(
-          recurring,
+      do {
+        batch = await this.recurringRepository.listNeedingGeneration(
           referenceDate,
+          BATCH_SIZE,
+          offset,
         );
         console.log(
-          `Generated ${generated} transactions for recurring ${recurring.id}`,
+          `Processing batch at offset ${offset}, found ${batch.length} recurrings`,
         );
-        generatedCount += generated;
-      }
+
+        for (const recurring of batch) {
+          console.log(`Processing recurring transaction: ${recurring.id}`);
+          const generated = await this.generateTransactionsForRecurring(
+            recurring,
+            referenceDate,
+          );
+          console.log(
+            `Generated ${generated} transactions for recurring ${recurring.id}`,
+          );
+          generatedCount += generated;
+        }
+
+        offset += BATCH_SIZE;
+      } while (batch.length === BATCH_SIZE);
 
       await this.markAsProcessedToday(referenceDate);
       console.log('Marked as processed today.');
@@ -93,7 +104,17 @@ export class GenerateRecurringTransactionsJobHandler {
 
     console.log(`Initial target date: ${targetDate.toISOString()}`);
 
+    let generationCount = 0;
+
     while (targetDate <= referenceDate) {
+      if (generationCount >= MAX_GENERATIONS_PER_RECURRING) {
+        console.warn(
+          `[RecurringTransaction] Cap reached for recurring ${recurring.id}. ` +
+            `Generated ${generationCount} transactions. Remaining will be generated in next run.`,
+        );
+        break;
+      }
+
       console.log(`Evaluating target date: ${targetDate.toISOString()}`);
 
       if (recurring.endDate && targetDate > recurring.endDate) {
@@ -107,6 +128,7 @@ export class GenerateRecurringTransactionsJobHandler {
         workspaceId: recurring.workspaceId,
         accountId: recurring.accountId,
         categoryId: recurring.categoryId,
+        title: recurring.title,
         description: recurring.description,
         amount: recurring.amount,
         date: targetDate,
@@ -128,6 +150,7 @@ export class GenerateRecurringTransactionsJobHandler {
 
       recurring.lastGenerated = targetDate;
       targetDate = this.calculateNextDateService.execute(recurring);
+      generationCount++;
 
       console.log(
         `Next target date calculated as: ${targetDate.toISOString()}`,
@@ -156,7 +179,7 @@ export class GenerateRecurringTransactionsJobHandler {
 
   private async markAsProcessedToday(date: Date): Promise<void> {
     const key = this.getCacheKey(date);
-    await this.redis.set(key, '1', 86400);
+    await this.redis.set(key, '1', CACHE_TTL_SECONDS);
     console.log(`Marked as processed today with key ${key}`);
   }
 
@@ -169,7 +192,7 @@ export class GenerateRecurringTransactionsJobHandler {
 
   private async acquireLock(date: Date): Promise<boolean> {
     const lockKey = `lock:recurring:${date.toISOString().split('T')[0]}`;
-    const acquired = await this.redis.acquireLock(lockKey, 30);
+    const acquired = await this.redis.acquireLock(lockKey, LOCK_TTL_SECONDS);
     console.log(`Acquiring lock with key ${lockKey}: ${acquired}`);
     return acquired;
   }

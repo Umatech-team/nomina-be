@@ -8,6 +8,7 @@ export class TransactionPresenter {
       workspaceId: transaction.workspaceId,
       accountId: transaction.accountId,
       categoryId: transaction.categoryId,
+      title: transaction.title,
       description: transaction.description,
       amount: MoneyUtils.centsToDecimal(Number(transaction.amount)),
       date: transaction.date,

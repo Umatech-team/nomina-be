@@ -158,39 +158,51 @@ export const categories = pgTable(
   ],
 );
 
-export const recurringTransactions = pgTable('recurring_transactions', {
-  id: text('id')
-    .primaryKey()
-    .$default(() => crypto.randomUUID()),
-  workspaceId: text('workspace_id')
-    .notNull()
-    .references(() => workspaces.id, { onDelete: 'cascade' }),
-  accountId: text('account_id')
-    .notNull()
-    .references(() => accounts.id, { onDelete: 'restrict' }),
-  categoryId: text('category_id')
-    .notNull()
-    .references(() => categories.id),
-  type: text('type').notNull(),
+export const recurringTransactions = pgTable(
+  'recurring_transactions',
+  {
+    id: text('id')
+      .primaryKey()
+      .$default(() => crypto.randomUUID()),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    accountId: text('account_id')
+      .notNull()
+      .references(() => accounts.id, { onDelete: 'restrict' }),
+    categoryId: text('category_id')
+      .notNull()
+      .references(() => categories.id),
+    type: text('type').notNull(),
 
-  description: text('description').notNull(),
-  amount: bigint('amount', { mode: 'number' }).notNull(),
+    title: text('title').notNull(),
+    description: text('description'),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
 
-  frequency: text('frequency').notNull(),
-  interval: integer('interval').default(1).notNull(),
+    frequency: text('frequency').notNull(),
+    interval: integer('interval').default(1).notNull(),
 
-  startDate: timestamp('start_date', {
-    withTimezone: true,
-    mode: 'date',
-  }).notNull(),
-  endDate: timestamp('end_date', { withTimezone: true, mode: 'date' }),
+    startDate: timestamp('start_date', {
+      withTimezone: true,
+      mode: 'date',
+    }).notNull(),
+    endDate: timestamp('end_date', { withTimezone: true, mode: 'date' }),
 
-  lastGenerated: timestamp('last_generated', {
-    withTimezone: true,
-    mode: 'date',
-  }),
-  active: boolean('active').default(true).notNull(),
-});
+    lastGenerated: timestamp('last_generated', {
+      withTimezone: true,
+      mode: 'date',
+    }),
+    active: boolean('active').default(true).notNull(),
+  },
+  (table) => [
+    index('idx_recurring_active_start').on(table.active, table.startDate),
+    index('idx_recurring_workspace_active').on(
+      table.workspaceId,
+      table.active,
+    ),
+    index('idx_recurring_last_generated').on(table.lastGenerated),
+  ],
+);
 
 export const transactions = pgTable(
   'transactions',
@@ -208,7 +220,8 @@ export const transactions = pgTable(
       .notNull()
       .references(() => categories.id),
 
-    description: text('description').notNull(),
+    title: text('title').notNull(),
+    description: text('description'),
     amount: bigint('amount', { mode: 'number' }).notNull(),
     date: timestamp('date', { withTimezone: true, mode: 'date' }).notNull(),
     type: text('type').notNull(),

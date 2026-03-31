@@ -1,7 +1,7 @@
 import {
-  AccountType,
-  TransactionStatus,
-  TransactionType,
+    AccountType,
+    TransactionStatus,
+    TransactionType,
 } from '@constants/enums';
 import { Account } from '@modules/account/entities/Account';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
@@ -25,7 +25,7 @@ const makeRequest = (overrides: Partial<Request> = {}): Request => ({
   workspaceId: WORKSPACE_ID,
   accountId: ACCOUNT_ID,
   categoryId: null as unknown as string,
-  description: 'Grocery shopping',
+  title: 'Grocery shopping',
   amount: 5000,
   date: new Date('2024-01-15'),
   type: TransactionType.EXPENSE,

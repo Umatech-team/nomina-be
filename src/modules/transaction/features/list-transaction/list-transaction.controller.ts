@@ -6,8 +6,8 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-  ListTransactionsPipe,
-  type ListTransactionsRequest,
+    ListTransactionsPipe,
+    type ListTransactionsRequest,
 } from './list-transaction.dto';
 import { ListTransactionByIdHandler } from './list-transaction.handler';
 
@@ -29,7 +29,7 @@ export class ListTransactionController {
       type,
       categoryId,
       accountId,
-      description,
+      title,
       status,
     }: ListTransactionsRequest,
   ) {
@@ -43,7 +43,7 @@ export class ListTransactionController {
       type,
       categoryId,
       accountId,
-      description,
+      title,
       status,
     });
 

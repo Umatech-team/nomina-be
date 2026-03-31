@@ -34,7 +34,7 @@ export class ListTransactionByIdHandler
     type,
     categoryId,
     accountId,
-    description,
+    title,
     status,
   }: Request): Promise<Either<Errors, Response>> {
     const user = await this.userRepository.findUniqueById(sub);
@@ -70,7 +70,7 @@ export class ListTransactionByIdHandler
         type,
         categoryId,
         accountId,
-        description,
+        title,
         status,
       );
 
