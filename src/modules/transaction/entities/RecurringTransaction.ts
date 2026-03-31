@@ -9,7 +9,8 @@ export interface RecurringTransactionProps {
   workspaceId: string;
   accountId: string;
   categoryId: string;
-  description: string;
+  title: string;
+  description: string | null;
   amount: bigint;
   frequency: RecurrenceFrequency;
   interval: number;
@@ -28,7 +29,7 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
   static create(
     props: Optional<
       RecurringTransactionProps,
-      'interval' | 'endDate' | 'lastGenerated' | 'active'
+      'interval' | 'endDate' | 'lastGenerated' | 'active' | 'description'
     >,
     id?: string,
   ): Either<HttpException, RecurringTransaction> {
@@ -52,6 +53,7 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
 
     const recurringTransactionProps: RecurringTransactionProps = {
       ...props,
+      description: props.description ?? null,
       interval: props.interval ?? 1,
       endDate: props.endDate ?? null,
       lastGenerated: props.lastGenerated ?? null,
@@ -83,7 +85,11 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return this.props.categoryId;
   }
 
-  get description(): string {
+  get title(): string {
+    return this.props.title;
+  }
+
+  get description(): string | null {
     return this.props.description;
   }
 
@@ -119,7 +125,11 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return this.props.active;
   }
 
-  set description(value: string) {
+  set title(value: string) {
+    this.props.title = value;
+  }
+
+  set description(value: string | null) {
     this.props.description = value;
   }
 
