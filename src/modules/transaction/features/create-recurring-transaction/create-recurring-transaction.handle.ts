@@ -29,6 +29,7 @@ export class CreateRecurringTransactionHandler implements Service<
     workspaceId,
     accountId,
     categoryId,
+    title,
     description,
     amount,
     frequency,
@@ -69,6 +70,7 @@ export class CreateRecurringTransactionHandler implements Service<
     const recurringOrError = RecurringTransaction.create({
       workspaceId,
       accountId,
+      title,
       description,
       categoryId,
       amount,
