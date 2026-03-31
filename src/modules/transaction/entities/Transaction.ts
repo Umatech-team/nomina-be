@@ -8,7 +8,8 @@ export interface TransactionProps {
   workspaceId: string;
   accountId: string;
   categoryId: string;
-  description: string;
+  title: string;
+  description: string | null;
   amount: bigint;
   date: Date;
   type: keyof typeof TransactionType;
@@ -26,7 +27,7 @@ export class Transaction extends AggregateRoot<TransactionProps> {
   static create(
     props: Optional<
       TransactionProps,
-      'createdAt' | 'updatedAt' | 'status' | 'recurringId'
+      'createdAt' | 'updatedAt' | 'status' | 'recurringId' | 'description'
     >,
     id?: string,
   ): Either<Error, Transaction> {
@@ -36,8 +37,8 @@ export class Transaction extends AggregateRoot<TransactionProps> {
       );
     }
 
-    if (!props.description || props.description.trim() === '') {
-      return left(new HttpException('The description is required', 400));
+    if (!props.title || props.title.trim() === '') {
+      return left(new HttpException('The title is required', 400));
     }
 
     if (!props.date) {
@@ -50,6 +51,7 @@ export class Transaction extends AggregateRoot<TransactionProps> {
 
     const transactionProps: TransactionProps = {
       ...props,
+      description: props.description ?? null,
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? null,
       status: props.status ?? TransactionStatus.COMPLETED,
@@ -72,7 +74,11 @@ export class Transaction extends AggregateRoot<TransactionProps> {
     return this.props.categoryId;
   }
 
-  get description(): string {
+  get title(): string {
+    return this.props.title;
+  }
+
+  get description(): string | null {
     return this.props.description;
   }
 
@@ -108,7 +114,12 @@ export class Transaction extends AggregateRoot<TransactionProps> {
     return this.props.updatedAt;
   }
 
-  set description(value: string) {
+  set title(value: string) {
+    this.props.title = value;
+    this.touch();
+  }
+
+  set description(value: string | null) {
     this.props.description = value;
     this.touch();
   }
