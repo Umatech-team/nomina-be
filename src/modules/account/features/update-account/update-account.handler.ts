@@ -5,6 +5,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { statusCode } from '@shared/core/types/statusCode';
+import { MoneyUtils } from '@utils/MoneyUtils';
 import { UpdateAccountRequest } from './update-account.dto';
 
 type Request = UpdateAccountRequest & Pick<TokenPayloadSchema, 'workspaceId'>;
@@ -26,6 +27,7 @@ export class UpdateAccountHandler
     color,
     closingDay,
     dueDay,
+    creditLimit,
   }: Request): Promise<Either<Errors, Response>> {
     const account = await this.accountRepository.findById(accountId);
 
@@ -68,6 +70,12 @@ export class UpdateAccountHandler
     account.color = color;
     account.closingDay = closingDay;
     account.dueDay = dueDay;
+
+    if (creditLimit !== undefined) {
+      account.creditLimit = creditLimit !== null
+        ? BigInt(MoneyUtils.decimalToCents(creditLimit))
+        : null;
+    }
 
     const updatedAccount = await this.accountRepository.update(account);
 
