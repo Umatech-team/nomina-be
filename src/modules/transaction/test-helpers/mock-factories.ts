@@ -1,7 +1,7 @@
 import {
-    RecurrenceFrequency,
-    TransactionStatus,
-    TransactionType,
+  RecurrenceFrequency,
+  TransactionStatus,
+  TransactionType,
 } from '@constants/enums';
 import { RedisService } from '@infra/cache/redis/RedisService';
 import { RecurringTransaction } from '@modules/transaction/entities/RecurringTransaction';
@@ -96,7 +96,7 @@ interface CreateMockTransactionOptions {
   workspaceId?: string;
   accountId?: string;
   destinationAccountId?: string | null;
-  categoryId?: string;
+  categoryId?: string | null;
   title?: string;
   description?: string | null;
   amount?: bigint;
