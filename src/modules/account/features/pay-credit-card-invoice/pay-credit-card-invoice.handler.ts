@@ -103,7 +103,7 @@ export class PayCreditCardInvoiceHandler implements Service<
         workspaceId: props.workspaceId,
         accountId: props.sourceAccountId,
         destinationAccountId: props.creditCardAccountId,
-        categoryId: props.categoryId ?? 'system-transfer',
+        categoryId: props.categoryId ?? null,
         title: `Pagamento fatura ${creditCardAccount.name}`,
         description: props.description ?? null,
         amount: amountBigInt,
