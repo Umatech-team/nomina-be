@@ -3,7 +3,7 @@ import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpensesByCategory';
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, gte, like, lte, sum } from 'drizzle-orm';
+import { and, desc, eq, gte, isNotNull, like, lte, sum } from 'drizzle-orm';
 import { TransactionMapper } from '../mappers/transaction.mapper';
 import * as schema from '../schema';
 
@@ -78,6 +78,7 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
         and(
           eq(schema.transactions.workspaceId, workspaceId),
           eq(schema.transactions.type, 'EXPENSE'),
+          isNotNull(schema.transactions.categoryId),
           gte(schema.transactions.date, startDate),
           lte(schema.transactions.date, endDate),
         ),
@@ -89,7 +90,7 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
     return results.map(
       (r) =>
         new TopExpensesByCategory({
-          categoryId: r.categoryId,
+          categoryId: r.categoryId!,
           categoryName: r.categoryName,
           amount: r.totalAmount,
         }),
