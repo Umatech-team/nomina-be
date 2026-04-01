@@ -40,6 +40,11 @@ const updateRecurringTransactionSchema = z.object({
     .transform((dateString) => new Date(dateString))
     .nullable()
     .optional(),
+  destinationAccountId: z
+    .string()
+    .uuid('ID da conta destino inválido')
+    .nullable()
+    .optional(),
 });
 
 export const UpdateRecurringTransactionPipe = new ZodValidationPipe(
