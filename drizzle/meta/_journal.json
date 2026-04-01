@@ -43,6 +43,13 @@
       "when": 1775072438678,
       "tag": "0005_make_category_id_nullable",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775079777038,
+      "tag": "0006_fix_account_cascade_delete",
+      "breakpoints": true
     }
   ]
 }

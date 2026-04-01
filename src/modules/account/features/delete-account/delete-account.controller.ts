@@ -18,7 +18,7 @@ import { DeleteAccountHandler } from './delete-account.handler';
 export class DeleteAccountController {
   constructor(private readonly handler: DeleteAccountHandler) {}
 
-  @Delete(':id')
+  @Delete(':accountId')
   @HttpCode(statusCode.NO_CONTENT)
   async handle(
     @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
