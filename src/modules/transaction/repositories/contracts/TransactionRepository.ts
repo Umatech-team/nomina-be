@@ -35,21 +35,35 @@ export abstract class TransactionRepository {
 
   abstract createWithBalanceUpdate(
     transaction: Transaction,
-    newBalance: number,
+    sourceNewBalance: number,
+    destinationNewBalance?: number,
   ): Promise<void>;
 
   abstract updateWithBalanceUpdate(
     newTransaction: Transaction,
-    newBalance: number,
+    sourceNewBalance: number,
+    destinationNewBalance?: number,
+    oldDestinationAccountId?: string | null,
+    oldDestinationNewBalance?: number,
   ): Promise<void>;
 
   abstract deleteWithBalanceReversion(
     transaction: Transaction,
-    newBalance: number,
+    sourceNewBalance: number,
+    destinationNewBalance?: number,
   ): Promise<void>;
 
   abstract toggleStatusWithBalanceUpdate(
     transactionId: string,
-    newBalance: number,
+    sourceNewBalance: number,
+    destinationAccountId?: string | null,
+    destinationNewBalance?: number,
   ): Promise<Transaction>;
+
+  abstract findByAccountAndDateRange(
+    accountId: string,
+    workspaceId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Transaction[]>;
 }
