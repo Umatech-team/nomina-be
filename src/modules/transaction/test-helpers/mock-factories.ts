@@ -1,13 +1,27 @@
 import {
-  RecurrenceFrequency,
-  TransactionStatus,
-  TransactionType,
+    RecurrenceFrequency,
+    TransactionStatus,
+    TransactionType,
 } from '@constants/enums';
 import { RedisService } from '@infra/cache/redis/RedisService';
 import { RecurringTransaction } from '@modules/transaction/entities/RecurringTransaction';
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import { RecurringTransactionRepository } from '@modules/transaction/repositories/contracts/RecurringTransactionRepository';
+import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { CalculateNextGenerationDateService } from '@modules/transaction/services/calculate-next-generation-date.service';
+
+export const createMockTransactionRepository =
+  (): jest.Mocked<TransactionRepository> => ({
+    findUniqueById: jest.fn(),
+    listTransactionsByWorkspaceId: jest.fn(),
+    getTopExpensesByCategory: jest.fn(),
+    sumTransactionsByDateRange: jest.fn(),
+    createWithBalanceUpdate: jest.fn(),
+    updateWithBalanceUpdate: jest.fn(),
+    deleteWithBalanceReversion: jest.fn(),
+    toggleStatusWithBalanceUpdate: jest.fn(),
+    findByAccountAndDateRange: jest.fn(),
+  });
 
 export const createMockRecurringTransactionRepository =
   (): jest.Mocked<RecurringTransactionRepository> => ({
@@ -39,6 +53,7 @@ interface CreateMockRecurringTransactionOptions {
   id?: string;
   workspaceId?: string;
   accountId?: string;
+  destinationAccountId?: string | null;
   categoryId?: string;
   title?: string;
   description?: string | null;
@@ -59,6 +74,7 @@ export const createMockRecurringTransaction = (
     {
       workspaceId: options.workspaceId ?? 'workspace-id-123',
       accountId: options.accountId ?? 'account-id-123',
+      destinationAccountId: options.destinationAccountId ?? null,
       categoryId: options.categoryId ?? 'category-id-123',
       title: options.title ?? 'Monthly Salary',
       description: options.description ?? null,
@@ -79,6 +95,7 @@ interface CreateMockTransactionOptions {
   id?: string;
   workspaceId?: string;
   accountId?: string;
+  destinationAccountId?: string | null;
   categoryId?: string;
   title?: string;
   description?: string | null;
@@ -96,6 +113,7 @@ export const createMockTransaction = (
     {
       workspaceId: options.workspaceId ?? 'workspace-id-123',
       accountId: options.accountId ?? 'account-id-123',
+      destinationAccountId: options.destinationAccountId ?? null,
       categoryId: options.categoryId ?? 'category-id-123',
       title: options.title ?? 'Monthly Salary',
       description: options.description ?? null,
