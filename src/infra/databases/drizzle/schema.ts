@@ -170,10 +170,10 @@ export const recurringTransactions = pgTable(
       .references(() => workspaces.id, { onDelete: 'cascade' }),
     accountId: text('account_id')
       .notNull()
-      .references(() => accounts.id, { onDelete: 'restrict' }),
+      .references(() => accounts.id, { onDelete: 'cascade' }),
     destinationAccountId: text('destination_account_id').references(
       () => accounts.id,
-      { onDelete: 'restrict' },
+      { onDelete: 'set null' },
     ),
     categoryId: text('category_id')
       .notNull()
@@ -217,7 +217,7 @@ export const transactions = pgTable(
       .references(() => workspaces.id, { onDelete: 'cascade' }),
     accountId: text('account_id')
       .notNull()
-      .references(() => accounts.id, { onDelete: 'restrict' }),
+      .references(() => accounts.id, { onDelete: 'cascade' }),
     categoryId: text('category_id').references(() => categories.id),
 
     title: text('title').notNull(),
@@ -233,7 +233,7 @@ export const transactions = pgTable(
 
     destinationAccountId: text('destination_account_id').references(
       () => accounts.id,
-      { onDelete: 'restrict' },
+      { onDelete: 'set null' },
     ),
 
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })

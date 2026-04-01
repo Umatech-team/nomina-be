@@ -18,7 +18,11 @@ const updateAccountSchema = z.object({
     .nullable(),
   closingDay: z.number().int().min(1).max(31).nullable(),
   dueDay: z.number().int().min(1).max(31).nullable(),
-  creditLimit: z.coerce.number().positive('Limite deve ser positivo').optional().nullable(),
+  creditLimit: z.coerce
+    .number()
+    .positive('Limite deve ser positivo')
+    .optional()
+    .nullable(),
 });
 
 export const UpdateAccountPipe = new ZodValidationPipe(updateAccountSchema);

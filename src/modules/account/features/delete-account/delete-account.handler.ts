@@ -11,9 +11,11 @@ type Errors = HttpException;
 type Response = null;
 
 @Injectable()
-export class DeleteAccountHandler
-  implements Service<Request, Errors, Response>
-{
+export class DeleteAccountHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(private readonly accountRepository: AccountRepository) {}
 
   async execute({
