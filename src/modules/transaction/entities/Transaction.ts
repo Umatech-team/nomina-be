@@ -8,6 +8,7 @@ export interface TransactionProps {
   workspaceId: string;
   accountId: string;
   categoryId: string;
+  destinationAccountId: string | null;
   title: string;
   description: string | null;
   amount: bigint;
@@ -27,7 +28,7 @@ export class Transaction extends AggregateRoot<TransactionProps> {
   static create(
     props: Optional<
       TransactionProps,
-      'createdAt' | 'updatedAt' | 'status' | 'recurringId' | 'description'
+      'createdAt' | 'updatedAt' | 'status' | 'recurringId' | 'description' | 'destinationAccountId'
     >,
     id?: string,
   ): Either<Error, Transaction> {
@@ -49,8 +50,22 @@ export class Transaction extends AggregateRoot<TransactionProps> {
       return left(new HttpException('The type is required', 400));
     }
 
+    if (props.type === 'TRANSFER') {
+      if (!props.destinationAccountId) {
+        return left(
+          new HttpException('Conta destino é obrigatória para transferências', 400),
+        );
+      }
+      if (props.destinationAccountId === props.accountId) {
+        return left(
+          new HttpException('Conta destino deve ser diferente da conta origem', 400),
+        );
+      }
+    }
+
     const transactionProps: TransactionProps = {
       ...props,
+      destinationAccountId: props.destinationAccountId ?? null,
       description: props.description ?? null,
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? null,
@@ -72,6 +87,10 @@ export class Transaction extends AggregateRoot<TransactionProps> {
 
   get categoryId(): string {
     return this.props.categoryId;
+  }
+
+  get destinationAccountId(): string | null {
+    return this.props.destinationAccountId;
   }
 
   get title(): string {
@@ -146,6 +165,11 @@ export class Transaction extends AggregateRoot<TransactionProps> {
 
   set categoryId(value: string) {
     this.props.categoryId = value;
+    this.touch();
+  }
+
+  set destinationAccountId(value: string | null) {
+    this.props.destinationAccountId = value;
     this.touch();
   }
 
