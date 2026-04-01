@@ -22,6 +22,11 @@ const updateTransaction = z.object({
     .transform((dateString) => new Date(dateString)),
   type: z.nativeEnum(TransactionType),
   status: z.nativeEnum(TransactionStatus),
+  destinationAccountId: z
+    .string()
+    .uuid('ID da conta destino inválido')
+    .optional()
+    .nullable(),
 });
 
 export const UpdateTransactionPipe = new ZodValidationPipe(updateTransaction);
