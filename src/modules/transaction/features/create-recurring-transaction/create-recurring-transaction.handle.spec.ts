@@ -1,7 +1,7 @@
 import {
-    AccountType,
-    RecurrenceFrequency,
-    TransactionType,
+  AccountType,
+  RecurrenceFrequency,
+  TransactionType,
 } from '@constants/enums';
 import { Account } from '@modules/account/entities/Account';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
@@ -55,6 +55,7 @@ const makeAccount = (
       color: null,
       closingDay: null,
       dueDay: null,
+      creditLimit: null,
     },
     overrides.id ?? ACCOUNT_ID,
   );
@@ -78,6 +79,7 @@ const makeRecurringTransaction = (): RecurringTransaction =>
     {
       workspaceId: WORKSPACE_ID,
       accountId: ACCOUNT_ID,
+      destinationAccountId: null,
       categoryId: CATEGORY_ID,
       title: 'Monthly rent',
       description: null,

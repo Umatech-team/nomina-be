@@ -5,7 +5,6 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { endOfMonth, startOfMonth, subMonths } from 'date-fns';
 
 type Request = TokenPayloadBase;
 
@@ -35,13 +34,18 @@ export class FindMonthSummaryHandler implements Service<
     }
 
     const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth();
 
-    const currentMonthStart = startOfMonth(now);
-    const currentMonthEnd = endOfMonth(now);
+    const currentMonthStart = new Date(Date.UTC(year, month, 1));
+    const currentMonthEnd = new Date(
+      Date.UTC(year, month + 1, 0, 23, 59, 59, 999),
+    );
 
-    const previousMonthDate = subMonths(now, 1);
-    const previousMonthStart = startOfMonth(previousMonthDate);
-    const previousMonthEnd = endOfMonth(previousMonthDate);
+    const previousMonthStart = new Date(Date.UTC(year, month - 1, 1));
+    const previousMonthEnd = new Date(
+      Date.UTC(year, month, 0, 23, 59, 59, 999),
+    );
 
     const currentMonthData =
       await this.transactionRepository.sumTransactionsByDateRange(

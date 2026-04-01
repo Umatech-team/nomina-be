@@ -35,8 +35,7 @@ export class DrizzleProvider implements OnModuleDestroy {
     this.logger.log('PostgreSQL connection pool closed.');
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private onQuery(query: string, params: any[]): void {
+  private onQuery(query: string, params: unknown[]): void {
     if (env.NODE_ENV === 'dev') {
       const preview = query.length > 200 ? `${query.slice(0, 200)}…` : query;
       this.logger.debug(

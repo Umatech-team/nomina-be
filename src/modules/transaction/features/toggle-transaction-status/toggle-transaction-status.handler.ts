@@ -45,6 +45,43 @@ export class ToggleTransactionStatusHandler
       return left(new HttpException('Account not found', 404));
     }
 
+    if (transaction.type === 'TRANSFER' && transaction.destinationAccountId) {
+      const destinationAccount = await this.accountRepository.findById(
+        transaction.destinationAccountId,
+      );
+
+      let sourceNewBalance: bigint;
+      let destNewBalance: number | undefined;
+
+      if (transaction.status === 'PENDING') {
+        // PENDING → COMPLETED: apply to both
+        sourceNewBalance = account.balance - BigInt(transaction.amount);
+        if (destinationAccount) {
+          destNewBalance = Number(
+            destinationAccount.balance + BigInt(transaction.amount),
+          );
+        }
+      } else {
+        // COMPLETED → PENDING: revert both
+        sourceNewBalance = account.balance + BigInt(transaction.amount);
+        if (destinationAccount) {
+          destNewBalance = Number(
+            destinationAccount.balance - BigInt(transaction.amount),
+          );
+        }
+      }
+
+      const updatedTransaction =
+        await this.transactionRepository.toggleStatusWithBalanceUpdate(
+          transactionId,
+          Number(sourceNewBalance),
+          transaction.destinationAccountId,
+          destNewBalance,
+        );
+
+      return right(updatedTransaction);
+    }
+
     const newBalance =
       transaction.status === 'PENDING'
         ? account.balance + BigInt(transaction.amount)

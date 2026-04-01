@@ -38,6 +38,7 @@ export class UpdateRecurringTransactionHandler implements Service<
     interval,
     startDate,
     endDate,
+    destinationAccountId,
   }: Request): Promise<Either<Errors, Response>> {
     const recurring = await this.recurringRepository.findById(
       recurringTransactionId,
@@ -89,6 +90,10 @@ export class UpdateRecurringTransactionHandler implements Service<
 
     if (endDate !== undefined) {
       recurring.endDate = endDate;
+    }
+
+    if (destinationAccountId !== undefined) {
+      recurring.destinationAccountId = destinationAccountId;
     }
 
     const updated = await this.recurringRepository.update(recurring);

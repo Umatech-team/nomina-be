@@ -7,6 +7,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
+import { statusCode } from '@shared/core/types/statusCode';
 import { CreateTransactionRequest } from './create-transaction.dto';
 
 type Request = CreateTransactionRequest & TokenPayloadBase;
@@ -35,6 +36,7 @@ export class CreateTransactionHandler implements Service<
     date,
     type,
     status = TransactionStatus.COMPLETED,
+    destinationAccountId,
   }: Request): Promise<Either<Errors, Response>> {
     const account = await this.accountRepository.findById(accountId);
     if (account?.workspaceId !== workspaceId) {
@@ -55,7 +57,8 @@ export class CreateTransactionHandler implements Service<
     const transaction = new Transaction({
       workspaceId,
       accountId,
-      categoryId,
+      categoryId: categoryId ?? null,
+      destinationAccountId: destinationAccountId ?? null,
       title,
       description: description ?? null,
       amount: BigInt(amount),
@@ -67,14 +70,57 @@ export class CreateTransactionHandler implements Service<
       updatedAt: null,
     });
 
-    const newBalance =
-      account.balance +
-      (type === 'INCOME' ? transaction.amount : -transaction.amount);
+    if (type === 'TRANSFER') {
+      if (!destinationAccountId) {
+        return left(
+          new HttpException(
+            'Conta destino é obrigatória para transferências',
+            statusCode.BAD_REQUEST,
+          ),
+        );
+      }
 
-    await this.transactionRepository.createWithBalanceUpdate(
-      transaction,
-      Number(newBalance),
-    );
+      const destinationAccount =
+        await this.accountRepository.findById(destinationAccountId);
+
+      if (!destinationAccount) {
+        return left(
+          new HttpException(
+            'Conta destino não encontrada',
+            statusCode.NOT_FOUND,
+          ),
+        );
+      }
+
+      if (destinationAccount.workspaceId !== workspaceId) {
+        return left(
+          new HttpException(
+            'Conta destino não pertence ao workspace',
+            statusCode.FORBIDDEN,
+          ),
+        );
+      }
+
+      const sourceNewBalance = Number(account.balance - transaction.amount);
+      const destNewBalance = Number(
+        destinationAccount.balance + transaction.amount,
+      );
+
+      await this.transactionRepository.createWithBalanceUpdate(
+        transaction,
+        sourceNewBalance,
+        destNewBalance,
+      );
+    } else {
+      const newBalance =
+        account.balance +
+        (type === 'INCOME' ? transaction.amount : -transaction.amount);
+
+      await this.transactionRepository.createWithBalanceUpdate(
+        transaction,
+        Number(newBalance),
+      );
+    }
 
     return right(transaction);
   }

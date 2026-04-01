@@ -38,6 +38,7 @@ export class CreateRecurringTransactionHandler implements Service<
     endDate,
     type,
     active,
+    destinationAccountId,
   }: Request): Promise<Either<Errors, Response>> {
     const account = await this.accountRepository.findById(accountId);
     if (account?.workspaceId !== workspaceId) {
@@ -70,6 +71,7 @@ export class CreateRecurringTransactionHandler implements Service<
     const recurringOrError = RecurringTransaction.create({
       workspaceId,
       accountId,
+      destinationAccountId,
       title,
       description,
       categoryId,

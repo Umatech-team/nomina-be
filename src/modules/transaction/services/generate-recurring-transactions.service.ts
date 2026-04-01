@@ -92,6 +92,7 @@ export class GenerateRecurringTransactionsService {
       const transactionOrError = Transaction.create({
         workspaceId: recurring.workspaceId,
         accountId: recurring.accountId,
+        destinationAccountId: recurring.destinationAccountId,
         categoryId: recurring.categoryId,
         title: recurring.title,
         description: recurring.description,

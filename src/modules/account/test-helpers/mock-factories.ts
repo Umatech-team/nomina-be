@@ -37,6 +37,7 @@ interface CreateMockAccountOptions {
   color?: string | null;
   closingDay?: number | null;
   dueDay?: number | null;
+  creditLimit?: bigint | null;
 }
 
 /**
@@ -56,6 +57,7 @@ export const createMockAccount = (
       color: options.color ?? null,
       closingDay: options.closingDay ?? null,
       dueDay: options.dueDay ?? null,
+      creditLimit: options.creditLimit ?? null,
     },
     options.id ?? 'account-id-123',
   );

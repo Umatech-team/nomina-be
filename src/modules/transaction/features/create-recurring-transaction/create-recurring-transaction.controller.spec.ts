@@ -42,6 +42,7 @@ const createMockRecurringTransaction = (
     {
       workspaceId: WORKSPACE_ID,
       accountId: 'account-id-123',
+      destinationAccountId: null,
       categoryId: 'category-id-123',
       title: 'Salary',
       description: null,

@@ -13,6 +13,8 @@ export class AccountPresenter {
       color: account.color,
       closingDay: account.closingDay,
       dueDay: account.dueDay,
+      creditLimit: account.creditLimitDecimal,
+      availableLimit: account.availableLimitDecimal,
     };
   }
 }

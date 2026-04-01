@@ -43,12 +43,28 @@ export class DeleteTransactionHandler
       return left(new HttpException('Conta associada não encontrada', 404));
     }
 
-    const newBalance = account.balance - transaction.amount;
+    if (transaction.type === 'TRANSFER' && transaction.destinationAccountId) {
+      const destinationAccount = await this.accountRepository.findById(
+        transaction.destinationAccountId,
+      );
+      const sourceNewBalance = Number(account.balance + transaction.amount);
+      const destNewBalance = destinationAccount
+        ? Number(destinationAccount.balance - transaction.amount)
+        : undefined;
 
-    await this.transactionRepository.deleteWithBalanceReversion(
-      transaction,
-      Number(newBalance),
-    );
+      await this.transactionRepository.deleteWithBalanceReversion(
+        transaction,
+        sourceNewBalance,
+        destNewBalance,
+      );
+    } else {
+      const newBalance = account.balance - transaction.amount;
+
+      await this.transactionRepository.deleteWithBalanceReversion(
+        transaction,
+        Number(newBalance),
+      );
+    }
 
     return right(transaction);
   }

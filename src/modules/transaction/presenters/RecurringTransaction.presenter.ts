@@ -7,6 +7,7 @@ export class RecurringTransactionPresenter {
       id: recurringTransaction.id,
       workspaceId: recurringTransaction.workspaceId,
       accountId: recurringTransaction.accountId,
+      destinationAccountId: recurringTransaction.destinationAccountId,
       categoryId: recurringTransaction.categoryId,
       title: recurringTransaction.title,
       description: recurringTransaction.description,

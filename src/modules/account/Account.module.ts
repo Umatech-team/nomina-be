@@ -7,8 +7,12 @@ import { DeleteAccountController } from './features/delete-account/delete-accoun
 import { DeleteAccountHandler } from './features/delete-account/delete-account.handler';
 import { FindAccountController } from './features/find-account/find-account.controller';
 import { FindAccountByIdHandler } from './features/find-account/find-account.handler';
+import { GetCreditCardInvoiceController } from './features/get-credit-card-invoice/get-credit-card-invoice.controller';
+import { GetCreditCardInvoiceHandler } from './features/get-credit-card-invoice/get-credit-card-invoice.handler';
 import { ListAccountsController } from './features/list-accounts/list-accounts.controller';
 import { ListAccountsHandler } from './features/list-accounts/list-accounts.handler';
+import { PayCreditCardInvoiceController } from './features/pay-credit-card-invoice/pay-credit-card-invoice.controller';
+import { PayCreditCardInvoiceHandler } from './features/pay-credit-card-invoice/pay-credit-card-invoice.handler';
 import { UpdateAccountController } from './features/update-account/update-account.controller';
 import { UpdateAccountHandler } from './features/update-account/update-account.handler';
 @Module({
@@ -19,6 +23,8 @@ import { UpdateAccountHandler } from './features/update-account/update-account.h
     DeleteAccountController,
     FindAccountController,
     ListAccountsController,
+    GetCreditCardInvoiceController,
+    PayCreditCardInvoiceController,
   ],
   providers: [
     CreateAccountHandler,
@@ -26,6 +32,8 @@ import { UpdateAccountHandler } from './features/update-account/update-account.h
     DeleteAccountHandler,
     FindAccountByIdHandler,
     ListAccountsHandler,
+    GetCreditCardInvoiceHandler,
+    PayCreditCardInvoiceHandler,
   ],
   exports: [
     CreateAccountHandler,
@@ -33,6 +41,8 @@ import { UpdateAccountHandler } from './features/update-account/update-account.h
     DeleteAccountHandler,
     FindAccountByIdHandler,
     ListAccountsHandler,
+    GetCreditCardInvoiceHandler,
+    PayCreditCardInvoiceHandler,
   ],
 })
 export class AccountModule {}

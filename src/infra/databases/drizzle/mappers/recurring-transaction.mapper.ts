@@ -12,6 +12,7 @@ export class RecurringTransactionMapper {
     return new RecurringTransaction(
       {
         accountId: raw.accountId,
+        destinationAccountId: raw.destinationAccountId ?? null,
         amount: BigInt(raw.amount),
         categoryId: raw.categoryId,
         title: raw.title,
@@ -35,6 +36,7 @@ export class RecurringTransactionMapper {
     return {
       id: entity.id,
       accountId: entity.accountId,
+      destinationAccountId: entity.destinationAccountId,
       amount: Number(entity.amount),
       categoryId: entity.categoryId,
       title: entity.title,
