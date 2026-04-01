@@ -133,7 +133,8 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
 
   async createWithBalanceUpdate(
     transaction: Transaction,
-    newBalance: number,
+    sourceNewBalance: number,
+    destinationNewBalance?: number,
   ): Promise<void> {
     await this.drizzle.db.transaction(async (tx) => {
       await tx
@@ -142,14 +143,24 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
 
       await tx
         .update(schema.accounts)
-        .set({ balance: newBalance })
+        .set({ balance: sourceNewBalance })
         .where(eq(schema.accounts.id, transaction.accountId));
+
+      if (transaction.destinationAccountId && destinationNewBalance !== undefined) {
+        await tx
+          .update(schema.accounts)
+          .set({ balance: destinationNewBalance })
+          .where(eq(schema.accounts.id, transaction.destinationAccountId));
+      }
     });
   }
 
   async updateWithBalanceUpdate(
     newTransaction: Transaction,
-    newBalance: number,
+    sourceNewBalance: number,
+    destinationNewBalance?: number,
+    oldDestinationAccountId?: string | null,
+    oldDestinationNewBalance?: number,
   ): Promise<void> {
     await this.drizzle.db.transaction(async (tx) => {
       await tx
@@ -159,14 +170,33 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
 
       await tx
         .update(schema.accounts)
-        .set({ balance: newBalance })
+        .set({ balance: sourceNewBalance })
         .where(eq(schema.accounts.id, newTransaction.accountId));
+
+      if (oldDestinationAccountId && oldDestinationNewBalance !== undefined) {
+        await tx
+          .update(schema.accounts)
+          .set({ balance: oldDestinationNewBalance })
+          .where(eq(schema.accounts.id, oldDestinationAccountId));
+      }
+
+      if (
+        newTransaction.destinationAccountId &&
+        destinationNewBalance !== undefined &&
+        newTransaction.destinationAccountId !== oldDestinationAccountId
+      ) {
+        await tx
+          .update(schema.accounts)
+          .set({ balance: destinationNewBalance })
+          .where(eq(schema.accounts.id, newTransaction.destinationAccountId));
+      }
     });
   }
 
   async deleteWithBalanceReversion(
     transaction: Transaction,
-    newBalance: number,
+    sourceNewBalance: number,
+    destinationNewBalance?: number,
   ): Promise<void> {
     await this.drizzle.db.transaction(async (tx) => {
       await tx
@@ -175,14 +205,23 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
 
       await tx
         .update(schema.accounts)
-        .set({ balance: newBalance })
+        .set({ balance: sourceNewBalance })
         .where(eq(schema.accounts.id, transaction.accountId));
+
+      if (transaction.destinationAccountId && destinationNewBalance !== undefined) {
+        await tx
+          .update(schema.accounts)
+          .set({ balance: destinationNewBalance })
+          .where(eq(schema.accounts.id, transaction.destinationAccountId));
+      }
     });
   }
 
   async toggleStatusWithBalanceUpdate(
     transactionId: string,
-    newBalance: number,
+    sourceNewBalance: number,
+    destinationAccountId?: string | null,
+    destinationNewBalance?: number,
   ): Promise<Transaction> {
     return await this.drizzle.db.transaction(async (tx) => {
       const [current] = await tx
@@ -207,10 +246,39 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
 
       await tx
         .update(schema.accounts)
-        .set({ balance: newBalance })
+        .set({ balance: sourceNewBalance })
         .where(eq(schema.accounts.id, current.accountId));
+
+      if (destinationAccountId && destinationNewBalance !== undefined) {
+        await tx
+          .update(schema.accounts)
+          .set({ balance: destinationNewBalance })
+          .where(eq(schema.accounts.id, destinationAccountId));
+      }
 
       return TransactionMapper.toDomain(updatedTransaction);
     });
+  }
+
+  async findByAccountAndDateRange(
+    accountId: string,
+    workspaceId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Transaction[]> {
+    const rows = await this.drizzle.db
+      .select()
+      .from(schema.transactions)
+      .where(
+        and(
+          eq(schema.transactions.accountId, accountId),
+          eq(schema.transactions.workspaceId, workspaceId),
+          gte(schema.transactions.date, startDate),
+          lte(schema.transactions.date, endDate),
+        ),
+      )
+      .orderBy(desc(schema.transactions.date));
+
+    return rows.map(TransactionMapper.toDomain);
   }
 }
