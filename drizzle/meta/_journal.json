@@ -36,6 +36,13 @@
       "when": 1775067754552,
       "tag": "0004_add_credit_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775072438678,
+      "tag": "0005_make_category_id_nullable",
+      "breakpoints": true
     }
   ]
 }
