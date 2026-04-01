@@ -8,6 +8,7 @@ import { statusCode } from '@shared/core/types/statusCode';
 export interface RecurringTransactionProps {
   workspaceId: string;
   accountId: string;
+  destinationAccountId: string | null;
   categoryId: string;
   title: string;
   description: string | null;
@@ -29,7 +30,7 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
   static create(
     props: Optional<
       RecurringTransactionProps,
-      'interval' | 'endDate' | 'lastGenerated' | 'active' | 'description'
+      'interval' | 'endDate' | 'lastGenerated' | 'active' | 'description' | 'destinationAccountId'
     >,
     id?: string,
   ): Either<HttpException, RecurringTransaction> {
@@ -51,8 +52,28 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
       );
     }
 
+    if (props.type === 'TRANSFER') {
+      if (!props.destinationAccountId) {
+        return left(
+          new HttpException(
+            'Conta destino é obrigatória para transferências',
+            statusCode.BAD_REQUEST,
+          ),
+        );
+      }
+      if (props.destinationAccountId === props.accountId) {
+        return left(
+          new HttpException(
+            'Conta destino deve ser diferente da conta origem',
+            statusCode.BAD_REQUEST,
+          ),
+        );
+      }
+    }
+
     const recurringTransactionProps: RecurringTransactionProps = {
       ...props,
+      destinationAccountId: props.destinationAccountId ?? null,
       description: props.description ?? null,
       interval: props.interval ?? 1,
       endDate: props.endDate ?? null,
@@ -79,6 +100,10 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
 
   get accountId(): string {
     return this.props.accountId;
+  }
+
+  get destinationAccountId(): string | null {
+    return this.props.destinationAccountId;
   }
 
   get categoryId(): string {
@@ -163,6 +188,10 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
 
   set type(value: keyof typeof TransactionType) {
     this.props.type = value;
+  }
+
+  set destinationAccountId(value: string | null) {
+    this.props.destinationAccountId = value;
   }
 
   deactivate(): void {
