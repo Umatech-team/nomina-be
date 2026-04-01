@@ -57,7 +57,7 @@ export class CreateTransactionHandler implements Service<
     const transaction = new Transaction({
       workspaceId,
       accountId,
-      categoryId,
+      categoryId: categoryId ?? null,
       destinationAccountId: destinationAccountId ?? null,
       title,
       description: description ?? null,
