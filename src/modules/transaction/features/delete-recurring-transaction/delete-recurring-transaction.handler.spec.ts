@@ -23,6 +23,7 @@ const makeRecurringTransaction = (
     {
       workspaceId: overrides.workspaceId ?? WORKSPACE_ID,
       accountId: 'account-id-111',
+      destinationAccountId: null,
       categoryId: 'category-id-222',
       title: 'Monthly rent',
       description: null,
