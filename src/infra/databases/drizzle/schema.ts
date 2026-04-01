@@ -129,6 +129,7 @@ export const accounts = pgTable('accounts', {
   color: text('color'),
   closingDay: integer('closing_day'),
   dueDay: integer('due_day'),
+  creditLimit: bigint('credit_limit', { mode: 'number' }),
 });
 
 export const categories = pgTable(
@@ -170,6 +171,10 @@ export const recurringTransactions = pgTable(
     accountId: text('account_id')
       .notNull()
       .references(() => accounts.id, { onDelete: 'restrict' }),
+    destinationAccountId: text('destination_account_id').references(
+      () => accounts.id,
+      { onDelete: 'restrict' },
+    ),
     categoryId: text('category_id')
       .notNull()
       .references(() => categories.id),
@@ -196,10 +201,7 @@ export const recurringTransactions = pgTable(
   },
   (table) => [
     index('idx_recurring_active_start').on(table.active, table.startDate),
-    index('idx_recurring_workspace_active').on(
-      table.workspaceId,
-      table.active,
-    ),
+    index('idx_recurring_workspace_active').on(table.workspaceId, table.active),
     index('idx_recurring_last_generated').on(table.lastGenerated),
   ],
 );
@@ -231,6 +233,11 @@ export const transactions = pgTable(
       () => recurringTransactions.id,
     ),
 
+    destinationAccountId: text('destination_account_id').references(
+      () => accounts.id,
+      { onDelete: 'restrict' },
+    ),
+
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
       .defaultNow()
       .notNull(),
@@ -253,6 +260,7 @@ export const transactions = pgTable(
       table.type,
       table.date,
     ),
+    index('idx_trans_destination_account').on(table.destinationAccountId),
   ],
 );
 
