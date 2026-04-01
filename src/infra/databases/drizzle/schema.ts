@@ -218,9 +218,7 @@ export const transactions = pgTable(
     accountId: text('account_id')
       .notNull()
       .references(() => accounts.id, { onDelete: 'restrict' }),
-    categoryId: text('category_id')
-      .notNull()
-      .references(() => categories.id),
+    categoryId: text('category_id').references(() => categories.id),
 
     title: text('title').notNull(),
     description: text('description'),
