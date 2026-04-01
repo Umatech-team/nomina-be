@@ -7,6 +7,7 @@ export class TransactionPresenter {
       id: transaction.id,
       workspaceId: transaction.workspaceId,
       accountId: transaction.accountId,
+      destinationAccountId: transaction.destinationAccountId,
       categoryId: transaction.categoryId,
       title: transaction.title,
       description: transaction.description,
