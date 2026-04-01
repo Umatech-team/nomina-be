@@ -17,7 +17,7 @@ Este é um backend de gestão patrimonial pessoal construído para aqueles que n
 ## 🚀 Stack Tecnológica
 
 - **Framework**: NestJS
-- **Database**: PostgreSQL + Prisma ORM
+- **Database**: PostgreSQL + Drizzle ORM
 - **Cache**: Redis (opcional)
 - **Autenticação**: JWT (RS256)
 - **Arquitetura**: Domain-Driven Design (DDD) + Clean Architecture
@@ -76,7 +76,7 @@ Isso iniciará:
 ### 5. Execute as migrations
 
 ```bash
-npx prisma migrate dev
+npx drizzle-kit migrate
 ```
 
 ### 6. Inicie o servidor
@@ -194,20 +194,17 @@ Sistema baseado em JWT com dois tokens:
 
 ## 🗄️ Database
 
-### Comandos Prisma
+### Comandos Drizzle Kit
 
 ```bash
-# Gerar cliente Prisma
-npx prisma generate
-
-# Criar migration
-npx prisma migrate dev --name <migration-name>
+# Gerar migration
+npx drizzle-kit generate --name <migration-name>
 
 # Aplicar migrations
-npx prisma migrate deploy
+npx drizzle-kit migrate
 
-# Abrir Prisma Studio (GUI)
-npx prisma studio
+# Abrir Drizzle Studio (GUI)
+npx drizzle-kit studio
 ```
 
 ### Gerenciar Containers Docker
@@ -226,7 +223,7 @@ docker-compose logs -f redis
 # Resetar database (CUIDADO!)
 docker-compose down -v
 docker-compose up -d
-npx prisma migrate deploy
+npx drizzle-kit migrate
 ```
 
 ## 📦 Scripts Disponíveis
