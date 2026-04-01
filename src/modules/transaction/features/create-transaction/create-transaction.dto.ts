@@ -2,27 +2,45 @@ import { TransactionStatus, TransactionType } from '@constants/enums';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
-const createTransactionSchema = z.object({
-  accountId: z.string().uuid('ID da conta inválido'),
-  categoryId: z.string().uuid('ID da categoria inválido'),
-  title: z.string().min(1, 'Título é obrigatório'),
-  description: z.string().optional().nullable(),
-  amount: z.coerce.number().positive('Valor deve ser positivo'),
-  date: z
-    .string()
-    .refine(
-      (dateString) => {
-        const date = new Date(dateString);
-        return !Number.isNaN(date.getTime());
-      },
-      {
-        message: 'Data deve estar em um formato válido',
-      },
-    )
-    .transform((dateString) => new Date(dateString)),
-  type: z.nativeEnum(TransactionType),
-  status: z.nativeEnum(TransactionStatus).optional(),
-});
+const createTransactionSchema = z
+  .object({
+    accountId: z.string().uuid('ID da conta inválido'),
+    categoryId: z.string().uuid('ID da categoria inválido'),
+    title: z.string().min(1, 'Título é obrigatório'),
+    description: z.string().optional().nullable(),
+    amount: z.coerce.number().positive('Valor deve ser positivo'),
+    date: z
+      .string()
+      .refine(
+        (dateString) => {
+          const date = new Date(dateString);
+          return !Number.isNaN(date.getTime());
+        },
+        {
+          message: 'Data deve estar em um formato válido',
+        },
+      )
+      .transform((dateString) => new Date(dateString)),
+    type: z.nativeEnum(TransactionType),
+    status: z.nativeEnum(TransactionStatus).optional(),
+    destinationAccountId: z
+      .string()
+      .uuid('ID da conta destino inválido')
+      .optional()
+      .nullable(),
+  })
+  .refine(
+    (data) => {
+      if (data.type === TransactionType.TRANSFER) {
+        return !!data.destinationAccountId;
+      }
+      return true;
+    },
+    {
+      message: 'Conta destino é obrigatória para transferências',
+      path: ['destinationAccountId'],
+    },
+  );
 
 export type CreateTransactionRequest = z.infer<typeof createTransactionSchema>;
 
