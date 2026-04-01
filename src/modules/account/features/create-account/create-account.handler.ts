@@ -6,6 +6,7 @@ import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { statusCode } from '@shared/core/types/statusCode';
+import { MoneyUtils } from '@utils/MoneyUtils';
 import { CreateAccountRequest } from './create-account.dto';
 
 type Request = CreateAccountRequest & TokenPayloadBase;
@@ -29,6 +30,7 @@ export class CreateAccountHandler
     color,
     closingDay,
     dueDay,
+    creditLimit,
     sub,
   }: Request): Promise<Either<Errors, Response>> {
     const user = await this.userRepository.findUniqueById(sub);
@@ -49,6 +51,10 @@ export class CreateAccountHandler
       );
     }
 
+    const creditLimitInCents = creditLimit
+      ? MoneyUtils.decimalToCents(creditLimit)
+      : null;
+
     const accountOrError = Account.create({
       workspaceId,
       name,
@@ -58,6 +64,7 @@ export class CreateAccountHandler
       color,
       closingDay,
       dueDay,
+      creditLimit: creditLimitInCents ? BigInt(creditLimitInCents) : null,
     });
 
     if (accountOrError.isLeft()) {
