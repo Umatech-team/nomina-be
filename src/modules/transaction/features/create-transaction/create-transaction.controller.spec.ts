@@ -37,6 +37,7 @@ const makeTransaction = (
     {
       workspaceId: WORKSPACE_ID,
       accountId: 'account-uuid-123',
+      destinationAccountId: null,
       categoryId: 'category-uuid-123',
       title: 'Groceries',
       description: null,

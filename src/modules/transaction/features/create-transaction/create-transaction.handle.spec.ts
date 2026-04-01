@@ -1,7 +1,7 @@
 import {
-    AccountType,
-    TransactionStatus,
-    TransactionType,
+  AccountType,
+  TransactionStatus,
+  TransactionType,
 } from '@constants/enums';
 import { Account } from '@modules/account/entities/Account';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
@@ -45,6 +45,7 @@ const makeAccount = (
       color: null,
       closingDay: null,
       dueDay: null,
+      creditLimit: null,
     },
     ACCOUNT_ID,
   );
@@ -86,6 +87,7 @@ const createMockTransactionRepository =
     updateWithBalanceUpdate: jest.fn(),
     deleteWithBalanceReversion: jest.fn(),
     toggleStatusWithBalanceUpdate: jest.fn(),
+    findByAccountAndDateRange: jest.fn(),
   });
 
 describe('CreateTransactionHandler', () => {
