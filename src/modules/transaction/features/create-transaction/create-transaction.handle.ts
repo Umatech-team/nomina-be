@@ -73,7 +73,10 @@ export class CreateTransactionHandler implements Service<
     if (type === 'TRANSFER') {
       if (!destinationAccountId) {
         return left(
-          new HttpException('Conta destino é obrigatória para transferências', statusCode.BAD_REQUEST),
+          new HttpException(
+            'Conta destino é obrigatória para transferências',
+            statusCode.BAD_REQUEST,
+          ),
         );
       }
 
@@ -82,13 +85,19 @@ export class CreateTransactionHandler implements Service<
 
       if (!destinationAccount) {
         return left(
-          new HttpException('Conta destino não encontrada', statusCode.NOT_FOUND),
+          new HttpException(
+            'Conta destino não encontrada',
+            statusCode.NOT_FOUND,
+          ),
         );
       }
 
       if (destinationAccount.workspaceId !== workspaceId) {
         return left(
-          new HttpException('Conta destino não pertence ao workspace', statusCode.FORBIDDEN),
+          new HttpException(
+            'Conta destino não pertence ao workspace',
+            statusCode.FORBIDDEN,
+          ),
         );
       }
 
