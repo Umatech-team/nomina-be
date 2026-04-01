@@ -17,6 +17,7 @@ export class AccountMapper {
         color: raw.color ?? null,
         closingDay: raw.closingDay ?? null,
         dueDay: raw.dueDay ?? null,
+        creditLimit: raw.creditLimit !== null && raw.creditLimit !== undefined ? BigInt(raw.creditLimit) : null,
       },
       raw.id,
     );
@@ -33,6 +34,7 @@ export class AccountMapper {
       color: entity.color,
       closingDay: entity.closingDay,
       dueDay: entity.dueDay,
+      creditLimit: entity.creditLimit !== null ? Number(entity.creditLimit) : null,
     };
   }
 }
