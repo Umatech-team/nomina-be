@@ -7,7 +7,7 @@ type TransactionDrizzleInsert = typeof schema.transactions.$inferInsert;
 
 export class TransactionMapper {
   static toDomain(raw: TransactionDrizzle): Transaction {
-    const result = Transaction.create(
+    return new Transaction(
       {
         createdAt: raw.createdAt,
         updatedAt: raw.updatedAt,
@@ -25,12 +25,6 @@ export class TransactionMapper {
       },
       raw.id,
     );
-
-    if (result.isLeft()) {
-      throw result.value;
-    }
-
-    return result.value;
   }
 
   static toDatabase(entity: Transaction): TransactionDrizzleInsert {
