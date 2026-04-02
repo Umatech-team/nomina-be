@@ -46,6 +46,12 @@ const createRecurringTransactionSchema = z
       .optional()
       .nullable(),
     active: z.boolean().optional(),
+    timezoneOffset: z.coerce
+      .number()
+      .int()
+      .min(-720, 'Offset de timezone inválido')
+      .max(840, 'Offset de timezone inválido')
+      .default(0),
     destinationAccountId: z
       .string()
       .uuid('ID da conta destino inválido')

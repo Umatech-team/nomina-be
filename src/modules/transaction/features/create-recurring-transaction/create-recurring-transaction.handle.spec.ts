@@ -1,7 +1,7 @@
 import {
-  AccountType,
-  RecurrenceFrequency,
-  TransactionType,
+    AccountType,
+    RecurrenceFrequency,
+    TransactionType,
 } from '@constants/enums';
 import { Account } from '@modules/account/entities/Account';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
@@ -39,6 +39,7 @@ const makeRequest = (overrides: Partial<Request> = {}): Request => ({
   endDate: null,
   type: TransactionType.EXPENSE,
   active: true,
+  timezoneOffset: 0,
   ...overrides,
 });
 
@@ -244,21 +245,33 @@ describe('CreateRecurringTransactionHandler', () => {
 
   describe('execute – Start Date Validation', () => {
     it.each([
-      ['today', new Date()],
+      [
+        'today',
+        (() => {
+          const d = new Date();
+          return new Date(
+            Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+          );
+        })(),
+      ],
       [
         'yesterday',
         (() => {
           const d = new Date();
-          d.setDate(d.getDate() - 1);
-          return d;
+          d.setUTCDate(d.getUTCDate() - 1);
+          return new Date(
+            Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+          );
         })(),
       ],
       [
         'one week ago',
         (() => {
           const d = new Date();
-          d.setDate(d.getDate() - 7);
-          return d;
+          d.setUTCDate(d.getUTCDate() - 7);
+          return new Date(
+            Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+          );
         })(),
       ],
     ])(
