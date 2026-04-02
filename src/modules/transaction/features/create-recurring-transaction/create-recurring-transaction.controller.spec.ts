@@ -30,6 +30,7 @@ const makeBody = (
   startDate: new Date('2030-01-01'),
   endDate: null,
   active: true,
+  timezoneOffset: 0,
   ...overrides,
 });
 
