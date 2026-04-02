@@ -39,6 +39,7 @@ export class CreateRecurringTransactionHandler implements Service<
     type,
     active,
     destinationAccountId,
+    timezoneOffset,
   }: Request): Promise<Either<Errors, Response>> {
     const account = await this.accountRepository.findById(accountId);
     if (account?.workspaceId !== workspaceId) {
@@ -46,7 +47,8 @@ export class CreateRecurringTransactionHandler implements Service<
     }
 
     const receivedDateString = startDate.toISOString().split('T')[0];
-    const currentDateString = new Date().toISOString().split('T')[0];
+    const userNow = new Date(Date.now() - timezoneOffset * 60_000);
+    const currentDateString = userNow.toISOString().split('T')[0];
 
     if (receivedDateString <= currentDateString) {
       return left(
