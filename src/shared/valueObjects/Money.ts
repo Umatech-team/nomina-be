@@ -8,16 +8,10 @@ export class Money {
 
   constructor(cents: number, currency: string = 'BRL') {
     if (!Number.isInteger(cents)) {
-      throw new Error('Centavos devem ser um número inteiro');
+      throw new TypeError('Centavos devem ser um número inteiro');
     }
 
-    console.log({ cents });
-
-    // if (cents < 0) {
-    //   throw new Error('Valor não pode ser negativo');
-    // }
-
-    if (!currency || currency.length !== 3) {
+    if (currency?.length !== 3) {
       throw new Error('Moeda deve ter 3 caracteres (ex: BRL, USD)');
     }
 
