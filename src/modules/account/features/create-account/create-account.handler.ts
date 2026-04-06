@@ -14,9 +14,11 @@ type Errors = HttpException;
 type Response = Account;
 
 @Injectable()
-export class CreateAccountHandler
-  implements Service<Request, Errors, Response>
-{
+export class CreateAccountHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(
     private readonly accountRepository: AccountRepository,
     private readonly userRepository: UserRepository,

@@ -1,0 +1,69 @@
+# Labels based on changed file paths — used by actions/labeler@v4
+
+module:account:
+  - changed-files:
+      - any-glob-to-any-file: src/modules/account/**
+
+module:category:
+  - changed-files:
+      - any-glob-to-any-file: src/modules/category/**
+
+module:report:
+  - changed-files:
+      - any-glob-to-any-file: src/modules/report/**
+
+module:subscription:
+  - changed-files:
+      - any-glob-to-any-file: src/modules/subscription/**
+
+module:transaction:
+  - changed-files:
+      - any-glob-to-any-file: src/modules/transaction/**
+
+module:user:
+  - changed-files:
+      - any-glob-to-any-file: src/modules/user/**
+
+module:workspace:
+  - changed-files:
+      - any-glob-to-any-file: src/modules/workspace/**
+
+infra:
+  - changed-files:
+      - any-glob-to-any-file: src/infra/**
+
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/infra/databases/**
+          - drizzle/**
+          - drizzle.config.ts
+
+shared:
+  - changed-files:
+      - any-glob-to-any-file: src/shared/**
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.spec.ts'
+          - '**/*.e2e-spec.ts'
+          - src/test-setup.ts
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/workflows/**
+          - docker-compose.yml
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - docs/**
+          - '**/*.md'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - package.json
+          - package-lock.json

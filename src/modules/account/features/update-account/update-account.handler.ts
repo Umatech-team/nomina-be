@@ -8,14 +8,19 @@ import { statusCode } from '@shared/core/types/statusCode';
 import { MoneyUtils } from '@utils/MoneyUtils';
 import { UpdateAccountRequest } from './update-account.dto';
 
-type Request = UpdateAccountRequest & Pick<TokenPayloadSchema, 'workspaceId'>;
+type Request = UpdateAccountRequest & { accountId: string } & Pick<
+    TokenPayloadSchema,
+    'workspaceId'
+  >;
 type Errors = HttpException;
 type Response = Account;
 
 @Injectable()
-export class UpdateAccountHandler
-  implements Service<Request, Errors, Response>
-{
+export class UpdateAccountHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(private readonly accountRepository: AccountRepository) {}
 
   async execute({
@@ -23,8 +28,6 @@ export class UpdateAccountHandler
     name,
     workspaceId,
     type,
-    icon,
-    color,
     closingDay,
     dueDay,
     creditLimit,
@@ -66,15 +69,14 @@ export class UpdateAccountHandler
 
     account.name = name;
     account.type = type;
-    account.icon = icon;
-    account.color = color;
     account.closingDay = closingDay;
     account.dueDay = dueDay;
 
     if (creditLimit !== undefined) {
-      account.creditLimit = creditLimit !== null
-        ? BigInt(MoneyUtils.decimalToCents(creditLimit))
-        : null;
+      account.creditLimit =
+        creditLimit === null
+          ? null
+          : BigInt(MoneyUtils.decimalToCents(creditLimit));
     }
 
     const updatedAccount = await this.accountRepository.update(account);

@@ -31,7 +31,6 @@ export class GenerateRecurringTransactionsJobHandler {
     console.log(`Reference date (UTC): ${referenceDate.toISOString()}`);
 
     const hasAlreadyProcessed = await this.wasProcessedToday(referenceDate);
-    console.log(`Has already processed today: ${hasAlreadyProcessed}`);
 
     if (hasAlreadyProcessed) {
       console.log('Job already processed today, exiting.');
@@ -39,8 +38,6 @@ export class GenerateRecurringTransactionsJobHandler {
     }
 
     const lockAcquired = await this.acquireLock(referenceDate);
-    console.log(`Lock acquired: ${lockAcquired}`);
-
     if (!lockAcquired) {
       console.log(
         'Could not acquire lock for GenerateRecurringTransactionsJobHandler. Another instance might be running.',
@@ -59,18 +56,10 @@ export class GenerateRecurringTransactionsJobHandler {
           BATCH_SIZE,
           offset,
         );
-        console.log(
-          `Processing batch at offset ${offset}, found ${batch.length} recurrings`,
-        );
-
         for (const recurring of batch) {
-          console.log(`Processing recurring transaction: ${recurring.id}`);
           const generated = await this.generateTransactionsForRecurring(
             recurring,
             referenceDate,
-          );
-          console.log(
-            `Generated ${generated} transactions for recurring ${recurring.id}`,
           );
           generatedCount += generated;
         }
@@ -79,16 +68,13 @@ export class GenerateRecurringTransactionsJobHandler {
       } while (batch.length === BATCH_SIZE);
 
       await this.markAsProcessedToday(referenceDate);
-      console.log('Marked as processed today.');
 
-      console.log(`Job finished. Total generated: ${generatedCount}`);
       return right({ generatedCount });
     } catch (error) {
       console.error('Error during job execution:', error);
       throw error;
     } finally {
       await this.releaseLock(referenceDate);
-      console.log('Lock released.');
     }
   }
 
@@ -102,8 +88,6 @@ export class GenerateRecurringTransactionsJobHandler {
       ? this.calculateNextDateService.execute(recurring)
       : recurring.startDate;
 
-    console.log(`Initial target date: ${targetDate.toISOString()}`);
-
     let generationCount = 0;
 
     while (targetDate <= referenceDate) {
@@ -114,8 +98,6 @@ export class GenerateRecurringTransactionsJobHandler {
         );
         break;
       }
-
-      console.log(`Evaluating target date: ${targetDate.toISOString()}`);
 
       if (recurring.endDate && targetDate > recurring.endDate) {
         console.log(
@@ -151,10 +133,6 @@ export class GenerateRecurringTransactionsJobHandler {
       recurring.lastGenerated = targetDate;
       targetDate = this.calculateNextDateService.execute(recurring);
       generationCount++;
-
-      console.log(
-        `Next target date calculated as: ${targetDate.toISOString()}`,
-      );
     }
 
     if (transactionsToCreate.length === 0) {
@@ -173,33 +151,28 @@ export class GenerateRecurringTransactionsJobHandler {
   private async wasProcessedToday(date: Date): Promise<boolean> {
     const key = this.getCacheKey(date);
     const exists = await this.redis.exists(key);
-    console.log(`Checking if processed today with key ${key}: ${exists}`);
     return exists;
   }
 
   private async markAsProcessedToday(date: Date): Promise<void> {
     const key = this.getCacheKey(date);
     await this.redis.set(key, '1', CACHE_TTL_SECONDS);
-    console.log(`Marked as processed today with key ${key}`);
   }
 
   private getCacheKey(date: Date): string {
     const dateStr = date.toISOString().split('T')[0];
     const key = `recurring:${dateStr}`;
-    console.log(`Generated cache key: ${key}`);
     return key;
   }
 
   private async acquireLock(date: Date): Promise<boolean> {
     const lockKey = `lock:recurring:${date.toISOString().split('T')[0]}`;
     const acquired = await this.redis.acquireLock(lockKey, LOCK_TTL_SECONDS);
-    console.log(`Acquiring lock with key ${lockKey}: ${acquired}`);
     return acquired;
   }
 
   private async releaseLock(date: Date): Promise<void> {
     const lockKey = `lock:recurring:${date.toISOString().split('T')[0]}`;
     await this.redis.releaseLock(lockKey);
-    console.log(`Released lock with key ${lockKey}`);
   }
 }

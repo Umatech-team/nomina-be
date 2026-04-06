@@ -17,9 +17,11 @@ type Errors = HttpException;
 type Response = Transaction;
 
 @Injectable()
-export class UpdateTransactionHandler
-  implements Service<Request, Errors, Response>
-{
+export class UpdateTransactionHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(
     private readonly accountRepository: AccountRepository,
     private readonly categoryRepository: CategoryRepository,
@@ -91,21 +93,32 @@ export class UpdateTransactionHandler
 
     const newTransaction = newTransactionOrError.value;
 
-    const sourceNewBalance = this.calculateSourceBalance(
-      account,
+    const { sourceNewBalance, oldSourceAccountId, oldSourceNewBalance } =
+      await this.calculateSourceBalances(
+        account,
+        currentTransaction,
+        newTransaction,
+      );
+
+    const {
+      destinationNewBalance,
+      oldDestinationAccountId,
+      oldDestinationNewBalance,
+    } = await this.calculateDestinationBalances(
       currentTransaction,
       newTransaction,
     );
-
-    const { destinationNewBalance, oldDestinationAccountId, oldDestinationNewBalance } =
-      await this.calculateDestinationBalances(currentTransaction, newTransaction);
 
     await this.transactionRepository.updateWithBalanceUpdate(
       newTransaction,
       Number(sourceNewBalance),
       destinationNewBalance,
-      oldDestinationNewBalance === undefined ? undefined : oldDestinationAccountId,
+      oldDestinationNewBalance === undefined
+        ? undefined
+        : oldDestinationAccountId,
       oldDestinationNewBalance,
+      oldSourceAccountId,
+      oldSourceNewBalance,
     );
 
     return right(newTransaction);
@@ -137,20 +150,93 @@ export class UpdateTransactionHandler
     if (type !== 'TRANSFER') return null;
 
     if (!destinationAccountId) {
-      return new HttpException('Conta destino é obrigatória para transferências', statusCode.BAD_REQUEST);
+      return new HttpException(
+        'Conta destino é obrigatória para transferências',
+        statusCode.BAD_REQUEST,
+      );
     }
     if (destinationAccountId === accountId) {
-      return new HttpException('Conta destino deve ser diferente da conta origem', statusCode.BAD_REQUEST);
+      return new HttpException(
+        'Conta destino deve ser diferente da conta origem',
+        statusCode.BAD_REQUEST,
+      );
     }
-    const destAccount = await this.accountRepository.findById(destinationAccountId);
+    const destAccount =
+      await this.accountRepository.findById(destinationAccountId);
     if (!destAccount) {
-      return new HttpException('Conta destino não encontrada', statusCode.NOT_FOUND);
+      return new HttpException(
+        'Conta destino não encontrada',
+        statusCode.NOT_FOUND,
+      );
     }
     if (destAccount.workspaceId !== workspaceId) {
-      return new HttpException('Conta destino não pertence ao workspace', statusCode.FORBIDDEN);
+      return new HttpException(
+        'Conta destino não pertence ao workspace',
+        statusCode.FORBIDDEN,
+      );
     }
 
     return null;
+  }
+
+  private async calculateSourceBalances(
+    account: Account,
+    currentTransaction: Transaction,
+    newTransaction: Transaction,
+  ): Promise<{
+    sourceNewBalance: bigint;
+    oldSourceAccountId?: string;
+    oldSourceNewBalance?: number;
+  }> {
+    const accountChanged =
+      currentTransaction.accountId !== newTransaction.accountId;
+
+    if (!accountChanged) {
+      return {
+        sourceNewBalance: this.calculateSourceBalance(
+          account,
+          currentTransaction,
+          newTransaction,
+        ),
+      };
+    }
+
+    const oldAccount = await this.accountRepository.findById(
+      currentTransaction.accountId,
+    );
+
+    let oldSourceAccountId: string | undefined;
+    let oldSourceNewBalance: number | undefined;
+
+    if (oldAccount) {
+      let oldBalance = oldAccount.balance;
+      if (
+        currentTransaction.type === 'TRANSFER' ||
+        currentTransaction.type === 'EXPENSE'
+      ) {
+        oldBalance += currentTransaction.amount;
+      } else {
+        oldBalance -= currentTransaction.amount;
+      }
+      oldSourceAccountId = currentTransaction.accountId;
+      oldSourceNewBalance = Number(oldBalance);
+    }
+
+    let newBalance = account.balance;
+    if (
+      newTransaction.type === 'TRANSFER' ||
+      newTransaction.type === 'EXPENSE'
+    ) {
+      newBalance -= newTransaction.amount;
+    } else {
+      newBalance += newTransaction.amount;
+    }
+
+    return {
+      sourceNewBalance: newBalance,
+      oldSourceAccountId,
+      oldSourceNewBalance,
+    };
   }
 
   private calculateSourceBalance(
@@ -161,14 +247,20 @@ export class UpdateTransactionHandler
     let sourceNewBalance = account.balance;
 
     // Revert old effect on source
-    if (currentTransaction.type === 'TRANSFER' || currentTransaction.type === 'EXPENSE') {
+    if (
+      currentTransaction.type === 'TRANSFER' ||
+      currentTransaction.type === 'EXPENSE'
+    ) {
       sourceNewBalance += currentTransaction.amount;
     } else {
       sourceNewBalance -= currentTransaction.amount;
     }
 
     // Apply new effect on source
-    if (newTransaction.type === 'TRANSFER' || newTransaction.type === 'EXPENSE') {
+    if (
+      newTransaction.type === 'TRANSFER' ||
+      newTransaction.type === 'EXPENSE'
+    ) {
       sourceNewBalance -= newTransaction.amount;
     } else {
       sourceNewBalance += newTransaction.amount;
@@ -192,21 +284,33 @@ export class UpdateTransactionHandler
     if (currentTransaction.type === 'TRANSFER' && oldDestId) {
       const oldDestAccount = await this.accountRepository.findById(oldDestId);
       if (oldDestAccount) {
-        oldDestNewBalance = Number(oldDestAccount.balance - currentTransaction.amount);
+        oldDestNewBalance = Number(
+          oldDestAccount.balance - currentTransaction.amount,
+        );
       }
     }
 
     let destNewBalance: number | undefined;
 
     // Apply new destination if new is TRANSFER
-    if (newTransaction.type === 'TRANSFER' && newTransaction.destinationAccountId) {
-      if (newTransaction.destinationAccountId === oldDestId && oldDestNewBalance !== undefined) {
+    if (
+      newTransaction.type === 'TRANSFER' &&
+      newTransaction.destinationAccountId
+    ) {
+      if (
+        newTransaction.destinationAccountId === oldDestId &&
+        oldDestNewBalance !== undefined
+      ) {
         destNewBalance = oldDestNewBalance + Number(newTransaction.amount);
         oldDestNewBalance = undefined;
       } else {
-        const newDestAccount = await this.accountRepository.findById(newTransaction.destinationAccountId);
+        const newDestAccount = await this.accountRepository.findById(
+          newTransaction.destinationAccountId,
+        );
         if (newDestAccount) {
-          destNewBalance = Number(newDestAccount.balance + newTransaction.amount);
+          destNewBalance = Number(
+            newDestAccount.balance + newTransaction.amount,
+          );
         }
       }
     }

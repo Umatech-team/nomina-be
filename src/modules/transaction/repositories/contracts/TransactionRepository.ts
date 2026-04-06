@@ -45,6 +45,8 @@ export abstract class TransactionRepository {
     destinationNewBalance?: number,
     oldDestinationAccountId?: string | null,
     oldDestinationNewBalance?: number,
+    oldSourceAccountId?: string,
+    oldSourceNewBalance?: number,
   ): Promise<void>;
 
   abstract deleteWithBalanceReversion(

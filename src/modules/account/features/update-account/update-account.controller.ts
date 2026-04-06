@@ -32,8 +32,8 @@ export class UpdateAccountController {
   @HttpCode(statusCode.OK)
   async handle(
     @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
-    @Param('accountId') { accountId }: Pick<UpdateAccountRequest, 'accountId'>,
-    @Body(UpdateAccountPipe) body: UpdateAccountRequest,
+    @Param('accountId') accountId: string,
+    @Body(UpdateAccountPipe) body: Omit<UpdateAccountRequest, 'accountId'>,
   ) {
     const data = await this.handler.execute({
       ...body,

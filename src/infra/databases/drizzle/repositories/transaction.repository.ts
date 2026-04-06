@@ -162,6 +162,8 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
     destinationNewBalance?: number,
     oldDestinationAccountId?: string | null,
     oldDestinationNewBalance?: number,
+    oldSourceAccountId?: string,
+    oldSourceNewBalance?: number,
   ): Promise<void> {
     await this.drizzle.db.transaction(async (tx) => {
       await tx
@@ -173,6 +175,13 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
         .update(schema.accounts)
         .set({ balance: sourceNewBalance })
         .where(eq(schema.accounts.id, newTransaction.accountId));
+
+      if (oldSourceAccountId && oldSourceNewBalance !== undefined) {
+        await tx
+          .update(schema.accounts)
+          .set({ balance: oldSourceNewBalance })
+          .where(eq(schema.accounts.id, oldSourceAccountId));
+      }
 
       if (oldDestinationAccountId && oldDestinationNewBalance !== undefined) {
         await tx

@@ -13,13 +13,14 @@ const WORKSPACE_ID = 'workspace-id-abc';
 const ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174000';
 
 const makeRequest = (
-  overrides: Partial<UpdateAccountRequest> & { workspaceId?: string } = {},
-): UpdateAccountRequest & { workspaceId: string } => ({
+  overrides: Partial<UpdateAccountRequest> & {
+    workspaceId?: string;
+    accountId?: string;
+  } = {},
+): UpdateAccountRequest & { workspaceId: string; accountId: string } => ({
   accountId: ACCOUNT_ID,
   name: 'Updated Name',
   type: AccountType.CHECKING,
-  icon: null,
-  color: null,
   closingDay: null,
   dueDay: null,
   workspaceId: WORKSPACE_ID,
@@ -94,10 +95,9 @@ describe('UpdateAccountHandler', () => {
 
       const result = await handler.execute(
         makeRequest({
+          accountId: ACCOUNT_ID,
           name: 'New Name',
           type: AccountType.INVESTMENT,
-          icon: 'chart',
-          color: '#123456',
           closingDay: 5,
           dueDay: 10,
         }),
@@ -127,7 +127,6 @@ describe('UpdateAccountHandler', () => {
         workspaceId: WORKSPACE_ID,
         name: 'Old Name',
       });
-      // findByNameAndWorkspaceId returns the SAME account (same id) → should not conflict
       accountRepository.findById.mockResolvedValue(existing);
       accountRepository.findByNameAndWorkspaceId.mockResolvedValue(existing);
       accountRepository.update.mockResolvedValue(
@@ -138,7 +137,6 @@ describe('UpdateAccountHandler', () => {
         makeRequest({ name: 'New Unique Name' }),
       );
 
-      // findByNameAndWorkspaceId returns existing (same id), no conflict → Right
       expect(result.isRight()).toBe(true);
     });
   });

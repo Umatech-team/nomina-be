@@ -12,9 +12,11 @@ type Errors = HttpException;
 type Response = Transaction;
 
 @Injectable()
-export class DeleteTransactionHandler
-  implements Service<Request, Errors, Response>
-{
+export class DeleteTransactionHandler implements Service<
+  Request,
+  Errors,
+  Response
+> {
   constructor(
     private readonly transactionRepository: TransactionRepository,
     private readonly accountRepository: AccountRepository,
@@ -58,7 +60,10 @@ export class DeleteTransactionHandler
         destNewBalance,
       );
     } else {
-      const newBalance = account.balance - transaction.amount;
+      const newBalance =
+        account.balance > 0
+          ? account.balance - transaction.amount
+          : account.balance + transaction.amount;
 
       await this.transactionRepository.deleteWithBalanceReversion(
         transaction,

@@ -9,12 +9,12 @@ import { fromZodError } from 'zod-validation-error';
  * It will validate the data request on application.
  */
 export class ZodValidationPipe implements PipeTransform {
-  constructor(private schema: ZodSchema) {}
+  constructor(private readonly schema: ZodSchema) {}
 
   transform(value: unknown) {
     try {
       if (env.NODE_ENV === 'dev') {
-        console.log('pipe', value);
+        console.log('pipe', JSON.stringify(value));
       }
       return this.schema.parse(value);
     } catch (err) {
