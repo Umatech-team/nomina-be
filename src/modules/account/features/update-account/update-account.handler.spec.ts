@@ -1,12 +1,4 @@
 import { AccountType } from '@constants/enums';
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  jest,
-} from '@jest/globals';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import {
   createMockAccount,
@@ -16,6 +8,7 @@ import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UpdateAccountRequest } from './update-account.dto';
 import { UpdateAccountHandler } from './update-account.handler';
+import { describe, beforeEach, afterEach, it } from 'node:test';
 
 const WORKSPACE_ID = 'workspace-id-abc';
 const ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174000';
@@ -135,7 +128,6 @@ describe('UpdateAccountHandler', () => {
         workspaceId: WORKSPACE_ID,
         name: 'Old Name',
       });
-      // findByNameAndWorkspaceId returns the SAME account (same id) → should not conflict
       accountRepository.findById.mockResolvedValue(existing);
       accountRepository.findByNameAndWorkspaceId.mockResolvedValue(existing);
       accountRepository.update.mockResolvedValue(
@@ -146,7 +138,6 @@ describe('UpdateAccountHandler', () => {
         makeRequest({ name: 'New Unique Name' }),
       );
 
-      // findByNameAndWorkspaceId returns existing (same id), no conflict → Right
       expect(result.isRight()).toBe(true);
     });
   });

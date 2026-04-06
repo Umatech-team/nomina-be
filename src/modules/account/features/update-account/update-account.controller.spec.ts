@@ -1,18 +1,11 @@
 import { AccountType } from '@constants/enums';
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  jest,
-} from '@jest/globals';
 import { createMockAccount } from '@modules/account/test-helpers/mock-factories';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { RolesGuard } from '@providers/auth/guards/Roles.guard';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left, right } from '@shared/core/errors/Either';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import { UpdateAccountController } from './update-account.controller';
 import { UpdateAccountRequest } from './update-account.dto';
 import { UpdateAccountHandler } from './update-account.handler';

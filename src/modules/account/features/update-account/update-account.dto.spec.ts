@@ -1,5 +1,4 @@
 import { AccountType } from '@constants/enums';
-import { describe, expect, it } from '@jest/globals';
 import { z } from 'zod';
 
 const updateAccountSchema = z.object({
