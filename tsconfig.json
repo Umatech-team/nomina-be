@@ -16,6 +16,7 @@
     "resolveJsonModule": true,
     "baseUrl": "./src",
     "emitDecoratorMetadata": true,
+    "types": ["jest", "node"],
     "paths": {
       "@shared/*": ["./shared/*"],
       "@infra/*": ["./infra/*"],
