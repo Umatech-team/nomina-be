@@ -1,4 +1,12 @@
 import { AccountType } from '@constants/enums';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 import { createMockAccount } from '@modules/account/test-helpers/mock-factories';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -20,11 +28,8 @@ const tokenPayload = {
 const makeBody = (
   overrides: Partial<UpdateAccountRequest> = {},
 ): UpdateAccountRequest => ({
-  accountId: ACCOUNT_ID,
   name: 'Updated Name',
   type: AccountType.CHECKING,
-  icon: null,
-  color: null,
   closingDay: null,
   dueDay: null,
   ...overrides,
@@ -66,11 +71,7 @@ describe('UpdateAccountController', () => {
       });
       handler.execute.mockResolvedValue(right(mockAccount));
 
-      await controller.handle(
-        tokenPayload,
-        { accountId: ACCOUNT_ID } as Pick<UpdateAccountRequest, 'accountId'>,
-        body,
-      );
+      await controller.handle(tokenPayload, ACCOUNT_ID, body);
 
       expect(handler.execute).toHaveBeenCalledWith({
         ...body,
@@ -89,7 +90,7 @@ describe('UpdateAccountController', () => {
 
       const result = await controller.handle(
         tokenPayload,
-        { accountId: ACCOUNT_ID } as Pick<UpdateAccountRequest, 'accountId'>,
+        ACCOUNT_ID,
         makeBody(),
       );
 
@@ -108,11 +109,7 @@ describe('UpdateAccountController', () => {
       );
 
       await expect(
-        controller.handle(
-          tokenPayload,
-          { accountId: ACCOUNT_ID } as Pick<UpdateAccountRequest, 'accountId'>,
-          makeBody(),
-        ),
+        controller.handle(tokenPayload, ACCOUNT_ID, makeBody()),
       ).rejects.toThrow();
     });
 
@@ -122,11 +119,7 @@ describe('UpdateAccountController', () => {
       );
 
       await expect(
-        controller.handle(
-          tokenPayload,
-          { accountId: ACCOUNT_ID } as Pick<UpdateAccountRequest, 'accountId'>,
-          makeBody(),
-        ),
+        controller.handle(tokenPayload, ACCOUNT_ID, makeBody()),
       ).rejects.toThrow();
     });
 
@@ -141,11 +134,7 @@ describe('UpdateAccountController', () => {
       );
 
       await expect(
-        controller.handle(
-          tokenPayload,
-          { accountId: ACCOUNT_ID } as Pick<UpdateAccountRequest, 'accountId'>,
-          makeBody(),
-        ),
+        controller.handle(tokenPayload, ACCOUNT_ID, makeBody()),
       ).rejects.toThrow();
     });
   });
