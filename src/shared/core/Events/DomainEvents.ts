@@ -1,5 +1,3 @@
-// src/shared/core/events/DomainEvents.ts
-
 import { AggregateRoot } from '../Entities/AggregateRoot';
 import { DomainEvent } from './DomainEvent';
 
@@ -9,7 +7,7 @@ export class DomainEvents {
   public static markAggregateForDispatch(
     aggregate: AggregateRoot<unknown>,
   ): void {
-    const aggregateId = aggregate.id.toString(); // Supondo que AggregateRoot tenha uma propriedade `id`
+    const aggregateId = aggregate.id.toString();
     const events = aggregate.domainEvents;
 
     if (!this.aggregateIdToDispatch[aggregateId]) {
@@ -26,7 +24,6 @@ export class DomainEvents {
 
     if (events) {
       events.forEach((event) => {
-        // Aqui você pode despachar o evento para onde for necessário
         console.log(`Dispatching event: ${event.constructor.name}`);
       });
 
