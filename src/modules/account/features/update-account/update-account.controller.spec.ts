@@ -8,7 +8,6 @@ import { left, right } from '@shared/core/errors/Either';
 import { UpdateAccountController } from './update-account.controller';
 import { UpdateAccountRequest } from './update-account.dto';
 import { UpdateAccountHandler } from './update-account.handler';
-import { describe, beforeEach, afterEach, it } from 'node:test';
 
 const WORKSPACE_ID = 'workspace-id-abc';
 const ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174000';
