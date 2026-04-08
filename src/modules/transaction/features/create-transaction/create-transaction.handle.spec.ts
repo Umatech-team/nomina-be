@@ -1,7 +1,7 @@
 import {
-  AccountType,
-  TransactionStatus,
-  TransactionType,
+    AccountType,
+    TransactionStatus,
+    TransactionType,
 } from '@constants/enums';
 import { Account } from '@modules/account/entities/Account';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
@@ -79,6 +79,7 @@ const createMockCategoryRepository = (): jest.Mocked<CategoryRepository> => ({
 
 const createMockTransactionRepository =
   (): jest.Mocked<TransactionRepository> => ({
+    create: jest.fn(),
     findUniqueById: jest.fn(),
     listTransactionsByWorkspaceId: jest.fn(),
     getTopExpensesByCategory: jest.fn(),
