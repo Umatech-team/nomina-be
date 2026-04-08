@@ -35,7 +35,7 @@ export class CreateTransactionHandler implements Service<
     amount,
     date,
     type,
-    status = TransactionStatus.COMPLETED,
+    status,
     destinationAccountId,
   }: Request): Promise<Either<Errors, Response>> {
     const account = await this.accountRepository.findById(accountId);
@@ -54,6 +54,11 @@ export class CreateTransactionHandler implements Service<
       }
     }
 
+    const resolvedStatus =
+      date > new Date()
+        ? TransactionStatus.PENDING
+        : (status ?? TransactionStatus.COMPLETED);
+
     const transaction = new Transaction({
       workspaceId,
       accountId,
@@ -64,7 +69,7 @@ export class CreateTransactionHandler implements Service<
       amount: BigInt(amount),
       date,
       type,
-      status,
+      status: resolvedStatus,
       recurringId: null,
       createdAt: new Date(),
       updatedAt: null,
