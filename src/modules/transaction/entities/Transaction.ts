@@ -75,6 +75,11 @@ export class Transaction extends AggregateRoot<TransactionProps> {
       }
     }
 
+    const status =
+      props.date > new Date()
+        ? TransactionStatus.PENDING
+        : TransactionStatus.COMPLETED;
+
     const transactionProps: TransactionProps = {
       ...props,
       categoryId: props.categoryId ?? null,
@@ -82,7 +87,7 @@ export class Transaction extends AggregateRoot<TransactionProps> {
       description: props.description ?? null,
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? null,
-      status: props.status ?? TransactionStatus.COMPLETED,
+      status,
       recurringId: props.recurringId ?? null,
     };
 
