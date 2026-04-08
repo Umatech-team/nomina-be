@@ -1,13 +1,13 @@
 import { AccountType } from '@constants/enums';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import {
-  createMockAccount,
-  createMockAccountRepository,
+    createMockAccount,
+    createMockAccountRepository,
 } from '@modules/account/test-helpers/mock-factories';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import {
-  createMockTransaction,
-  createMockTransactionRepository,
+    createMockTransaction,
+    createMockTransactionRepository,
 } from '@modules/transaction/test-helpers/mock-factories';
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -101,6 +101,7 @@ describe('GetCreditCardInvoiceHandler', () => {
         expect(result.value.dueDate.getMonth()).toBe(3); // Apr (0-indexed)
         expect(result.value.dueDate.getDate()).toBe(10);
         expect(result.value.totalAmount).toBe(15000);
+        expect(result.value.availableLimit).toBe(485000); // 500000 - 15000
         expect(result.value.transactions).toHaveLength(2);
       }
     });
