@@ -1,14 +1,16 @@
+import { AccountType } from '@constants/enums';
 import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import * as schema from '@infra/databases/drizzle/schema';
 import {
-  HttpException,
-  Injectable,
-  UnauthorizedException,
+    HttpException,
+    Injectable,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { MoneyUtils } from '@utils/MoneyUtils';
-import { and, eq, gte, lt, lte, sql } from 'drizzle-orm';
+import { and, eq, gte, lt, lte, ne, or, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { BalanceEvolutionRequest } from './get-balance-evolution.dto';
 
 type Request = BalanceEvolutionRequest & TokenPayloadBase;
@@ -51,51 +53,97 @@ export class BalanceEvolutionHandler {
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - (period === '7d' ? 7 : 30));
 
+    const destAccount = alias(schema.accounts, 'dest_account');
+
     const sumAmount = sql<number>`SUM(${schema.transactions.amount})`
       .mapWith(Number)
       .as('total_amount');
 
     const isCompleted = eq(schema.transactions.status, 'COMPLETED');
 
+    const isNotCreditCard = ne(
+      schema.accounts.type,
+      AccountType.CREDIT_CARD,
+    );
+
+    const isCreditCardInvoicePayment = and(
+      eq(schema.transactions.type, 'TRANSFER'),
+      eq(destAccount.type, AccountType.CREDIT_CARD),
+    );
+
+    const reportFilter = or(
+      and(
+        sql`${schema.transactions.type} IN ('INCOME', 'EXPENSE')`,
+        isNotCreditCard,
+      ),
+      isCreditCardInvoicePayment,
+    );
+
     const [openingBalanceResult, periodTransactions] = await Promise.all([
       this.drizzle.db
         .select({
           type: schema.transactions.type,
+          destType: destAccount.type,
           amount: sumAmount,
         })
         .from(schema.transactions)
+        .innerJoin(
+          schema.accounts,
+          eq(schema.transactions.accountId, schema.accounts.id),
+        )
+        .leftJoin(
+          destAccount,
+          eq(schema.transactions.destinationAccountId, destAccount.id),
+        )
         .where(
           and(
             eq(schema.transactions.workspaceId, workspaceId),
             isCompleted,
             lt(schema.transactions.date, startDate),
+            reportFilter,
           ),
         )
-        .groupBy(schema.transactions.type),
+        .groupBy(schema.transactions.type, destAccount.type),
 
       this.drizzle.db
         .select({
           date: schema.transactions.date,
           type: schema.transactions.type,
+          destType: destAccount.type,
           amount: sumAmount,
         })
         .from(schema.transactions)
+        .innerJoin(
+          schema.accounts,
+          eq(schema.transactions.accountId, schema.accounts.id),
+        )
+        .leftJoin(
+          destAccount,
+          eq(schema.transactions.destinationAccountId, destAccount.id),
+        )
         .where(
           and(
             eq(schema.transactions.workspaceId, workspaceId),
             isCompleted,
             gte(schema.transactions.date, startDate),
             lte(schema.transactions.date, endDate),
+            reportFilter,
           ),
         )
-        .groupBy(schema.transactions.date, schema.transactions.type),
+        .groupBy(schema.transactions.date, schema.transactions.type, destAccount.type),
     ]);
+
+    const resolveType = (type: string, destType: string | null) =>
+      type === 'TRANSFER' && destType === AccountType.CREDIT_CARD
+        ? 'EXPENSE'
+        : type;
 
     let accumulatedBalance = 0;
 
     for (const res of openingBalanceResult) {
-      if (res.type === 'INCOME') accumulatedBalance += res.amount;
-      if (res.type === 'EXPENSE') accumulatedBalance -= res.amount;
+      const effectiveType = resolveType(res.type, res.destType);
+      if (effectiveType === 'INCOME') accumulatedBalance += res.amount;
+      if (effectiveType === 'EXPENSE') accumulatedBalance -= res.amount;
     }
 
     const dailySummaryMap = new Map<
@@ -117,9 +165,10 @@ export class BalanceEvolutionHandler {
 
       if (!dailySummaryMap.has(dateKey)) continue;
 
+      const effectiveType = resolveType(transaction.type, transaction.destType);
       const summary = dailySummaryMap.get(dateKey)!;
-      if (transaction.type === 'INCOME') summary.income += transaction.amount;
-      if (transaction.type === 'EXPENSE') summary.expense += transaction.amount;
+      if (effectiveType === 'INCOME') summary.income += transaction.amount;
+      if (effectiveType === 'EXPENSE') summary.expense += transaction.amount;
     }
 
     const summaryResult = [];

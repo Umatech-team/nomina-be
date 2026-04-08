@@ -17,6 +17,7 @@ type Response = {
   account: Account;
   transactions: Transaction[];
   totalAmount: number;
+  availableLimit: number | null;
   dueDate: Date;
   periodStart: Date;
   periodEnd: Date;
@@ -65,11 +66,9 @@ export class GetCreditCardInvoiceHandler implements Service<
     const closingDay = account.closingDay!;
     const dueDay = account.dueDay!;
 
-    // Period: closingDay+1 of previous month → closingDay of target month
     const periodEnd = new Date(year, month - 1, closingDay, 23, 59, 59, 999);
     const periodStart = new Date(year, month - 2, closingDay + 1, 0, 0, 0, 0);
 
-    // Due date: dueDay of the month after closing
     const dueDate = new Date(year, month, dueDay);
 
     const transactions =
@@ -85,10 +84,16 @@ export class GetCreditCardInvoiceHandler implements Service<
       0,
     );
 
+    const availableLimit =
+      account.creditLimit === null
+        ? null
+        : Number(account.creditLimit) - totalAmount;
+
     return right({
       account,
       transactions,
       totalAmount,
+      availableLimit,
       dueDate,
       periodStart,
       periodEnd,

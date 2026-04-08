@@ -61,9 +61,9 @@ export class DeleteTransactionHandler implements Service<
       );
     } else {
       const newBalance =
-        account.balance > 0
-          ? account.balance - transaction.amount
-          : account.balance + transaction.amount;
+        transaction.type === 'EXPENSE'
+          ? account.balance + transaction.amount
+          : account.balance - transaction.amount;
 
       await this.transactionRepository.deleteWithBalanceReversion(
         transaction,

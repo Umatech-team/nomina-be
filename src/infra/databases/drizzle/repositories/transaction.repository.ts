@@ -11,6 +11,12 @@ import * as schema from '../schema';
 export class TransactionRepositoryImplementation implements TransactionRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
+  async create(transaction: Transaction): Promise<void> {
+    await this.drizzle.db
+      .insert(schema.transactions)
+      .values(TransactionMapper.toDatabase(transaction));
+  }
+
   async findUniqueById(id: string): Promise<Transaction | null> {
     const [transaction] = await this.drizzle.db
       .select()

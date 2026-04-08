@@ -1,7 +1,7 @@
 import {
-  RecurrenceFrequency,
-  TransactionStatus,
-  TransactionType,
+    RecurrenceFrequency,
+    TransactionStatus,
+    TransactionType,
 } from '@constants/enums';
 import { RedisService } from '@infra/cache/redis/RedisService';
 import { RecurringTransaction } from '@modules/transaction/entities/RecurringTransaction';
@@ -12,6 +12,7 @@ import { CalculateNextGenerationDateService } from '@modules/transaction/service
 
 export const createMockTransactionRepository =
   (): jest.Mocked<TransactionRepository> => ({
+    create: jest.fn(),
     findUniqueById: jest.fn(),
     listTransactionsByWorkspaceId: jest.fn(),
     getTopExpensesByCategory: jest.fn(),

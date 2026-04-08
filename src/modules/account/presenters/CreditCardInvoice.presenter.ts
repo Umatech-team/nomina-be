@@ -8,6 +8,7 @@ interface CreditCardInvoiceData {
   account: Account;
   transactions: Transaction[];
   totalAmount: number;
+  availableLimit: number | null;
   dueDate: Date;
   periodStart: Date;
   periodEnd: Date;
@@ -19,6 +20,10 @@ export class CreditCardInvoicePresenter {
       account: AccountPresenter.toHTTP(data.account),
       transactions: data.transactions.map(TransactionPresenter.toHTTP),
       totalAmount: MoneyUtils.centsToDecimal(data.totalAmount),
+      availableLimit:
+        data.availableLimit === null
+          ? null
+          : MoneyUtils.centsToDecimal(data.availableLimit),
       dueDate: data.dueDate.toISOString(),
       periodStart: data.periodStart.toISOString(),
       periodEnd: data.periodEnd.toISOString(),

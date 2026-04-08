@@ -1,9 +1,11 @@
+import { AccountType } from '@constants/enums';
 import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import * as schema from '@infra/databases/drizzle/schema';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { MoneyUtils } from '@utils/MoneyUtils';
-import { and, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, lte, ne, or, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { CashFlowEvolutionRequest } from './cash-flow-evolution.dto';
 
 type Request = CashFlowEvolutionRequest &
@@ -29,16 +31,32 @@ export class CashFlowEvolutionHandler {
 
     end.setUTCHours(23, 59, 59, 999);
 
+    const destAccount = alias(schema.accounts, 'dest_account');
+
+    const effectiveType =
+      sql<string>`CASE WHEN ${schema.transactions.type} = 'TRANSFER' AND ${destAccount.type} = ${AccountType.CREDIT_CARD} THEN 'EXPENSE' ELSE ${schema.transactions.type} END`;
+
     const dateFormatted = sql<string>`to_char(${schema.transactions.date}, 'YYYY-MM-DD')`;
 
     const incomes =
-      sql<number>`COALESCE(SUM(CASE WHEN ${schema.transactions.type} = 'INCOME' THEN ${schema.transactions.amount} ELSE 0 END), 0)`.mapWith(
+      sql<number>`COALESCE(SUM(CASE WHEN ${effectiveType} = 'INCOME' THEN ${schema.transactions.amount} ELSE 0 END), 0)`.mapWith(
         Number,
       );
     const expenses =
-      sql<number>`COALESCE(SUM(CASE WHEN ${schema.transactions.type} = 'EXPENSE' THEN ${schema.transactions.amount} ELSE 0 END), 0)`.mapWith(
+      sql<number>`COALESCE(SUM(CASE WHEN ${effectiveType} = 'EXPENSE' THEN ${schema.transactions.amount} ELSE 0 END), 0)`.mapWith(
         Number,
       );
+
+    const reportFilter = or(
+      and(
+        sql`${schema.transactions.type} IN ('INCOME', 'EXPENSE')`,
+        ne(schema.accounts.type, AccountType.CREDIT_CARD),
+      ),
+      and(
+        eq(schema.transactions.type, 'TRANSFER'),
+        eq(destAccount.type, AccountType.CREDIT_CARD),
+      ),
+    );
 
     const aggregates = await this.drizzle.db
       .select({
@@ -48,13 +66,21 @@ export class CashFlowEvolutionHandler {
         balance: sql<number>`(${incomes}) - (${expenses})`.mapWith(Number),
       })
       .from(schema.transactions)
+      .innerJoin(
+        schema.accounts,
+        eq(schema.transactions.accountId, schema.accounts.id),
+      )
+      .leftJoin(
+        destAccount,
+        eq(schema.transactions.destinationAccountId, destAccount.id),
+      )
       .where(
         and(
           eq(schema.transactions.workspaceId, workspaceId),
           eq(schema.transactions.status, 'COMPLETED'),
-          inArray(schema.transactions.type, ['INCOME', 'EXPENSE']),
           gte(schema.transactions.date, start),
           lte(schema.transactions.date, end),
+          reportFilter,
         ),
       )
       .groupBy(dateFormatted)
