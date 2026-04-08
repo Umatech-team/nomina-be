@@ -2,6 +2,7 @@ import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpe
 import { Transaction } from '../../entities/Transaction';
 
 export abstract class TransactionRepository {
+  abstract create(transaction: Transaction): Promise<void>;
   abstract findUniqueById(id: string): Promise<Transaction | null>;
   abstract listTransactionsByWorkspaceId(
     workspaceId: string,
