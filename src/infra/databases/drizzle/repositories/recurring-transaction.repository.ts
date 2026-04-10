@@ -9,9 +9,7 @@ import { TransactionMapper } from '../mappers/transaction.mapper';
 import * as schema from '../schema';
 
 @Injectable()
-export class RecurringTransactionRepositoryImplementation
-  implements RecurringTransactionRepository
-{
+export class RecurringTransactionRepositoryImplementation implements RecurringTransactionRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
   async create(
