@@ -28,7 +28,6 @@ export class GenerateRecurringTransactionsJobHandler {
     const referenceDate = new Date();
 
     referenceDate.setUTCHours(0, 0, 0, 0);
-    console.log(`Reference date (UTC): ${referenceDate.toISOString()}`);
 
     const hasAlreadyProcessed = await this.wasProcessedToday(referenceDate);
 
@@ -36,6 +35,9 @@ export class GenerateRecurringTransactionsJobHandler {
       console.log('Job already processed today, exiting.');
       return right({ generatedCount: 0 });
     }
+
+    referenceDate.setUTCDate(referenceDate.getUTCDate() + 7);
+    console.log(`Reference date (UTC): ${referenceDate.toISOString()}`);
 
     const lockAcquired = await this.acquireLock(referenceDate);
     if (!lockAcquired) {

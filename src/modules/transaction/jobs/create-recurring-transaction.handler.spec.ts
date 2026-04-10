@@ -118,11 +118,8 @@ describe('GenerateRecurringTransactionsJobHandler', () => {
       ]);
       recurringRepository.createGeneratedTransactions.mockResolvedValue();
 
-      // startDate is 2026-03-01, referenceDate is 2026-03-31
-      // For monthly frequency: startDate <= referenceDate, so 1 transaction
-      // After first iteration, nextDate = 2026-04-01 > referenceDate, loop stops
       calculateNextDateService.execute.mockReturnValue(
-        new Date('2026-04-01T00:00:00.000Z'),
+        new Date('2026-04-08T00:00:00.000Z'),
       );
 
       const result = await handler.execute();
@@ -158,9 +155,10 @@ describe('GenerateRecurringTransactionsJobHandler', () => {
 
       recurringRepository.createGeneratedTransactions.mockResolvedValue();
 
-      // Each recurring generates 1 transaction then nextDate > referenceDate
+      // The handler advances the reference date by 7 days, so returning a date
+      // after 2026-04-07 ensures each recurring generates only 1 transaction.
       calculateNextDateService.execute.mockReturnValue(
-        new Date('2026-04-01T00:00:00.000Z'),
+        new Date('2026-04-08T00:00:00.000Z'),
       );
 
       const result = await handler.execute();
