@@ -17,7 +17,7 @@ export class DeleteWorkspaceController {
 
   @Delete(':workspaceId')
   @HttpCode(statusCode.NO_CONTENT)
-  async handle(@Param('workspaceId') { workspaceId }: DeleteWorkspaceRequest) {
+  async handle(@Param() { workspaceId }: DeleteWorkspaceRequest) {
     const result = await this.handler.execute({
       workspaceId,
     });
