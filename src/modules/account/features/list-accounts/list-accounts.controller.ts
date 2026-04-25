@@ -12,7 +12,7 @@ import {
   ListAccountsPipe,
   type ListAccountsRequest,
 } from './list-accounts.dto';
-import { ListAccountsService } from './list-accounts.handler';
+import { ListAccountsService } from './list-accounts.service';
 
 @ApiTags('Account')
 @Controller('account')
