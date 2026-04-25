@@ -125,8 +125,7 @@ export const accounts = pgTable('accounts', {
   name: text('name').notNull(),
   type: text('type').notNull(),
   balance: bigint('balance', { mode: 'number' }).default(0).notNull(),
-  icon: text('icon'),
-  color: text('color'),
+  timezone: text('time_zone').notNull().default('America/Sao_Paulo'),
   closingDay: integer('closing_day'),
   dueDay: integer('due_day'),
   creditLimit: bigint('credit_limit', { mode: 'number' }),
@@ -227,6 +226,10 @@ export const transactions = pgTable(
     type: text('type').notNull(),
     status: text('status').notNull(),
 
+    installmentGroupId: text('installment_group_id'),
+    installmentNumber: integer('installment_number'),
+    installmentCount: integer('installment_count'),
+
     recurringId: text('recurring_transaction_id').references(
       () => recurringTransactions.id,
     ),
@@ -259,6 +262,7 @@ export const transactions = pgTable(
       table.date,
     ),
     index('idx_trans_destination_account').on(table.destinationAccountId),
+    index('idx_trans_installment_group').on(table.installmentGroupId),
   ],
 );
 
