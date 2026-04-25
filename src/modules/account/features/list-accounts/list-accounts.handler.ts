@@ -1,4 +1,4 @@
-import { Account } from '@modules/account/entities/Account';
+import { AnyAccount } from '@modules/account/entities/types';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
@@ -7,21 +7,20 @@ import { Either, right } from '@shared/core/errors/Either';
 import { ListAccountsRequest } from './list-accounts.dto';
 
 type Request = ListAccountsRequest & Pick<TokenPayloadSchema, 'workspaceId'>;
-type Errors = never;
 type Response = {
-  accounts: Account[];
+  accounts: AnyAccount[];
   total: number;
 };
 
 @Injectable()
-export class ListAccountsHandler implements Service<Request, Errors, Response> {
+export class ListAccountsService implements Service<Request, Error, Response> {
   constructor(private readonly accountRepository: AccountRepository) {}
 
   async execute({
     page,
     pageSize,
     workspaceId,
-  }: Request): Promise<Either<Errors, Response>> {
+  }: Request): Promise<Either<Error, Response>> {
     const { accounts, total } =
       await this.accountRepository.findManyByWorkspaceId(
         workspaceId,
