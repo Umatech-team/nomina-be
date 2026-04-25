@@ -1,20 +1,20 @@
-import { Account } from '@modules/account/entities/Account';
+import { AnyAccount } from '@modules/account/entities/types';
 
 export abstract class AccountRepository {
-  abstract create(account: Account): Promise<Account>;
+  abstract create(account: AnyAccount): Promise<AnyAccount>;
   abstract findByNameAndWorkspaceId(
     name: string,
     workspaceId: string,
-  ): Promise<Account | null>;
+  ): Promise<AnyAccount | null>;
 
-  abstract findById(accountId: string): Promise<Account | null>;
-  abstract update(account: Account): Promise<Account>;
+  abstract findById(accountId: string): Promise<AnyAccount | null>;
+  abstract update(account: AnyAccount): Promise<AnyAccount>;
   abstract delete(accountId: string): Promise<void>;
   abstract findManyByWorkspaceId(
     workspaceId: string,
     page: number,
     pageSize: number,
-  ): Promise<{ accounts: Account[]; total: number }>;
+  ): Promise<{ accounts: AnyAccount[]; total: number }>;
 
-  abstract findAllByWorkspaceId(workspaceId: string): Promise<Account[]>;
+  abstract findAllByWorkspaceId(workspaceId: string): Promise<AnyAccount[]>;
 }
