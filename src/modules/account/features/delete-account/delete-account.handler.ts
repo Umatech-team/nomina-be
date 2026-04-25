@@ -1,40 +1,29 @@
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { statusCode } from '@shared/core/types/statusCode';
+import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { DeleteAccountRequest } from './delete-account.dto';
 
 type Request = DeleteAccountRequest & Pick<TokenPayloadSchema, 'workspaceId'>;
-type Errors = HttpException;
-type Response = null;
 
 @Injectable()
-export class DeleteAccountHandler implements Service<
-  Request,
-  Errors,
-  Response
-> {
+export class DeleteAccountService implements Service<Request, Error, void> {
   constructor(private readonly accountRepository: AccountRepository) {}
 
   async execute({
     accountId,
     workspaceId,
-  }: Request): Promise<Either<Errors, Response>> {
+  }: Request): Promise<Either<Error, void>> {
     const account = await this.accountRepository.findById(accountId);
 
-    if (!account || account.workspaceId !== workspaceId) {
-      return left(
-        new HttpException(
-          'You do not have permission to delete this account or it does not exist',
-          statusCode.FORBIDDEN,
-        ),
-      );
+    if (account?.workspaceId !== workspaceId) {
+      return left(new UnauthorizedError());
     }
 
     await this.accountRepository.delete(accountId);
 
-    return right(null);
+    return right(undefined);
   }
 }
