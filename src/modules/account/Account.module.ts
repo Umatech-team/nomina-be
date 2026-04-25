@@ -12,9 +12,9 @@ import { FindAccountByIdService } from './features/find-account/find-account.han
 import { GetCreditCardInvoiceController } from './features/get-credit-card-invoice/get-credit-card-invoice.controller';
 import { GetCreditCardInvoiceService } from './features/get-credit-card-invoice/get-credit-card-invoice.handler';
 import { ListAccountsController } from './features/list-accounts/list-accounts.controller';
-import { ListAccountsService } from './features/list-accounts/list-accounts.handler';
+import { ListAccountsService } from './features/list-accounts/list-accounts.service';
 import { UpdateAccountController } from './features/update-account/update-account.controller';
-import { UpdateAccountService } from './features/update-account/update-account.handler';
+import { UpdateAccountService } from './features/update-account/update-account.service';
 @Module({
   imports: [DatabaseModule, SubscriptionModule],
   controllers: [
