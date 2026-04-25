@@ -1,13 +1,13 @@
 import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
+    CanActivate,
+    ExecutionContext,
+    ForbiddenException,
+    Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
-  CheckSubscriptionLimitsService,
-  ResourceType,
+    CheckSubscriptionLimitsService,
+    ResourceType,
 } from '../services/CheckSubscriptionLimits.service';
 
 export const RESOURCE_TYPE_KEY = 'resourceType';
@@ -22,7 +22,7 @@ export class SubscriptionLimitsGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const resourceType = this.reflector.get<ResourceType>(
       RESOURCE_TYPE_KEY,
-      context.getHandler(),
+      context.getService(),
     );
 
     console.log('[SubscriptionLimitsGuard] Checking limits', {

@@ -12,13 +12,13 @@ import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CreateTransactionHandler } from './create-transaction.handle';
+import { CreateTransactionService } from './create-transaction.handle';
 
 const WORKSPACE_ID = 'workspace-id-abc';
 const ACCOUNT_ID = '11111111-1111-1111-1111-111111111111';
 const CATEGORY_ID = '22222222-2222-2222-2222-222222222222';
 
-type Request = Parameters<CreateTransactionHandler['execute']>[0];
+type Request = Parameters<CreateTransactionService['execute']>[0];
 
 const makeRequest = (overrides: Partial<Request> = {}): Request => ({
   sub: 'user-id-123',
@@ -91,8 +91,8 @@ const createMockTransactionRepository =
     findByAccountAndDateRange: jest.fn(),
   });
 
-describe('CreateTransactionHandler', () => {
-  let handler: CreateTransactionHandler;
+describe('CreateTransactionService', () => {
+  let service: CreateTransactionService;
   let accountRepository: jest.Mocked<AccountRepository>;
   let categoryRepository: jest.Mocked<CategoryRepository>;
   let transactionRepository: jest.Mocked<TransactionRepository>;
@@ -104,14 +104,14 @@ describe('CreateTransactionHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CreateTransactionHandler,
+        CreateTransactionService,
         { provide: AccountRepository, useValue: accountRepository },
         { provide: CategoryRepository, useValue: categoryRepository },
         { provide: TransactionRepository, useValue: transactionRepository },
       ],
     }).compile();
 
-    handler = module.get<CreateTransactionHandler>(CreateTransactionHandler);
+    service = module.get<CreateTransactionService>(CreateTransactionService);
   });
 
   afterEach(() => {
@@ -132,7 +132,7 @@ describe('CreateTransactionHandler', () => {
     it('should create a transaction without category and return Right with the Transaction', async () => {
       arrangeSuccessMocks();
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isRight()).toBe(true);
       expect(result.value).toBeInstanceOf(Transaction);
@@ -145,7 +145,7 @@ describe('CreateTransactionHandler', () => {
     it('should create a transaction with a workspace-scoped category and return Right', async () => {
       arrangeSuccessMocks(WORKSPACE_ID);
 
-      const result = await handler.execute(
+      const result = await service.execute(
         makeRequest({ categoryId: CATEGORY_ID }),
       );
 
@@ -159,7 +159,7 @@ describe('CreateTransactionHandler', () => {
     it('should create a transaction with a global (system) category and return Right', async () => {
       arrangeSuccessMocks(null);
 
-      const result = await handler.execute(
+      const result = await service.execute(
         makeRequest({ categoryId: CATEGORY_ID }),
       );
 
@@ -177,7 +177,7 @@ describe('CreateTransactionHandler', () => {
       async (_label, statusInput, expectedStatus) => {
         arrangeSuccessMocks();
 
-        const result = await handler.execute(
+        const result = await service.execute(
           makeRequest({ status: statusInput }),
         );
 
@@ -197,7 +197,7 @@ describe('CreateTransactionHandler', () => {
           undefined,
         );
 
-        await handler.execute(makeRequest({ type, amount }));
+        await service.execute(makeRequest({ type, amount }));
 
         const [calledTransaction, calledBalance] =
           transactionRepository.createWithBalanceUpdate.mock.calls[0];
@@ -214,7 +214,7 @@ describe('CreateTransactionHandler', () => {
     it('should call accountRepository.findById with the correct accountId', async () => {
       accountRepository.findById.mockResolvedValue(null);
 
-      await handler.execute(makeRequest({ accountId: ACCOUNT_ID }));
+      await service.execute(makeRequest({ accountId: ACCOUNT_ID }));
 
       expect(accountRepository.findById).toHaveBeenCalledWith(ACCOUNT_ID);
     });
@@ -227,7 +227,7 @@ describe('CreateTransactionHandler', () => {
         workspaceId === null ? null : makeAccount({ workspaceId }),
       );
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toMatchObject({ status: HttpStatus.UNAUTHORIZED });
@@ -242,7 +242,7 @@ describe('CreateTransactionHandler', () => {
       accountRepository.findById.mockResolvedValue(makeAccount());
       categoryRepository.findById.mockResolvedValue(null);
 
-      await handler.execute(makeRequest({ categoryId: CATEGORY_ID }));
+      await service.execute(makeRequest({ categoryId: CATEGORY_ID }));
 
       expect(categoryRepository.findById).toHaveBeenCalledWith(CATEGORY_ID);
     });
@@ -250,7 +250,7 @@ describe('CreateTransactionHandler', () => {
     it('should skip category validation when categoryId is not provided', async () => {
       arrangeSuccessMocks();
 
-      await handler.execute(makeRequest());
+      await service.execute(makeRequest());
 
       expect(categoryRepository.findById).not.toHaveBeenCalled();
     });
@@ -268,7 +268,7 @@ describe('CreateTransactionHandler', () => {
             : makeCategory({ workspaceId: categoryWorkspaceId }),
         );
 
-        const result = await handler.execute(
+        const result = await service.execute(
           makeRequest({ categoryId: CATEGORY_ID }),
         );
 

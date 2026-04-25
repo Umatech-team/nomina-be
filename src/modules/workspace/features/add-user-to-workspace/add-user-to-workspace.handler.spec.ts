@@ -1,16 +1,16 @@
 import { UserRole } from '@constants/enums';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import {
-  createMockUser,
-  createMockUserRepository,
-  createMockWorkspaceUserRepository,
+    createMockUser,
+    createMockUserRepository,
+    createMockWorkspaceUserRepository,
 } from '@modules/user/test-helpers/mock-factories';
 import { WorkspaceUser } from '@modules/workspace/entities/WorkspaceUser';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { statusCode } from '@shared/core/types/statusCode';
-import { AddUserToWorkspaceHandler } from './add-user-to-workspace.handler';
+import { AddUserToWorkspaceService } from './add-user-to-workspace.service';
 
 type Request = {
   workspaceId: string;
@@ -43,8 +43,8 @@ function makeWorkspaceUser(
   return result.value;
 }
 
-describe('AddUserToWorkspaceHandler', () => {
-  let handler: AddUserToWorkspaceHandler;
+describe('AddUserToWorkspaceService', () => {
+  let service: AddUserToWorkspaceService;
   let workspaceUserRepository: jest.Mocked<WorkspaceUserRepository>;
   let userRepository: jest.Mocked<UserRepository>;
 
@@ -54,13 +54,13 @@ describe('AddUserToWorkspaceHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AddUserToWorkspaceHandler,
+        AddUserToWorkspaceService,
         { provide: WorkspaceUserRepository, useValue: workspaceUserRepository },
         { provide: UserRepository, useValue: userRepository },
       ],
     }).compile();
 
-    handler = module.get(AddUserToWorkspaceHandler);
+    service = module.get(AddUserToWorkspaceService);
   });
 
   afterEach(() => {
@@ -82,7 +82,7 @@ describe('AddUserToWorkspaceHandler', () => {
       const request = makeRequest();
       arrangeSuccessMocks();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
@@ -150,7 +150,7 @@ describe('AddUserToWorkspaceHandler', () => {
         arrange();
         const request = makeRequest();
 
-        const result = await handler.execute(request);
+        const result = await service.execute(request);
 
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(HttpException);

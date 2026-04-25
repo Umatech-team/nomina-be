@@ -18,7 +18,7 @@ type Response = {
 };
 
 @Injectable()
-export class CreateWorkspaceHandler implements Service<
+export class CreateWorkspaceService implements Service<
   Request,
   Errors,
   Response

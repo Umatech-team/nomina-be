@@ -1,16 +1,16 @@
 import { User } from '@modules/user/entities/User';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import {
-  createMockUser,
-  createMockUserRepository,
+    createMockUser,
+    createMockUserRepository,
 } from '@modules/user/test-helpers/mock-factories';
 import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
-import { GetProfileHandler } from './get-profile.handler';
+import { GetProfileService } from './get-profile.service';
 
-describe('GetProfileHandler', () => {
-  let handler: GetProfileHandler;
+describe('GetProfileService', () => {
+  let service: GetProfileService;
   let userRepository: jest.Mocked<UserRepository>;
   const makeRequest = (
     overrides?: Partial<TokenPayloadBase>,
@@ -25,12 +25,12 @@ describe('GetProfileHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        GetProfileHandler,
+        GetProfileService,
         { provide: UserRepository, useValue: userRepository },
       ],
     }).compile();
 
-    handler = module.get<GetProfileHandler>(GetProfileHandler);
+    service = module.get<GetProfileService>(GetProfileService);
   });
 
   afterEach(() => {
@@ -42,7 +42,7 @@ describe('GetProfileHandler', () => {
       const request = makeRequest();
       const mockUser = createMockUser();
       userRepository.findUniqueById.mockResolvedValue(mockUser);
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
       expect(result.isRight()).toBe(true);
       expect(userRepository.findUniqueById).toHaveBeenCalledWith(request.sub);
       expect(userRepository.findUniqueById).toHaveBeenCalledTimes(1);
@@ -55,7 +55,7 @@ describe('GetProfileHandler', () => {
     it('should return Not Found error (404) when user does not exist (Left)', async () => {
       const request = makeRequest();
       userRepository.findUniqueById.mockResolvedValue(null);
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
       expect(result.isLeft()).toBe(true);
       expect(userRepository.findUniqueById).toHaveBeenCalledWith(request.sub);
       const error = result.value as HttpException;

@@ -15,7 +15,7 @@ type Errors = HttpException;
 type Response = WorkspaceUser;
 
 @Injectable()
-export class AddUserToWorkspaceHandler implements Service<
+export class AddUserToWorkspaceService implements Service<
   Request,
   Errors,
   Response

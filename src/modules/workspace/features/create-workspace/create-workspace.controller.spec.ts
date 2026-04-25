@@ -8,7 +8,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left, right } from '@shared/core/errors/Either';
 import { CreateWorkspaceController } from './create-workspace.controller';
 import { CreateWorkspaceRequest } from './create-workspace.dto';
-import { CreateWorkspaceHandler } from './create-workspace.handler';
+import { CreateWorkspaceService } from './create-workspace.service';
 
 const USER_ID = 'user-id-abc';
 
@@ -51,16 +51,16 @@ const makeMockWorkspaceUser = (): WorkspaceUser => {
 
 describe('CreateWorkspaceController', () => {
   let controller: CreateWorkspaceController;
-  let handler: jest.Mocked<CreateWorkspaceHandler>;
+  let service: jest.Mocked<CreateWorkspaceService>;
 
   beforeEach(async () => {
-    const mockHandler = {
+    const mockService = {
       execute: jest.fn(),
-    } as unknown as jest.Mocked<CreateWorkspaceHandler>;
+    } as unknown as jest.Mocked<CreateWorkspaceService>;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CreateWorkspaceController],
-      providers: [{ provide: CreateWorkspaceHandler, useValue: mockHandler }],
+      providers: [{ provide: CreateWorkspaceService, useValue: mockService }],
     })
       .overrideGuard(SubscriptionLimitsGuard)
       .useValue({ canActivate: () => true })
@@ -69,9 +69,9 @@ describe('CreateWorkspaceController', () => {
     controller = module.get<CreateWorkspaceController>(
       CreateWorkspaceController,
     );
-    handler = module.get<CreateWorkspaceHandler>(
-      CreateWorkspaceHandler,
-    ) as jest.Mocked<CreateWorkspaceHandler>;
+    service = module.get<CreateWorkspaceService>(
+      CreateWorkspaceService,
+    ) as jest.Mocked<CreateWorkspaceService>;
   });
 
   afterEach(() => {
@@ -79,15 +79,15 @@ describe('CreateWorkspaceController', () => {
   });
 
   describe('handle Success Cases', () => {
-    it('should call handler.execute with body merged with sub from token', async () => {
+    it('should call service.execute with body merged with sub from token', async () => {
       const body = makeBody();
       const workspace = makeMockWorkspace();
       const workspaceUser = makeMockWorkspaceUser();
-      handler.execute.mockResolvedValue(right({ workspace, workspaceUser }));
+      service.execute.mockResolvedValue(right({ workspace, workspaceUser }));
 
       await controller.handle(tokenPayload, body);
 
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledWith({
         ...body,
         sub: USER_ID,
       });
@@ -96,7 +96,7 @@ describe('CreateWorkspaceController', () => {
     it('should return workspace data via WorkspacePresenter on success', async () => {
       const workspace = makeMockWorkspace({ name: 'Personal Finance' });
       const workspaceUser = makeMockWorkspaceUser();
-      handler.execute.mockResolvedValue(right({ workspace, workspaceUser }));
+      service.execute.mockResolvedValue(right({ workspace, workspaceUser }));
 
       const result = await controller.handle(
         tokenPayload,
@@ -116,7 +116,7 @@ describe('CreateWorkspaceController', () => {
     it('should not leak Either internals on successful response', async () => {
       const workspace = makeMockWorkspace();
       const workspaceUser = makeMockWorkspaceUser();
-      handler.execute.mockResolvedValue(right({ workspace, workspaceUser }));
+      service.execute.mockResolvedValue(right({ workspace, workspaceUser }));
 
       const result = await controller.handle(tokenPayload, makeBody());
 
@@ -131,21 +131,21 @@ describe('CreateWorkspaceController', () => {
       [HttpStatus.CONFLICT, 'Workspace already exists'],
       [HttpStatus.INTERNAL_SERVER_ERROR, 'Unexpected error'],
     ])(
-      'should throw when handler returns left with status %s',
+      'should throw when service returns left with status %s',
       async (status, message) => {
-        handler.execute.mockResolvedValue(
+        service.execute.mockResolvedValue(
           left(new HttpException(message, status)),
         );
 
         await expect(
           controller.handle(tokenPayload, makeBody()),
         ).rejects.toThrow();
-        expect(handler.execute).toHaveBeenCalledTimes(1);
+        expect(service.execute).toHaveBeenCalledTimes(1);
       },
     );
 
-    it('should call handler.execute exactly once even on failure', async () => {
-      handler.execute.mockResolvedValue(
+    it('should call service.execute exactly once even on failure', async () => {
+      service.execute.mockResolvedValue(
         left(new HttpException('Error', HttpStatus.BAD_REQUEST)),
       );
 
@@ -153,7 +153,7 @@ describe('CreateWorkspaceController', () => {
         controller.handle(tokenPayload, makeBody()),
       ).rejects.toThrow();
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledTimes(1);
     });
   });
 });

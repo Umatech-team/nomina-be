@@ -3,7 +3,7 @@ import { Workspace } from '@modules/workspace/entities/Workspace';
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ListWorkspacesRequest } from './list-workspaces.dto';
-import { ListWorkspacesHandler } from './list-workspaces.handler';
+import { ListWorkspacesService } from './list-workspaces.service';
 
 const USER_ID = 'user-uuid-001';
 
@@ -29,14 +29,14 @@ function makeRepositoryResult(
   return { workspaces, total: count };
 }
 
-describe('ListWorkspacesHandler', () => {
-  let handler: ListWorkspacesHandler;
+describe('ListWorkspacesService', () => {
+  let service: ListWorkspacesService;
   let workspaceRepository: jest.Mocked<WorkspaceRepository>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ListWorkspacesHandler,
+        ListWorkspacesService,
         {
           provide: WorkspaceRepository,
           useValue: {
@@ -51,7 +51,7 @@ describe('ListWorkspacesHandler', () => {
       ],
     }).compile();
 
-    handler = module.get(ListWorkspacesHandler);
+    service = module.get(ListWorkspacesService);
     workspaceRepository = module.get(WorkspaceRepository);
   });
 
@@ -69,7 +69,7 @@ describe('ListWorkspacesHandler', () => {
     const request = makeRequest({ page: 2, pageSize: 5 });
     arrangeSuccessMocks();
 
-    const result = await handler.execute(request);
+    const result = await service.execute(request);
 
     expect(workspaceRepository.findManyByUserId).toHaveBeenCalledTimes(1);
     expect(workspaceRepository.findManyByUserId).toHaveBeenCalledWith(
@@ -96,7 +96,7 @@ describe('ListWorkspacesHandler', () => {
         makeRepositoryResult(count),
       );
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {

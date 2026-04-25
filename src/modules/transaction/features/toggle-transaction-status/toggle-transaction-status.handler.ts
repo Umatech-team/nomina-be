@@ -14,7 +14,7 @@ type Errors = HttpException;
 type Response = Transaction;
 
 @Injectable()
-export class ToggleTransactionStatusHandler
+export class ToggleTransactionStatusService
   implements Service<Request, Errors, Response>
 {
   constructor(

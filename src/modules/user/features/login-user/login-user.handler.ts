@@ -19,7 +19,7 @@ type Response = {
 };
 
 @Injectable()
-export class LoginUserHandler implements Service<Request, Errors, Response> {
+export class LoginUserService implements Service<Request, Errors, Response> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly workspaceUserRepository: WorkspaceUserRepository,

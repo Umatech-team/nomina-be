@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { TransactionPreviewPresenter } from '@modules/transaction/presenters/TransactionPreview.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -6,15 +6,15 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-  ListTransactionsPipe,
-  type ListTransactionsRequest,
+    ListTransactionsPipe,
+    type ListTransactionsRequest,
 } from './list-transaction.dto';
-import { ListTransactionByIdHandler } from './list-transaction.handler';
+import { ListTransactionByIdService } from './list-transaction.service';
 
 @ApiTags('Transaction')
 @Controller('transaction')
 export class ListTransactionController {
-  constructor(private readonly handler: ListTransactionByIdHandler) {}
+  constructor(private readonly service: ListTransactionByIdService) {}
 
   @Get('list')
   @HttpCode(statusCode.OK)
@@ -33,7 +33,7 @@ export class ListTransactionController {
       status,
     }: ListTransactionsRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       page,
       pageSize,
       startDate,

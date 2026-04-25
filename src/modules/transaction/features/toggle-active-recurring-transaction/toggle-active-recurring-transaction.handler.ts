@@ -13,7 +13,7 @@ type Errors = HttpException;
 type Response = RecurringTransaction;
 
 @Injectable()
-export class ToggleActiveRecurringTransactionHandler
+export class ToggleActiveRecurringTransactionService
   implements Service<Request, Errors, Response>
 {
   constructor(

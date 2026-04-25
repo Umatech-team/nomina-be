@@ -17,7 +17,7 @@ interface Response {
 }
 
 @Injectable()
-export class GenerateRecurringTransactionsJobHandler {
+export class GenerateRecurringTransactionsJobService {
   constructor(
     private readonly recurringRepository: RecurringTransactionRepository,
     private readonly calculateNextDateService: CalculateNextGenerationDateService,
@@ -42,7 +42,7 @@ export class GenerateRecurringTransactionsJobHandler {
     const lockAcquired = await this.acquireLock(referenceDate);
     if (!lockAcquired) {
       console.log(
-        'Could not acquire lock for GenerateRecurringTransactionsJobHandler. Another instance might be running.',
+        'Could not acquire lock for GenerateRecurringTransactionsJobService. Another instance might be running.',
       );
       return right({ generatedCount: 0 });
     }

@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { TransactionPresenter } from '@modules/transaction/presenters/Transaction.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -6,15 +6,15 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-  FindTransactionPipe,
-  type FindTransactionRequest,
+    FindTransactionPipe,
+    type FindTransactionRequest,
 } from './find-transaction.dto';
-import { FindTransactionByIdHandler } from './find-transaction.handle';
+import { FindTransactionByIdService } from './find-transaction.handle';
 
 @ApiTags('Transaction')
 @Controller('transaction')
 export class FindTransactionController {
-  constructor(private readonly handler: FindTransactionByIdHandler) {}
+  constructor(private readonly service: FindTransactionByIdService) {}
 
   @Get()
   @HttpCode(statusCode.OK)
@@ -22,7 +22,7 @@ export class FindTransactionController {
     @CurrentLoggedUser() { sub }: TokenPayloadSchema,
     @Query(FindTransactionPipe) { transactionId }: FindTransactionRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       sub,
       transactionId,
     });

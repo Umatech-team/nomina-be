@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left, right } from '@shared/core/errors/Either';
 import { DeleteRecurringTransactionController } from './delete-recurring-transaction.controller';
-import { DeleteRecurringTransactionHandler } from './delete-recurring-transaction.handler';
+import { DeleteRecurringTransactionService } from './delete-recurring-transaction.service';
 
 const WORKSPACE_ID = 'workspace-uuid-abc';
 const USER_ID = 'user-uuid-abc';
@@ -19,26 +19,26 @@ const makeRequest = (recurringTransactionId = RECURRING_ID) =>
 
 describe('DeleteRecurringTransactionController', () => {
   let controller: DeleteRecurringTransactionController;
-  let handler: jest.Mocked<DeleteRecurringTransactionHandler>;
+  let service: jest.Mocked<DeleteRecurringTransactionService>;
 
   beforeEach(async () => {
-    const mockHandler = {
+    const mockService = {
       execute: jest.fn(),
-    } as unknown as jest.Mocked<DeleteRecurringTransactionHandler>;
+    } as unknown as jest.Mocked<DeleteRecurringTransactionService>;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DeleteRecurringTransactionController],
       providers: [
-        { provide: DeleteRecurringTransactionHandler, useValue: mockHandler },
+        { provide: DeleteRecurringTransactionService, useValue: mockService },
       ],
     }).compile();
 
     controller = module.get<DeleteRecurringTransactionController>(
       DeleteRecurringTransactionController,
     );
-    handler = module.get<DeleteRecurringTransactionHandler>(
-      DeleteRecurringTransactionHandler,
-    ) as jest.Mocked<DeleteRecurringTransactionHandler>;
+    service = module.get<DeleteRecurringTransactionService>(
+      DeleteRecurringTransactionService,
+    ) as jest.Mocked<DeleteRecurringTransactionService>;
   });
 
   afterEach(() => {
@@ -46,20 +46,20 @@ describe('DeleteRecurringTransactionController', () => {
   });
 
   describe('handle – Success', () => {
-    it('should call handler.execute with recurringTransactionId and workspaceId from token', async () => {
-      handler.execute.mockResolvedValue(right({} as never));
+    it('should call service.execute with recurringTransactionId and workspaceId from token', async () => {
+      service.execute.mockResolvedValue(right({} as never));
 
       await controller.handle(makeRequest(), tokenPayload);
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith({
         recurringTransactionId: RECURRING_ID,
         workspaceId: WORKSPACE_ID,
       });
     });
 
     it('should return undefined on success (204 No Content)', async () => {
-      handler.execute.mockResolvedValue(right({} as never));
+      service.execute.mockResolvedValue(right({} as never));
 
       const result = await controller.handle(makeRequest(), tokenPayload);
 
@@ -73,9 +73,9 @@ describe('DeleteRecurringTransactionController', () => {
       [HttpStatus.FORBIDDEN, 'Unauthorized'],
       [HttpStatus.UNAUTHORIZED, 'Unauthorized'],
     ])(
-      'should throw when handler returns Left(%i)',
+      'should throw when service returns Left(%i)',
       async (status, message) => {
-        handler.execute.mockResolvedValue(
+        service.execute.mockResolvedValue(
           left(new HttpException(message, status)),
         );
 
@@ -89,8 +89,8 @@ describe('DeleteRecurringTransactionController', () => {
       },
     );
 
-    it('should call handler.execute exactly once per request on error path', async () => {
-      handler.execute.mockResolvedValue(
+    it('should call service.execute exactly once per request on error path', async () => {
+      service.execute.mockResolvedValue(
         left(new HttpException('Transaction not found', HttpStatus.NOT_FOUND)),
       );
 
@@ -98,7 +98,7 @@ describe('DeleteRecurringTransactionController', () => {
         controller.handle(makeRequest(), tokenPayload),
       ).rejects.toThrow();
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledTimes(1);
     });
   });
 });

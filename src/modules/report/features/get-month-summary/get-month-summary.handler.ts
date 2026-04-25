@@ -13,7 +13,7 @@ type Errors = HttpException;
 type Response = MonthSummary;
 
 @Injectable()
-export class FindMonthSummaryHandler implements Service<
+export class FindMonthSummaryService implements Service<
   Request,
   Errors,
   Response

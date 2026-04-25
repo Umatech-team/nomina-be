@@ -1,13 +1,13 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { WorkspaceUserPresenter } from '@modules/workspace/presenters/WorkspaceUser.presenter';
 import {
-  Body,
-  Controller,
-  HttpCode,
-  Param,
-  Put,
-  UseGuards,
+    Body,
+    Controller,
+    HttpCode,
+    Param,
+    Put,
+    UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
@@ -16,17 +16,17 @@ import { RolesGuard } from '@providers/auth/guards/Roles.guard';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-  UpdateWorkspaceUserPipe,
-  type UpdateWorkspaceUserRequest,
+    UpdateWorkspaceUserPipe,
+    type UpdateWorkspaceUserRequest,
 } from './update-workspace-user.dto';
-import { UpdateWorkspaceUserHandler } from './update-workspace-user.handler';
+import { UpdateWorkspaceUserService } from './update-workspace-user.service';
 
 @ApiTags('Workspace')
 @Controller('workspace')
 @UseGuards(RolesGuard)
 @Roles(UserRole.OWNER, UserRole.ADMIN)
 export class UpdateWorkspaceUserController {
-  constructor(private readonly handler: UpdateWorkspaceUserHandler) {}
+  constructor(private readonly service: UpdateWorkspaceUserService) {}
 
   @Put(':workspaceId/users/:workspaceId')
   @HttpCode(statusCode.OK)
@@ -37,7 +37,7 @@ export class UpdateWorkspaceUserController {
     @Body(UpdateWorkspaceUserPipe)
     body: UpdateWorkspaceUserRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...body,
       workspaceId,
       sub,

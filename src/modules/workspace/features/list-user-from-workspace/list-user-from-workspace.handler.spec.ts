@@ -7,7 +7,7 @@ import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { statusCode } from '@shared/core/types/statusCode';
 import { ListWorkspaceUsersRequest } from './list-user-from-workspace.dto';
-import { ListUsersFromWorkspaceHandler } from './list-user-from-workspace.handler';
+import { ListUsersFromWorkspaceService } from './list-user-from-workspace.service';
 
 const WORKSPACE_ID = 'workspace-uuid-001';
 const USER_ID = 'user-uuid-001';
@@ -40,15 +40,15 @@ function makeWorkspaceUser(
   } as unknown as WorkspaceUser;
 }
 
-describe('ListUsersFromWorkspaceHandler', () => {
-  let handler: ListUsersFromWorkspaceHandler;
+describe('ListUsersFromWorkspaceService', () => {
+  let service: ListUsersFromWorkspaceService;
   let workspaceRepository: jest.Mocked<WorkspaceRepository>;
   let workspaceUserRepository: jest.Mocked<WorkspaceUserRepository>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ListUsersFromWorkspaceHandler,
+        ListUsersFromWorkspaceService,
         {
           provide: WorkspaceRepository,
           useValue: {
@@ -75,7 +75,7 @@ describe('ListUsersFromWorkspaceHandler', () => {
       ],
     }).compile();
 
-    handler = module.get(ListUsersFromWorkspaceHandler);
+    service = module.get(ListUsersFromWorkspaceService);
     workspaceRepository = module.get(WorkspaceRepository);
     workspaceUserRepository = module.get(WorkspaceUserRepository);
   });
@@ -107,7 +107,7 @@ describe('ListUsersFromWorkspaceHandler', () => {
       arrangeSuccessMocks(members, 2);
       const request = makeRequest({ page: 2, pageSize: 20 });
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isRight()).toBe(true);
       const value = result.value as {
@@ -139,7 +139,7 @@ describe('ListUsersFromWorkspaceHandler', () => {
       arrangeSuccessMocks([], 0);
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isRight()).toBe(true);
       const value = result.value as {
@@ -156,7 +156,7 @@ describe('ListUsersFromWorkspaceHandler', () => {
       workspaceRepository.findById.mockResolvedValue(null);
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(HttpException);
@@ -179,7 +179,7 @@ describe('ListUsersFromWorkspaceHandler', () => {
       );
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(HttpException);

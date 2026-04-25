@@ -18,7 +18,7 @@ type Response = Array<{
 }>;
 
 @Injectable()
-export class CashFlowEvolutionHandler {
+export class CashFlowEvolutionService {
   constructor(private readonly drizzle: DrizzleService) {}
 
   async execute({

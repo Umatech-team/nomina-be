@@ -1,8 +1,8 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import {
-  WorkspaceUser,
-  WorkspaceUserProps,
+    WorkspaceUser,
+    WorkspaceUserProps,
 } from '@modules/workspace/entities/WorkspaceUser';
 import { WorkspaceUserPresenter } from '@modules/workspace/presenters/WorkspaceUser.presenter';
 import { HttpException } from '@nestjs/common';
@@ -13,7 +13,7 @@ import { left, right } from '@shared/core/errors/Either';
 import { statusCode } from '@shared/core/types/statusCode';
 import { UpdateWorkspaceUserController } from './update-workspace-user.controller';
 import type { UpdateWorkspaceUserRequest } from './update-workspace-user.dto';
-import { UpdateWorkspaceUserHandler } from './update-workspace-user.handler';
+import { UpdateWorkspaceUserService } from './update-workspace-user.service';
 
 type ParamRequest = Pick<UpdateWorkspaceUserRequest, 'workspaceId'>;
 
@@ -70,17 +70,17 @@ function makeWorkspaceUser(
 
 describe('UpdateWorkspaceUserController', () => {
   let controller: UpdateWorkspaceUserController;
-  let handler: jest.Mocked<UpdateWorkspaceUserHandler>;
+  let service: jest.Mocked<UpdateWorkspaceUserService>;
 
   beforeEach(async () => {
-    const mockHandler = { execute: jest.fn() };
+    const mockService = { execute: jest.fn() };
 
     jest.spyOn(ErrorPresenter, 'toHTTP').mockReturnValue(undefined as never);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UpdateWorkspaceUserController],
       providers: [
-        { provide: UpdateWorkspaceUserHandler, useValue: mockHandler },
+        { provide: UpdateWorkspaceUserService, useValue: mockService },
       ],
     })
       .overrideGuard(RolesGuard)
@@ -88,7 +88,7 @@ describe('UpdateWorkspaceUserController', () => {
       .compile();
 
     controller = module.get(UpdateWorkspaceUserController);
-    handler = module.get(UpdateWorkspaceUserHandler);
+    service = module.get(UpdateWorkspaceUserService);
   });
 
   afterEach(() => {
@@ -96,18 +96,18 @@ describe('UpdateWorkspaceUserController', () => {
   });
 
   describe('Happy Path', () => {
-    it('should call handler with merged token, param and body, then return presenter output', async () => {
+    it('should call service with merged token, param and body, then return presenter output', async () => {
       const token = makeTokenPayload();
       const param = makeParam();
       const body = makeBody();
       const workspaceUser = makeWorkspaceUser();
 
-      handler.execute.mockResolvedValue(right(workspaceUser));
+      service.execute.mockResolvedValue(right(workspaceUser));
 
       const result = await controller.handle(token, param, body);
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith({
         ...body,
         workspaceId: param.workspaceId,
         sub: token.sub,
@@ -118,7 +118,7 @@ describe('UpdateWorkspaceUserController', () => {
     });
 
     it('should not leak Either internals in the successful response', async () => {
-      handler.execute.mockResolvedValue(right(makeWorkspaceUser()));
+      service.execute.mockResolvedValue(right(makeWorkspaceUser()));
 
       const result = await controller.handle(
         makeTokenPayload(),
@@ -131,7 +131,7 @@ describe('UpdateWorkspaceUserController', () => {
     });
   });
 
-  describe('Error Path - Handler returns Left', () => {
+  describe('Error Path - Service returns Left', () => {
     it.each<{ scenario: string; errorMessage: string; errorStatus: number }>([
       {
         scenario: 'user does not belong to workspace',
@@ -149,15 +149,15 @@ describe('UpdateWorkspaceUserController', () => {
         errorStatus: statusCode.FORBIDDEN,
       },
     ])(
-      'should delegate to ErrorPresenter when handler fails ($scenario)',
+      'should delegate to ErrorPresenter when service fails ($scenario)',
       async ({ errorMessage, errorStatus }) => {
         const error = new HttpException(errorMessage, errorStatus);
 
-        handler.execute.mockResolvedValue(left(error));
+        service.execute.mockResolvedValue(left(error));
 
         await controller.handle(makeTokenPayload(), makeParam(), makeBody());
 
-        expect(handler.execute).toHaveBeenCalledTimes(1);
+        expect(service.execute).toHaveBeenCalledTimes(1);
         expect(ErrorPresenter.toHTTP).toHaveBeenCalledWith(error);
       },
     );

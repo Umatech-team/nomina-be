@@ -15,7 +15,7 @@ type Errors = HttpException;
 type Response = { workspaceUsers: WorkspaceUser[]; total: number };
 
 @Injectable()
-export class ListUsersFromWorkspaceHandler implements Service<
+export class ListUsersFromWorkspaceService implements Service<
   Request,
   Errors,
   Response

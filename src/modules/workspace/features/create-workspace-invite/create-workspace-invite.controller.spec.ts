@@ -1,8 +1,8 @@
 import { UserRole } from '@constants/enums';
 import { SubscriptionLimitsGuard } from '@modules/subscription/guards/SubscriptionLimits.guard';
 import {
-  WorkspaceInvite,
-  type WorkspaceInviteProps,
+    WorkspaceInvite,
+    type WorkspaceInviteProps,
 } from '@modules/workspace/entities/WorkspaceInvite';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -11,7 +11,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left, right } from '@shared/core/errors/Either';
 import { CreateWorkspaceInviteController } from './create-workspace-invite.controller';
 import { type CreateWorkspaceInviteRequest } from './create-workspace-invite.dto';
-import { CreateWorkspaceInviteHandler } from './create-workspace-invite.handler';
+import { CreateWorkspaceInviteService } from './create-workspace-invite.service';
 
 const WORKSPACE_ID = 'workspace-id-abc';
 const USER_ID = 'user-id-abc';
@@ -48,17 +48,17 @@ const makeMockInvite = (
 
 describe('CreateWorkspaceInviteController', () => {
   let controller: CreateWorkspaceInviteController;
-  let handler: jest.Mocked<CreateWorkspaceInviteHandler>;
+  let service: jest.Mocked<CreateWorkspaceInviteService>;
 
   beforeEach(async () => {
-    const mockHandler = {
+    const mockService = {
       execute: jest.fn(),
-    } as unknown as jest.Mocked<CreateWorkspaceInviteHandler>;
+    } as unknown as jest.Mocked<CreateWorkspaceInviteService>;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CreateWorkspaceInviteController],
       providers: [
-        { provide: CreateWorkspaceInviteHandler, useValue: mockHandler },
+        { provide: CreateWorkspaceInviteService, useValue: mockService },
       ],
     })
       .overrideGuard(RolesGuard)
@@ -70,9 +70,9 @@ describe('CreateWorkspaceInviteController', () => {
     controller = module.get<CreateWorkspaceInviteController>(
       CreateWorkspaceInviteController,
     );
-    handler = module.get<CreateWorkspaceInviteHandler>(
-      CreateWorkspaceInviteHandler,
-    ) as jest.Mocked<CreateWorkspaceInviteHandler>;
+    service = module.get<CreateWorkspaceInviteService>(
+      CreateWorkspaceInviteService,
+    ) as jest.Mocked<CreateWorkspaceInviteService>;
   });
 
   afterEach(() => {
@@ -80,15 +80,15 @@ describe('CreateWorkspaceInviteController', () => {
   });
 
   describe('handle – Success Cases', () => {
-    it('should call handler.execute with role, sub, and workspaceId from token', async () => {
+    it('should call service.execute with role, sub, and workspaceId from token', async () => {
       const body = makeBody({ role: UserRole.ADMIN });
       const mockInvite = makeMockInvite({ role: UserRole.ADMIN });
-      handler.execute.mockResolvedValue(right(mockInvite));
+      service.execute.mockResolvedValue(right(mockInvite));
 
       await controller.handle(tokenPayload, body);
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith({
         role: UserRole.ADMIN,
         sub: USER_ID,
         workspaceId: WORKSPACE_ID,
@@ -98,7 +98,7 @@ describe('CreateWorkspaceInviteController', () => {
     it('should return serialized invite data via WorkspaceInvitePresenter on success', async () => {
       const expiresAt = new Date('2026-03-13T00:00:00.000Z');
       const mockInvite = makeMockInvite({ code: 'XYZ98765', expiresAt });
-      handler.execute.mockResolvedValue(right(mockInvite));
+      service.execute.mockResolvedValue(right(mockInvite));
 
       const result = await controller.handle(tokenPayload, makeBody());
 
@@ -125,9 +125,9 @@ describe('CreateWorkspaceInviteController', () => {
         'A função do convite deve ser ADMIN ou USER',
       ],
     ])(
-      'should throw when handler returns Left – %s (%i)',
+      'should throw when service returns Left – %s (%i)',
       async (_label, status, message) => {
-        handler.execute.mockResolvedValue(
+        service.execute.mockResolvedValue(
           left(new HttpException(message, status)),
         );
 

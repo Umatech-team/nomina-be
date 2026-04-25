@@ -5,7 +5,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { UpdateWorkspaceRequest } from './update-workspace.dto';
-import { UpdateWorkspaceHandler } from './update-workspace.handler';
+import { UpdateWorkspaceService } from './update-workspace.service';
 
 type Request = UpdateWorkspaceRequest & Pick<TokenPayloadSchema, 'workspaceId'>;
 
@@ -32,14 +32,14 @@ function makeWorkspace(overrides?: {
   );
 }
 
-describe('UpdateWorkspaceHandler', () => {
-  let handler: UpdateWorkspaceHandler;
+describe('UpdateWorkspaceService', () => {
+  let service: UpdateWorkspaceService;
   let workspaceRepo: jest.Mocked<WorkspaceRepository>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        UpdateWorkspaceHandler,
+        UpdateWorkspaceService,
         {
           provide: WorkspaceRepository,
           useValue: {
@@ -54,7 +54,7 @@ describe('UpdateWorkspaceHandler', () => {
       ],
     }).compile();
 
-    handler = module.get(UpdateWorkspaceHandler);
+    service = module.get(UpdateWorkspaceService);
     workspaceRepo = module.get(WorkspaceRepository);
   });
 
@@ -73,7 +73,7 @@ describe('UpdateWorkspaceHandler', () => {
       const workspace = arrangeSuccessMocks();
       const request = makeRequest({ name: 'New Name', currency: 'EUR' });
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
@@ -88,7 +88,7 @@ describe('UpdateWorkspaceHandler', () => {
     it('should default currency to BRL and persist when currency is not provided', async () => {
       arrangeSuccessMocks();
 
-      const result = await handler.execute(
+      const result = await service.execute(
         makeRequest({ currency: undefined }),
       );
 
@@ -104,7 +104,7 @@ describe('UpdateWorkspaceHandler', () => {
     it('should return left with NOT_FOUND and not call update when workspace does not exist', async () => {
       workspaceRepo.findById.mockResolvedValue(null);
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {

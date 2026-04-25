@@ -6,7 +6,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left, right } from '@shared/core/errors/Either';
 import { CreateRecurringTransactionController } from './create-recurring-transaction.controller';
 import { CreateRecurringTransactionRequest } from './create-recurring-transaction.dto';
-import { CreateRecurringTransactionHandler } from './create-recurring-transaction.handle';
+import { CreateRecurringTransactionService } from './create-recurring-transaction.handle';
 
 const WORKSPACE_ID = 'workspace-id-abc';
 const USER_ID = 'user-id-abc';
@@ -62,26 +62,26 @@ const createMockRecurringTransaction = (
 
 describe('CreateRecurringTransactionController', () => {
   let controller: CreateRecurringTransactionController;
-  let handler: jest.Mocked<CreateRecurringTransactionHandler>;
+  let service: jest.Mocked<CreateRecurringTransactionService>;
 
   beforeEach(async () => {
-    const mockHandler = {
+    const mockService = {
       execute: jest.fn(),
-    } as unknown as jest.Mocked<CreateRecurringTransactionHandler>;
+    } as unknown as jest.Mocked<CreateRecurringTransactionService>;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CreateRecurringTransactionController],
       providers: [
-        { provide: CreateRecurringTransactionHandler, useValue: mockHandler },
+        { provide: CreateRecurringTransactionService, useValue: mockService },
       ],
     }).compile();
 
     controller = module.get<CreateRecurringTransactionController>(
       CreateRecurringTransactionController,
     );
-    handler = module.get<CreateRecurringTransactionHandler>(
-      CreateRecurringTransactionHandler,
-    ) as jest.Mocked<CreateRecurringTransactionHandler>;
+    service = module.get<CreateRecurringTransactionService>(
+      CreateRecurringTransactionService,
+    ) as jest.Mocked<CreateRecurringTransactionService>;
   });
 
   afterEach(() => {
@@ -89,15 +89,15 @@ describe('CreateRecurringTransactionController', () => {
   });
 
   describe('handle – Success Cases', () => {
-    it('should call handler.execute with body merged with token payload', async () => {
+    it('should call service.execute with body merged with token payload', async () => {
       const body = makeBody();
-      handler.execute.mockResolvedValue(
+      service.execute.mockResolvedValue(
         right(createMockRecurringTransaction()),
       );
 
       await controller.handle(tokenPayload, body);
 
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledWith({
         ...body,
         sub: USER_ID,
         workspaceId: WORKSPACE_ID,
@@ -106,7 +106,7 @@ describe('CreateRecurringTransactionController', () => {
 
     it('should return wrapped data via RecurringTransactionPresenter on success', async () => {
       const mockTransaction = createMockRecurringTransaction();
-      handler.execute.mockResolvedValue(right(mockTransaction));
+      service.execute.mockResolvedValue(right(mockTransaction));
 
       const result = await controller.handle(tokenPayload, makeBody());
 
@@ -123,7 +123,7 @@ describe('CreateRecurringTransactionController', () => {
     });
 
     it('should not expose Either internals on success', async () => {
-      handler.execute.mockResolvedValue(
+      service.execute.mockResolvedValue(
         right(createMockRecurringTransaction()),
       );
 
@@ -142,9 +142,9 @@ describe('CreateRecurringTransactionController', () => {
         'Transaction cannot start today or in the past.',
       ],
     ])(
-      'should throw when handler returns Left(%i)',
+      'should throw when service returns Left(%i)',
       async (status, message) => {
-        handler.execute.mockResolvedValue(
+        service.execute.mockResolvedValue(
           left(new HttpException(message, status)),
         );
 
@@ -158,8 +158,8 @@ describe('CreateRecurringTransactionController', () => {
       },
     );
 
-    it('should call handler.execute exactly once per request on error path', async () => {
-      handler.execute.mockResolvedValue(
+    it('should call service.execute exactly once per request on error path', async () => {
+      service.execute.mockResolvedValue(
         left(new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)),
       );
 
@@ -167,7 +167,7 @@ describe('CreateRecurringTransactionController', () => {
         controller.handle(tokenPayload, makeBody()),
       ).rejects.toThrow();
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledTimes(1);
     });
   });
 });

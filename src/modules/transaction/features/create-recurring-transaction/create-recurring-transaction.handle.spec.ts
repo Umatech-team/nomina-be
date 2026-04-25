@@ -12,13 +12,13 @@ import { RecurringTransaction } from '@modules/transaction/entities/RecurringTra
 import { RecurringTransactionRepository } from '@modules/transaction/repositories/contracts/RecurringTransactionRepository';
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CreateRecurringTransactionHandler } from './create-recurring-transaction.handle';
+import { CreateRecurringTransactionService } from './create-recurring-transaction.handle';
 
 const WORKSPACE_ID = 'workspace-id-abc';
 const ACCOUNT_ID = '11111111-1111-1111-1111-111111111111';
 const CATEGORY_ID = '22222222-2222-2222-2222-222222222222';
 
-type Request = Parameters<CreateRecurringTransactionHandler['execute']>[0];
+type Request = Parameters<CreateRecurringTransactionService['execute']>[0];
 
 const makeFutureDate = (): Date => {
   const d = new Date();
@@ -121,8 +121,8 @@ const createMockRecurringTransactionRepository =
     createGeneratedTransactions: jest.fn(),
   });
 
-describe('CreateRecurringTransactionHandler', () => {
-  let handler: CreateRecurringTransactionHandler;
+describe('CreateRecurringTransactionService', () => {
+  let service: CreateRecurringTransactionService;
   let accountRepository: jest.Mocked<AccountRepository>;
   let categoryRepository: jest.Mocked<CategoryRepository>;
   let recurringRepository: jest.Mocked<RecurringTransactionRepository>;
@@ -134,7 +134,7 @@ describe('CreateRecurringTransactionHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CreateRecurringTransactionHandler,
+        CreateRecurringTransactionService,
         { provide: AccountRepository, useValue: accountRepository },
         { provide: CategoryRepository, useValue: categoryRepository },
         {
@@ -144,8 +144,8 @@ describe('CreateRecurringTransactionHandler', () => {
       ],
     }).compile();
 
-    handler = module.get<CreateRecurringTransactionHandler>(
-      CreateRecurringTransactionHandler,
+    service = module.get<CreateRecurringTransactionService>(
+      CreateRecurringTransactionService,
     );
   });
 
@@ -167,7 +167,7 @@ describe('CreateRecurringTransactionHandler', () => {
     it('should create recurring transaction without a category and return Right', async () => {
       arrangeSuccessMocks();
 
-      const result = await handler.execute(
+      const result = await service.execute(
         makeRequest({ categoryId: undefined }),
       );
 
@@ -179,7 +179,7 @@ describe('CreateRecurringTransactionHandler', () => {
     it('should create recurring transaction with a workspace-scoped category and return Right', async () => {
       arrangeSuccessMocks(WORKSPACE_ID);
 
-      const result = await handler.execute(
+      const result = await service.execute(
         makeRequest({ categoryId: CATEGORY_ID }),
       );
 
@@ -191,7 +191,7 @@ describe('CreateRecurringTransactionHandler', () => {
     it('should create recurring transaction with a global (system) category and return Right', async () => {
       arrangeSuccessMocks(null);
 
-      const result = await handler.execute(
+      const result = await service.execute(
         makeRequest({ categoryId: CATEGORY_ID }),
       );
 
@@ -203,7 +203,7 @@ describe('CreateRecurringTransactionHandler', () => {
       arrangeSuccessMocks();
       const request = makeRequest({ categoryId: undefined });
 
-      await handler.execute(request);
+      await service.execute(request);
 
       const calledWith: RecurringTransaction =
         recurringRepository.create.mock.calls[0][0];
@@ -217,7 +217,7 @@ describe('CreateRecurringTransactionHandler', () => {
     it('should return Left(401) when account is not found', async () => {
       accountRepository.findById.mockResolvedValue(null);
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toMatchObject({ status: HttpStatus.UNAUTHORIZED });
@@ -228,7 +228,7 @@ describe('CreateRecurringTransactionHandler', () => {
         makeAccount({ workspaceId: 'other-workspace-id' }),
       );
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toMatchObject({ status: HttpStatus.UNAUTHORIZED });
@@ -237,7 +237,7 @@ describe('CreateRecurringTransactionHandler', () => {
     it('should call accountRepository.findById with the correct accountId', async () => {
       accountRepository.findById.mockResolvedValue(null);
 
-      await handler.execute(makeRequest({ accountId: ACCOUNT_ID }));
+      await service.execute(makeRequest({ accountId: ACCOUNT_ID }));
 
       expect(accountRepository.findById).toHaveBeenCalledWith(ACCOUNT_ID);
     });
@@ -279,7 +279,7 @@ describe('CreateRecurringTransactionHandler', () => {
       async (_label, startDate) => {
         accountRepository.findById.mockResolvedValue(makeAccount());
 
-        const result = await handler.execute(makeRequest({ startDate }));
+        const result = await service.execute(makeRequest({ startDate }));
 
         expect(result.isLeft()).toBe(true);
         expect(result.value).toMatchObject({ status: HttpStatus.BAD_REQUEST });
@@ -292,7 +292,7 @@ describe('CreateRecurringTransactionHandler', () => {
       accountRepository.findById.mockResolvedValue(makeAccount());
       categoryRepository.findById.mockResolvedValue(null);
 
-      const result = await handler.execute(
+      const result = await service.execute(
         makeRequest({ categoryId: CATEGORY_ID }),
       );
 
@@ -306,7 +306,7 @@ describe('CreateRecurringTransactionHandler', () => {
         makeCategory({ workspaceId: 'other-workspace-id' }),
       );
 
-      const result = await handler.execute(
+      const result = await service.execute(
         makeRequest({ categoryId: CATEGORY_ID }),
       );
 
@@ -318,7 +318,7 @@ describe('CreateRecurringTransactionHandler', () => {
       accountRepository.findById.mockResolvedValue(makeAccount());
       categoryRepository.findById.mockResolvedValue(null);
 
-      await handler.execute(makeRequest({ categoryId: CATEGORY_ID }));
+      await service.execute(makeRequest({ categoryId: CATEGORY_ID }));
 
       expect(categoryRepository.findById).toHaveBeenCalledWith(CATEGORY_ID);
     });
@@ -328,7 +328,7 @@ describe('CreateRecurringTransactionHandler', () => {
     it('should return Left when RecurringTransaction.create fails', async () => {
       accountRepository.findById.mockResolvedValue(makeAccount());
 
-      const result = await handler.execute(makeRequest({ amount: 0n }));
+      const result = await service.execute(makeRequest({ amount: 0n }));
 
       expect(result.isLeft()).toBe(true);
       expect(recurringRepository.create).not.toHaveBeenCalled();

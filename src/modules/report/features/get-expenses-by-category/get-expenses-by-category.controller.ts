@@ -4,15 +4,15 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-  GetExpensesByCategoryPipe,
-  type GetExpensesByCategoryRequest,
+    GetExpensesByCategoryPipe,
+    type GetExpensesByCategoryRequest,
 } from './get-expenses-by-category.dto';
-import { GetExpensesByCategoryHandler } from './get-expenses-by-category.handler';
+import { GetExpensesByCategoryService } from './get-expenses-by-category.service';
 
 @ApiTags('Report')
 @Controller('report')
 export class GetExpensesByCategoryController {
-  constructor(private readonly handler: GetExpensesByCategoryHandler) {}
+  constructor(private readonly service: GetExpensesByCategoryService) {}
 
   @Get('expenses-by-category')
   @HttpCode(statusCode.OK)
@@ -20,7 +20,7 @@ export class GetExpensesByCategoryController {
     @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
     @Query(GetExpensesByCategoryPipe) query: GetExpensesByCategoryRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...query,
       workspaceId,
     });

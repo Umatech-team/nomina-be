@@ -12,7 +12,7 @@ type Errors = HttpException;
 type Response = User;
 
 @Injectable()
-export class CreateUserHandler implements Service<Request, Errors, Response> {
+export class CreateUserService implements Service<Request, Errors, Response> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly hashGenerator: HashGenerator,

@@ -1,6 +1,6 @@
 import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import { Test, TestingModule } from '@nestjs/testing';
-import { GetExpensesByCategoryHandler } from './get-expenses-by-category.handler';
+import { GetExpensesByCategoryService } from './get-expenses-by-category.service';
 
 type CategoryRow = {
   categoryId: string | null;
@@ -17,8 +17,8 @@ const makeRequest = (
   ...overrides,
 });
 
-describe('GetExpensesByCategoryHandler', () => {
-  let handler: GetExpensesByCategoryHandler;
+describe('GetExpensesByCategoryService', () => {
+  let service: GetExpensesByCategoryService;
   let drizzle: { db: { select: jest.Mock } };
 
   beforeEach(async () => {
@@ -26,12 +26,12 @@ describe('GetExpensesByCategoryHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        GetExpensesByCategoryHandler,
+        GetExpensesByCategoryService,
         { provide: DrizzleService, useValue: drizzle },
       ],
     }).compile();
 
-    handler = module.get(GetExpensesByCategoryHandler);
+    service = module.get(GetExpensesByCategoryService);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -71,7 +71,7 @@ describe('GetExpensesByCategoryHandler', () => {
       ],
     });
 
-    const result = await handler.execute(makeRequest());
+    const result = await service.execute(makeRequest());
 
     expect(result).toHaveLength(3);
     expect(result[0]).toEqual({
@@ -97,7 +97,7 @@ describe('GetExpensesByCategoryHandler', () => {
   it('should limit query to 5 categories', async () => {
     const { categoriesBuilder } = arrangeSuccessMocks({ grandTotal: 100000 });
 
-    await handler.execute(makeRequest());
+    await service.execute(makeRequest());
 
     expect(categoriesBuilder.limit).toHaveBeenCalledWith(5);
   });
@@ -111,7 +111,7 @@ describe('GetExpensesByCategoryHandler', () => {
       ],
     });
 
-    const result = await handler.execute(makeRequest());
+    const result = await service.execute(makeRequest());
 
     expect(result[0].percentage).toBe(50);
     expect(result[1].percentage).toBe(30);
@@ -121,7 +121,7 @@ describe('GetExpensesByCategoryHandler', () => {
   it('should return empty array when there are no expenses', async () => {
     arrangeSuccessMocks({ grandTotal: 0, categories: [] });
 
-    const result = await handler.execute(makeRequest());
+    const result = await service.execute(makeRequest());
 
     expect(result).toEqual([]);
   });
@@ -134,7 +134,7 @@ describe('GetExpensesByCategoryHandler', () => {
       ],
     });
 
-    const result = await handler.execute(makeRequest());
+    const result = await service.execute(makeRequest());
 
     expect(result[0].percentage).toBe(0);
   });
@@ -147,7 +147,7 @@ describe('GetExpensesByCategoryHandler', () => {
       ],
     });
 
-    const result = await handler.execute(makeRequest());
+    const result = await service.execute(makeRequest());
 
     expect(result[0].categoryId).toBe('uncategorized');
     expect(result[0].categoryName).toBe('Sem Categoria');

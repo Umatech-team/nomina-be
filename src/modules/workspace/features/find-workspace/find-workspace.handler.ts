@@ -16,7 +16,7 @@ type Errors = HttpException;
 type Response = { workspace: Workspace; role: UserRole };
 
 @Injectable()
-export class FindWorkspaceByIdHandler implements Service<
+export class FindWorkspaceByIdService implements Service<
   Request,
   Errors,
   Response

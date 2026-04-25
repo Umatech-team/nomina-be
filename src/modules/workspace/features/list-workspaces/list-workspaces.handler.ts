@@ -19,7 +19,7 @@ type Response = {
 };
 
 @Injectable()
-export class ListWorkspacesHandler implements Service<
+export class ListWorkspacesService implements Service<
   Request,
   never,
   Response

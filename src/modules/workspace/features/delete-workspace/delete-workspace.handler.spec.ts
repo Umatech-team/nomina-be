@@ -4,7 +4,7 @@ import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { statusCode } from '@shared/core/types/statusCode';
 import { DeleteWorkspaceRequest } from './delete-workspace.dto';
-import { DeleteWorkspaceHandler } from './delete-workspace.handler';
+import { DeleteWorkspaceService } from './delete-workspace.service';
 
 const WORKSPACE_ID = 'workspace-uuid-001';
 
@@ -21,14 +21,14 @@ function makeWorkspace(id = WORKSPACE_ID): Workspace {
   return { id } as unknown as Workspace;
 }
 
-describe('DeleteWorkspaceHandler', () => {
-  let handler: DeleteWorkspaceHandler;
+describe('DeleteWorkspaceService', () => {
+  let service: DeleteWorkspaceService;
   let workspaceRepository: jest.Mocked<WorkspaceRepository>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        DeleteWorkspaceHandler,
+        DeleteWorkspaceService,
         {
           provide: WorkspaceRepository,
           useValue: {
@@ -43,7 +43,7 @@ describe('DeleteWorkspaceHandler', () => {
       ],
     }).compile();
 
-    handler = module.get(DeleteWorkspaceHandler);
+    service = module.get(DeleteWorkspaceService);
     workspaceRepository = module.get(WorkspaceRepository);
   });
 
@@ -61,7 +61,7 @@ describe('DeleteWorkspaceHandler', () => {
       arrangeSuccessMocks();
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isRight()).toBe(true);
       expect(result.value).toBeNull();
@@ -77,7 +77,7 @@ describe('DeleteWorkspaceHandler', () => {
       workspaceRepository.findById.mockResolvedValue(null);
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(HttpException);

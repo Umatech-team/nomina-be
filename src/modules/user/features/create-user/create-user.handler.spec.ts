@@ -1,18 +1,18 @@
 import { User } from '@modules/user/entities/User';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import {
-  createMockHashGenerator,
-  createMockUser,
-  createMockUserRepository,
+    createMockHashGenerator,
+    createMockUser,
+    createMockUserRepository,
 } from '@modules/user/test-helpers/mock-factories';
 import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HashGenerator } from '@providers/cryptography/contracts/HashGenerator';
 import { CreateUserRequest } from './create-user.dto';
-import { CreateUserHandler } from './create-user.handler';
+import { CreateUserService } from './create-user.service';
 
-describe('CreateUserHandler', () => {
-  let handler: CreateUserHandler;
+describe('CreateUserService', () => {
+  let service: CreateUserService;
   let userRepository: jest.Mocked<UserRepository>;
   let hashGenerator: jest.Mocked<HashGenerator>;
 
@@ -36,13 +36,13 @@ describe('CreateUserHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CreateUserHandler,
+        CreateUserService,
         { provide: UserRepository, useValue: userRepository },
         { provide: HashGenerator, useValue: hashGenerator },
       ],
     }).compile();
 
-    handler = module.get<CreateUserHandler>(CreateUserHandler);
+    service = module.get<CreateUserService>(CreateUserService);
   });
 
   afterEach(() => {
@@ -54,7 +54,7 @@ describe('CreateUserHandler', () => {
 
     it('should orchestrate user creation successfully', async () => {
       const request = makeRequest();
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isRight()).toBe(true);
 
@@ -67,7 +67,7 @@ describe('CreateUserHandler', () => {
         request.email,
       );
       expect(hashGenerator.hash).toHaveBeenCalledWith(request.password);
-      expect(userRepository.create).toHaveBeenCalled(); // Supondo que o handler chama o create
+      expect(userRepository.create).toHaveBeenCalled(); // Supondo que o service chama o create
     });
   });
 
@@ -75,7 +75,7 @@ describe('CreateUserHandler', () => {
     it('should return Conflict Error (409) when email already exists', async () => {
       userRepository.findUniqueByEmail.mockResolvedValue(createMockUser());
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       const error = result.value as HttpException;
@@ -90,7 +90,7 @@ describe('CreateUserHandler', () => {
     it('should return Bad Request (400) when Entity validation fails', async () => {
       arrangeSuccessMocks();
 
-      const result = await handler.execute(makeRequest({ name: 'Jo' }));
+      const result = await service.execute(makeRequest({ name: 'Jo' }));
 
       expect(result.isLeft()).toBe(true);
       const error = result.value as HttpException;

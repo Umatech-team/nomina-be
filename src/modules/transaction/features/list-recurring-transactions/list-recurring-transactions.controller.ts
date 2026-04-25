@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { RecurringTransactionPresenter } from '@modules/transaction/presenters/RecurringTransaction.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -6,15 +6,15 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-  ListRecurringTransactionsPipe,
-  type ListRecurringTransactionsRequest,
+    ListRecurringTransactionsPipe,
+    type ListRecurringTransactionsRequest,
 } from './list-recurring-transactions.dto';
-import { ListRecurringTransactionsHandler } from './list-recurring-transactions.handler';
+import { ListRecurringTransactionsService } from './list-recurring-transactions.service';
 
 @ApiTags('Recurring Transaction')
 @Controller('transaction')
 export class ListRecurringTransactionsController {
-  constructor(private readonly handler: ListRecurringTransactionsHandler) {}
+  constructor(private readonly service: ListRecurringTransactionsService) {}
 
   @Get('recurring')
   @HttpCode(statusCode.OK)
@@ -23,7 +23,7 @@ export class ListRecurringTransactionsController {
     @Query(ListRecurringTransactionsPipe)
     { page, pageSize, activeOnly }: ListRecurringTransactionsRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       page,
       pageSize,
       sub,

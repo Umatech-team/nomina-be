@@ -12,7 +12,7 @@ type Errors = HttpException;
 type Response = Transaction;
 
 @Injectable()
-export class DeleteTransactionHandler implements Service<
+export class DeleteTransactionService implements Service<
   Request,
   Errors,
   Response

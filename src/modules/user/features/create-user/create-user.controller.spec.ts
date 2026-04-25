@@ -4,11 +4,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { left, right } from '@shared/core/errors/Either';
 import { CreateUserController } from './create-user.controller';
 import { CreateUserRequest } from './create-user.dto';
-import { CreateUserHandler } from './create-user.handler';
+import { CreateUserService } from './create-user.service';
 
 describe('CreateUserController', () => {
   let controller: CreateUserController;
-  let handler: jest.Mocked<CreateUserHandler>;
+  let service: jest.Mocked<CreateUserService>;
 
   const makeRequest = (
     overrides?: Partial<CreateUserRequest>,
@@ -20,7 +20,7 @@ describe('CreateUserController', () => {
   });
 
   beforeEach(async () => {
-    const mockHandler = {
+    const mockService = {
       execute: jest.fn(),
     };
 
@@ -28,14 +28,14 @@ describe('CreateUserController', () => {
       controllers: [CreateUserController],
       providers: [
         {
-          provide: CreateUserHandler,
-          useValue: mockHandler,
+          provide: CreateUserService,
+          useValue: mockService,
         },
       ],
     }).compile();
 
     controller = module.get<CreateUserController>(CreateUserController);
-    handler = module.get(CreateUserHandler);
+    service = module.get(CreateUserService);
   });
 
   afterEach(() => {
@@ -43,14 +43,14 @@ describe('CreateUserController', () => {
   });
 
   describe('handle()', () => {
-    it('should route request to handler and return void on success (Right)', async () => {
+    it('should route request to service and return void on success (Right)', async () => {
       const request = makeRequest();
-      handler.execute.mockResolvedValue(right(createMockUser()));
+      service.execute.mockResolvedValue(right(createMockUser()));
 
       const result = await controller.handle(request);
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith(request);
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith(request);
       expect(result).toBeUndefined();
     });
 
@@ -68,12 +68,12 @@ describe('CreateUserController', () => {
         new HttpException('Server error', HttpStatus.INTERNAL_SERVER_ERROR),
       ],
     ])(
-      'should throw HTTP exception when handler returns error %s (Left)',
+      'should throw HTTP exception when service returns error %s (Left)',
       async (_, errorInstance) => {
         const request = makeRequest();
-        handler.execute.mockResolvedValue(left(errorInstance));
+        service.execute.mockResolvedValue(left(errorInstance));
         await expect(controller.handle(request)).rejects.toThrow(errorInstance);
-        expect(handler.execute).toHaveBeenCalledWith(request);
+        expect(service.execute).toHaveBeenCalledWith(request);
       },
     );
   });

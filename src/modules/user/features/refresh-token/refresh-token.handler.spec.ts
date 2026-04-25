@@ -2,15 +2,15 @@ import { UserRole } from '@constants/enums';
 import { RefreshTokensRepository } from '@modules/user/repositories/contracts/refresh-token.repository';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import {
-  createMockDateAddition,
-  createMockDecoder,
-  createMockDefaultWorkspaceResult,
-  createMockEncrypter,
-  createMockRefreshToken,
-  createMockRefreshTokensRepository,
-  createMockUser,
-  createMockUserRepository,
-  createMockWorkspaceUserRepository,
+    createMockDateAddition,
+    createMockDecoder,
+    createMockDefaultWorkspaceResult,
+    createMockEncrypter,
+    createMockRefreshToken,
+    createMockRefreshTokensRepository,
+    createMockUser,
+    createMockUserRepository,
+    createMockWorkspaceUserRepository,
 } from '@modules/user/test-helpers/mock-factories';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { HttpException } from '@nestjs/common';
@@ -18,10 +18,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Decoder } from '@providers/cryptography/contracts/Decoder';
 import { Encrypter } from '@providers/cryptography/contracts/Encrypter';
 import { DateAddition } from '@providers/date/contracts/DateAddition';
-import { RefreshTokenHandler } from './refresh-token.handler';
+import { RefreshTokenService } from './refresh-token.service';
 
-describe('RefreshTokenHandler', () => {
-  let handler: RefreshTokenHandler;
+describe('RefreshTokenService', () => {
+  let service: RefreshTokenService;
   let userRepository: jest.Mocked<UserRepository>;
   let refreshTokensRepository: jest.Mocked<RefreshTokensRepository>;
   let workspaceUserRepository: jest.Mocked<WorkspaceUserRepository>;
@@ -71,7 +71,7 @@ describe('RefreshTokenHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        RefreshTokenHandler,
+        RefreshTokenService,
         { provide: UserRepository, useValue: userRepository },
         { provide: RefreshTokensRepository, useValue: refreshTokensRepository },
         { provide: WorkspaceUserRepository, useValue: workspaceUserRepository },
@@ -81,7 +81,7 @@ describe('RefreshTokenHandler', () => {
       ],
     }).compile();
 
-    handler = module.get<RefreshTokenHandler>(RefreshTokenHandler);
+    service = module.get<RefreshTokenService>(RefreshTokenService);
   });
 
   afterEach(() => {
@@ -92,7 +92,7 @@ describe('RefreshTokenHandler', () => {
     it('should orchestrate refresh flow and return new tokens on success (Right)', async () => {
       arrangeSuccessMocks();
 
-      const result = await handler.execute(validTokenInput);
+      const result = await service.execute(validTokenInput);
 
       expect(decoder.decrypt).toHaveBeenCalledWith(validTokenInput);
       expect(userRepository.findUniqueById).toHaveBeenCalledWith(
@@ -129,7 +129,7 @@ describe('RefreshTokenHandler', () => {
       arrangeSuccessMocks();
       decoder.decrypt.mockResolvedValue({ isValid: false, payload: undefined });
 
-      const result = await handler.execute(validTokenInput);
+      const result = await service.execute(validTokenInput);
 
       expect(result.isLeft()).toBe(true);
       expect((result.value as HttpException).getStatus()).toBe(401);
@@ -140,7 +140,7 @@ describe('RefreshTokenHandler', () => {
       arrangeSuccessMocks();
       userRepository.findUniqueById.mockResolvedValue(null);
 
-      const result = await handler.execute(validTokenInput);
+      const result = await service.execute(validTokenInput);
 
       expect(result.isLeft()).toBe(true);
       expect((result.value as HttpException).getStatus()).toBe(404);
@@ -155,7 +155,7 @@ describe('RefreshTokenHandler', () => {
         null,
       );
 
-      const result = await handler.execute(validTokenInput);
+      const result = await service.execute(validTokenInput);
 
       expect(result.isLeft()).toBe(true);
       expect((result.value as HttpException).getStatus()).toBe(401);
@@ -168,7 +168,7 @@ describe('RefreshTokenHandler', () => {
         null,
       );
 
-      const result = await handler.execute(validTokenInput);
+      const result = await service.execute(validTokenInput);
 
       expect(result.isLeft()).toBe(true);
       expect((result.value as HttpException).getStatus()).toBe(401);

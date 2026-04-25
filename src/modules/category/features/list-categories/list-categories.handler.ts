@@ -16,7 +16,7 @@ type Response = {
 };
 
 @Injectable()
-export class ListCategoriesHandler
+export class ListCategoriesService
   implements Service<Request, Errors, Response>
 {
   constructor(private readonly categoryRepository: CategoryRepository) {}

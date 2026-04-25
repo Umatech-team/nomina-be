@@ -10,7 +10,7 @@ type Request = RemoveWorkspaceRequest & Pick<TokenPayloadSchema, 'workspaceId'>;
 type Errors = HttpException;
 
 @Injectable()
-export class RemoveUserFromWorkspaceHandler implements Service<
+export class RemoveUserFromWorkspaceService implements Service<
   Request,
   Errors,
   null

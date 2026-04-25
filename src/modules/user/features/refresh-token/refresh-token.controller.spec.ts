@@ -2,24 +2,24 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { left, right } from '@shared/core/errors/Either';
 import { RefreshTokenController } from './refresh-token.controller';
-import { RefreshTokenHandler } from './refresh-token.handler';
+import { RefreshTokenService } from './refresh-token.service';
 
 describe('RefreshTokenController', () => {
   let controller: RefreshTokenController;
-  let handler: jest.Mocked<RefreshTokenHandler>;
+  let service: jest.Mocked<RefreshTokenService>;
 
   const makeToken = () => 'valid_refresh_token_123';
 
   beforeEach(async () => {
-    const mockHandler = { execute: jest.fn() };
+    const mockService = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RefreshTokenController],
-      providers: [{ provide: RefreshTokenHandler, useValue: mockHandler }],
+      providers: [{ provide: RefreshTokenService, useValue: mockService }],
     }).compile();
 
     controller = module.get<RefreshTokenController>(RefreshTokenController);
-    handler = module.get(RefreshTokenHandler);
+    service = module.get(RefreshTokenService);
   });
 
   afterEach(() => {
@@ -27,16 +27,16 @@ describe('RefreshTokenController', () => {
   });
 
   describe('handle()', () => {
-    it('should route request to handler and return formatted tokens on success (Right)', async () => {
+    it('should route request to service and return formatted tokens on success (Right)', async () => {
       const token = makeToken();
       const newTokens = {
         accessToken: 'new_access_abc',
         refreshToken: 'new_refresh_xyz',
       };
-      handler.execute.mockResolvedValue(right(newTokens));
+      service.execute.mockResolvedValue(right(newTokens));
       const result = await controller.handle(token);
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith(token);
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith(token);
       expect(result).toEqual({ data: newTokens });
     });
 
@@ -54,12 +54,12 @@ describe('RefreshTokenController', () => {
         new HttpException('Server error', HttpStatus.INTERNAL_SERVER_ERROR),
       ],
     ])(
-      'should throw HTTP exception when handler returns error %s (Left)',
+      'should throw HTTP exception when service returns error %s (Left)',
       async (_, errorInstance) => {
         const token = makeToken();
-        handler.execute.mockResolvedValue(left(errorInstance));
+        service.execute.mockResolvedValue(left(errorInstance));
         await expect(controller.handle(token)).rejects.toThrow(errorInstance);
-        expect(handler.execute).toHaveBeenCalledWith(token);
+        expect(service.execute).toHaveBeenCalledWith(token);
       },
     );
   });

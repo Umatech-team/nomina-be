@@ -3,11 +3,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { left, right } from '@shared/core/errors/Either';
 import { LoginUserController } from './login-user.controller';
 import { LoginUserRequest } from './login-user.dto';
-import { LoginUserHandler } from './login-user.handler';
+import { LoginUserService } from './login-user.service';
 
 describe('LoginUserController', () => {
   let controller: LoginUserController;
-  let handler: jest.Mocked<LoginUserHandler>;
+  let service: jest.Mocked<LoginUserService>;
 
   const makeRequest = (
     overrides?: Partial<LoginUserRequest>,
@@ -18,15 +18,15 @@ describe('LoginUserController', () => {
   });
 
   beforeEach(async () => {
-    const mockHandler = { execute: jest.fn() };
+    const mockService = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [LoginUserController],
-      providers: [{ provide: LoginUserHandler, useValue: mockHandler }],
+      providers: [{ provide: LoginUserService, useValue: mockService }],
     }).compile();
 
     controller = module.get<LoginUserController>(LoginUserController);
-    handler = module.get(LoginUserHandler);
+    service = module.get(LoginUserService);
   });
 
   afterEach(() => {
@@ -34,13 +34,13 @@ describe('LoginUserController', () => {
   });
 
   describe('handle()', () => {
-    it('should route request to handler and return formatted tokens on success (Right)', async () => {
+    it('should route request to service and return formatted tokens on success (Right)', async () => {
       const request = makeRequest();
       const tokens = { accessToken: 'access_abc', refreshToken: 'refresh_xyz' };
-      handler.execute.mockResolvedValue(right(tokens));
+      service.execute.mockResolvedValue(right(tokens));
       const result = await controller.handle(request);
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith(request);
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith(request);
       expect(result).toEqual({ data: tokens });
     });
 
@@ -58,12 +58,12 @@ describe('LoginUserController', () => {
         new HttpException('Server error', HttpStatus.INTERNAL_SERVER_ERROR),
       ],
     ])(
-      'should throw HTTP exception when handler returns error %s (Left)',
+      'should throw HTTP exception when service returns error %s (Left)',
       async (_, errorInstance) => {
         const request = makeRequest();
-        handler.execute.mockResolvedValue(left(errorInstance));
+        service.execute.mockResolvedValue(left(errorInstance));
         await expect(controller.handle(request)).rejects.toThrow(errorInstance);
-        expect(handler.execute).toHaveBeenCalledWith(request);
+        expect(service.execute).toHaveBeenCalledWith(request);
       },
     );
   });

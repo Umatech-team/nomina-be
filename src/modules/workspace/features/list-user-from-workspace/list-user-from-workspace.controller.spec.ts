@@ -1,8 +1,8 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import {
-  WorkspaceUser,
-  WorkspaceUserProps,
+    WorkspaceUser,
+    WorkspaceUserProps,
 } from '@modules/workspace/entities/WorkspaceUser';
 import { WorkspaceUserPresenter } from '@modules/workspace/presenters/WorkspaceUser.presenter';
 import { HttpException } from '@nestjs/common';
@@ -11,7 +11,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left, right } from '@shared/core/errors/Either';
 import { statusCode } from '@shared/core/types/statusCode';
 import { ListUsersFromWorkspaceController } from './list-user-from-workspace.controller';
-import { ListUsersFromWorkspaceHandler } from './list-user-from-workspace.handler';
+import { ListUsersFromWorkspaceService } from './list-user-from-workspace.service';
 
 function makeQuery(overrides?: Partial<{ page: number; pageSize: number }>): {
   page: number;
@@ -60,10 +60,10 @@ function makeWorkspaceUser(
 
 describe('ListUsersFromWorkspaceController', () => {
   let controller: ListUsersFromWorkspaceController;
-  let handler: jest.Mocked<ListUsersFromWorkspaceHandler>;
+  let service: jest.Mocked<ListUsersFromWorkspaceService>;
 
   beforeEach(async () => {
-    const mockHandler = { execute: jest.fn() };
+    const mockService = { execute: jest.fn() };
 
     jest.spyOn(ErrorPresenter, 'toHTTP').mockReturnValue(undefined as never);
     jest.spyOn(WorkspaceUserPresenter, 'toHTTP').mockReturnValue({
@@ -77,12 +77,12 @@ describe('ListUsersFromWorkspaceController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ListUsersFromWorkspaceController],
       providers: [
-        { provide: ListUsersFromWorkspaceHandler, useValue: mockHandler },
+        { provide: ListUsersFromWorkspaceService, useValue: mockService },
       ],
     }).compile();
 
     controller = module.get(ListUsersFromWorkspaceController);
-    handler = module.get(ListUsersFromWorkspaceHandler);
+    service = module.get(ListUsersFromWorkspaceService);
   });
 
   afterEach(() => {
@@ -90,21 +90,21 @@ describe('ListUsersFromWorkspaceController', () => {
   });
 
   describe('Happy Path', () => {
-    it('should return workspace users and total when handler succeeds', async () => {
+    it('should return workspace users and total when service succeeds', async () => {
       const query = makeQuery();
       const token = makeTokenPayload();
       const workspaceId = 'workspace-abc';
       const wu1 = makeWorkspaceUser({}, 'wu-1');
       const wu2 = makeWorkspaceUser({ userId: 'user-456' }, 'wu-2');
 
-      handler.execute.mockResolvedValue(
+      service.execute.mockResolvedValue(
         right({ workspaceUsers: [wu1, wu2], total: 2 }),
       );
 
       const result = await controller.handle(token, workspaceId, query);
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith({
         ...query,
         workspaceId,
         sub: token.sub,
@@ -148,7 +148,7 @@ describe('ListUsersFromWorkspaceController', () => {
       const token = makeTokenPayload();
       const workspaceId = 'workspace-abc';
 
-      handler.execute.mockResolvedValue(
+      service.execute.mockResolvedValue(
         right({ workspaceUsers: [], total: 0 }),
       );
 
@@ -159,7 +159,7 @@ describe('ListUsersFromWorkspaceController', () => {
     });
   });
 
-  describe('Error Paths - Handler returns Left', () => {
+  describe('Error Paths - Service returns Left', () => {
     it.each<{ scenario: string; message: string; status: number }>([
       {
         scenario: 'workspace not found',
@@ -179,7 +179,7 @@ describe('ListUsersFromWorkspaceController', () => {
         const workspaceId = 'workspace-abc';
         const error = new HttpException(message, status);
 
-        handler.execute.mockResolvedValue(left(error));
+        service.execute.mockResolvedValue(left(error));
 
         const result = await controller.handle(token, workspaceId, query);
 

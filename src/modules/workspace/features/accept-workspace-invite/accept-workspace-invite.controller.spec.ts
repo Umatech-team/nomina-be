@@ -1,8 +1,8 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import {
-  WorkspaceUser,
-  WorkspaceUserProps,
+    WorkspaceUser,
+    WorkspaceUserProps,
 } from '@modules/workspace/entities/WorkspaceUser';
 import { WorkspaceUserPresenter } from '@modules/workspace/presenters/WorkspaceUser.presenter';
 import { HttpException } from '@nestjs/common';
@@ -11,7 +11,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left, right } from '@shared/core/errors/Either';
 import { statusCode } from '@shared/core/types/statusCode';
 import { AcceptWorkspaceInviteController } from './accept-workspace-invite.controller';
-import { AcceptWorkspaceInviteHandler } from './accept-workspace-invite.handler';
+import { AcceptWorkspaceInviteService } from './accept-workspace-invite.service';
 
 function makeRequest(overrides?: Partial<{ code: string }>): { code: string } {
   return {
@@ -60,12 +60,12 @@ function makeErrorResponse(message: string, status: number): HttpException {
 
 describe('AcceptWorkspaceInviteController', () => {
   let controller: AcceptWorkspaceInviteController;
-  let handler: jest.Mocked<AcceptWorkspaceInviteHandler>;
+  let service: jest.Mocked<AcceptWorkspaceInviteService>;
   let module: TestingModule;
 
   beforeEach(async () => {
-    // Mock handler
-    const mockHandler = {
+    // Mock service
+    const mockService = {
       execute: jest.fn(),
     };
 
@@ -85,14 +85,14 @@ describe('AcceptWorkspaceInviteController', () => {
       controllers: [AcceptWorkspaceInviteController],
       providers: [
         {
-          provide: AcceptWorkspaceInviteHandler,
-          useValue: mockHandler,
+          provide: AcceptWorkspaceInviteService,
+          useValue: mockService,
         },
       ],
     }).compile();
 
     controller = module.get(AcceptWorkspaceInviteController);
-    handler = module.get(AcceptWorkspaceInviteHandler);
+    service = module.get(AcceptWorkspaceInviteService);
   });
 
   afterEach(() => {
@@ -100,12 +100,12 @@ describe('AcceptWorkspaceInviteController', () => {
   });
 
   describe('Happy Path - Successful invite acceptance', () => {
-    it('should return formatted workspace user when handler succeeds', async () => {
+    it('should return formatted workspace user when service succeeds', async () => {
       const request = makeRequest();
       const tokenPayload = makeTokenPayload();
       const workspaceUser = makeWorkspaceUser();
 
-      handler.execute.mockResolvedValue(right(workspaceUser));
+      service.execute.mockResolvedValue(right(workspaceUser));
 
       const expectedPresenterInput = {
         ...request,
@@ -113,8 +113,8 @@ describe('AcceptWorkspaceInviteController', () => {
       };
 
       const result = await controller.handle(tokenPayload, request);
-      expect(handler.execute).toHaveBeenCalledWith(expectedPresenterInput);
-      expect(handler.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith(expectedPresenterInput);
+      expect(service.execute).toHaveBeenCalledTimes(1);
       expect(WorkspaceUserPresenter.toHTTP).toHaveBeenCalledWith(workspaceUser);
       expect(result).toEqual({
         id: 'mock-workspace-user',
@@ -126,7 +126,7 @@ describe('AcceptWorkspaceInviteController', () => {
     });
   });
 
-  describe('Error Paths - Handler returns Left', () => {
+  describe('Error Paths - Service returns Left', () => {
     it.each<{
       scenario: string;
       errorMessage: string;
@@ -153,15 +153,15 @@ describe('AcceptWorkspaceInviteController', () => {
         errorStatus: statusCode.CONFLICT,
       },
     ])(
-      'should return error presenter response when handler fails ($scenario)',
+      'should return error presenter response when service fails ($scenario)',
       async ({ errorMessage, errorStatus }) => {
         const request = makeRequest();
         const tokenPayload = makeTokenPayload();
         const error = makeErrorResponse(errorMessage, errorStatus);
 
-        handler.execute.mockResolvedValue(left(error));
+        service.execute.mockResolvedValue(left(error));
         await controller.handle(tokenPayload, request);
-        expect(handler.execute).toHaveBeenCalledWith({
+        expect(service.execute).toHaveBeenCalledWith({
           ...request,
           sub: tokenPayload.sub,
         });
@@ -171,24 +171,24 @@ describe('AcceptWorkspaceInviteController', () => {
   });
 
   describe('Request/Response Shape Integration', () => {
-    it('should pass merged request and token payload to handler', async () => {
+    it('should pass merged request and token payload to service', async () => {
       const request = makeRequest({ code: 'unique-code-456' });
       const tokenPayload = makeTokenPayload({ sub: 'user-789' });
       const workspaceUser = makeWorkspaceUser({
         userId: 'user-789',
       });
 
-      handler.execute.mockResolvedValue(right(workspaceUser));
+      service.execute.mockResolvedValue(right(workspaceUser));
 
       await controller.handle(tokenPayload, request);
 
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledWith({
         code: 'unique-code-456',
         sub: 'user-789',
       });
     });
 
-    it('should call WorkspaceUserPresenter with exact response from handler', async () => {
+    it('should call WorkspaceUserPresenter with exact response from service', async () => {
       const request = makeRequest();
       const tokenPayload = makeTokenPayload();
       const customWorkspaceUser = makeWorkspaceUser(
@@ -196,7 +196,7 @@ describe('AcceptWorkspaceInviteController', () => {
         'custom-id-999',
       );
 
-      handler.execute.mockResolvedValue(right(customWorkspaceUser));
+      service.execute.mockResolvedValue(right(customWorkspaceUser));
       await controller.handle(tokenPayload, request);
       expect(WorkspaceUserPresenter.toHTTP).toHaveBeenCalledWith(
         customWorkspaceUser,
@@ -205,7 +205,7 @@ describe('AcceptWorkspaceInviteController', () => {
   });
 
   describe('Edge Cases', () => {
-    it('should handle handler with minimal valid data', async () => {
+    it('should handle service with minimal valid data', async () => {
       const request = makeRequest({ code: 'x' });
       const tokenPayload = makeTokenPayload({ sub: 'u' });
       const minimalWorkspaceUser = makeWorkspaceUser(
@@ -213,9 +213,9 @@ describe('AcceptWorkspaceInviteController', () => {
         'w1',
       );
 
-      handler.execute.mockResolvedValue(right(minimalWorkspaceUser));
+      service.execute.mockResolvedValue(right(minimalWorkspaceUser));
       const result = await controller.handle(tokenPayload, request);
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledWith({
         code: 'x',
         sub: 'u',
       });
@@ -228,18 +228,18 @@ describe('AcceptWorkspaceInviteController', () => {
       });
     });
 
-    it('should preserve handler execution order and async flow', async () => {
+    it('should preserve service execution order and async flow', async () => {
       const request = makeRequest();
       const tokenPayload = makeTokenPayload();
       const workspaceUser = makeWorkspaceUser();
-      handler.execute.mockImplementation(
+      service.execute.mockImplementation(
         () =>
           new Promise((resolve) => {
             setTimeout(() => resolve(right(workspaceUser)), 10);
           }),
       );
       const result = await controller.handle(tokenPayload, request);
-      expect(handler.execute).toHaveBeenCalled();
+      expect(service.execute).toHaveBeenCalled();
       expect(result).toBeDefined();
     });
   });
@@ -250,7 +250,7 @@ describe('AcceptWorkspaceInviteController', () => {
       const tokenPayload = makeTokenPayload();
       const error = makeErrorResponse('Test error', statusCode.BAD_REQUEST);
 
-      handler.execute.mockResolvedValue(left(error));
+      service.execute.mockResolvedValue(left(error));
       await controller.handle(tokenPayload, request);
       expect(ErrorPresenter.toHTTP).toHaveBeenCalledTimes(1);
       expect(ErrorPresenter.toHTTP).toHaveBeenCalledWith(error);
@@ -261,7 +261,7 @@ describe('AcceptWorkspaceInviteController', () => {
       const tokenPayload = makeTokenPayload();
       const workspaceUser = makeWorkspaceUser();
 
-      handler.execute.mockResolvedValue(right(workspaceUser));
+      service.execute.mockResolvedValue(right(workspaceUser));
       await controller.handle(tokenPayload, request);
       expect(WorkspaceUserPresenter.toHTTP).toHaveBeenCalledTimes(1);
       expect(WorkspaceUserPresenter.toHTTP).toHaveBeenCalledWith(workspaceUser);
@@ -272,7 +272,7 @@ describe('AcceptWorkspaceInviteController', () => {
       const tokenPayload = makeTokenPayload();
       const workspaceUser = makeWorkspaceUser();
 
-      handler.execute.mockResolvedValue(right(workspaceUser));
+      service.execute.mockResolvedValue(right(workspaceUser));
       await controller.handle(tokenPayload, request);
       expect(ErrorPresenter.toHTTP).not.toHaveBeenCalled();
       expect(WorkspaceUserPresenter.toHTTP).toHaveBeenCalled();

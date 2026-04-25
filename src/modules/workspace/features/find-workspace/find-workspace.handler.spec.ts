@@ -7,7 +7,7 @@ import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { statusCode } from '@shared/core/types/statusCode';
 import { FindWorkspaceRequest } from './find-workspace.dto';
-import { FindWorkspaceByIdHandler } from './find-workspace.handler';
+import { FindWorkspaceByIdService } from './find-workspace.service';
 
 const WORKSPACE_ID = 'workspace-uuid-001';
 const USER_ID = 'user-uuid-001';
@@ -30,15 +30,15 @@ function makeWorkspaceUser(role = UserRole.OWNER): WorkspaceUser {
   return { role } as unknown as WorkspaceUser;
 }
 
-describe('FindWorkspaceByIdHandler', () => {
-  let handler: FindWorkspaceByIdHandler;
+describe('FindWorkspaceByIdService', () => {
+  let service: FindWorkspaceByIdService;
   let workspaceRepository: jest.Mocked<WorkspaceRepository>;
   let workspaceUserRepository: jest.Mocked<WorkspaceUserRepository>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        FindWorkspaceByIdHandler,
+        FindWorkspaceByIdService,
         {
           provide: WorkspaceRepository,
           useValue: {
@@ -65,7 +65,7 @@ describe('FindWorkspaceByIdHandler', () => {
       ],
     }).compile();
 
-    handler = module.get(FindWorkspaceByIdHandler);
+    service = module.get(FindWorkspaceByIdService);
     workspaceRepository = module.get(WorkspaceRepository);
     workspaceUserRepository = module.get(WorkspaceUserRepository);
   });
@@ -93,7 +93,7 @@ describe('FindWorkspaceByIdHandler', () => {
         arrangeSuccessMocks(role);
         const request = makeRequest();
 
-        const result = await handler.execute(request);
+        const result = await service.execute(request);
 
         expect(result.isRight()).toBe(true);
         const value = result.value as { workspace: Workspace; role: UserRole };
@@ -116,7 +116,7 @@ describe('FindWorkspaceByIdHandler', () => {
       workspaceRepository.findById.mockResolvedValue(null);
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(HttpException);
@@ -135,7 +135,7 @@ describe('FindWorkspaceByIdHandler', () => {
       );
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(HttpException);

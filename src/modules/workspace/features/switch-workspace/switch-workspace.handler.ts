@@ -23,7 +23,7 @@ type Response = {
 };
 
 @Injectable()
-export class SwitchWorkspaceHandler implements Service<
+export class SwitchWorkspaceService implements Service<
   Request,
   Errors,
   Response

@@ -18,7 +18,7 @@ type Response = {
 };
 
 @Injectable()
-export class RefreshTokenHandler implements Service<Request, Errors, Response> {
+export class RefreshTokenService implements Service<Request, Errors, Response> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly refreshTokensRepository: RefreshTokensRepository,

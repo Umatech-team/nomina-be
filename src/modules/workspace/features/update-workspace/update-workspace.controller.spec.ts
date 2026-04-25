@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { Workspace } from '@modules/workspace/entities/Workspace';
 import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -7,7 +7,7 @@ import { left, right } from '@shared/core/errors/Either';
 import { statusCode } from '@shared/core/types/statusCode';
 import { UpdateWorkspaceController } from './update-workspace.controller';
 import { UpdateWorkspaceRequest } from './update-workspace.dto';
-import { UpdateWorkspaceHandler } from './update-workspace.handler';
+import { UpdateWorkspaceService } from './update-workspace.service';
 
 type ParamRequest = Pick<UpdateWorkspaceRequest, 'workspaceId'>;
 type BodyRequest = Omit<UpdateWorkspaceRequest, 'workspaceId'>;
@@ -40,23 +40,23 @@ function makeMockWorkspace(): Workspace {
 
 describe('UpdateWorkspaceController', () => {
   let controller: UpdateWorkspaceController;
-  let handler: jest.Mocked<UpdateWorkspaceHandler>;
+  let service: jest.Mocked<UpdateWorkspaceService>;
 
   beforeEach(async () => {
-    const mockHandler = { execute: jest.fn() };
+    const mockService = { execute: jest.fn() };
 
     jest.spyOn(ErrorPresenter, 'toHTTP').mockReturnValue(undefined as never);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UpdateWorkspaceController],
-      providers: [{ provide: UpdateWorkspaceHandler, useValue: mockHandler }],
+      providers: [{ provide: UpdateWorkspaceService, useValue: mockService }],
     })
       .overrideGuard(RolesGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
     controller = module.get(UpdateWorkspaceController);
-    handler = module.get(UpdateWorkspaceHandler);
+    service = module.get(UpdateWorkspaceService);
   });
 
   afterEach(() => {
@@ -64,17 +64,17 @@ describe('UpdateWorkspaceController', () => {
   });
 
   describe('Happy Path', () => {
-    it('should call handler with merged param and body, then return presenter output', async () => {
+    it('should call service with merged param and body, then return presenter output', async () => {
       const param = makeParam();
       const body = makeBody();
       const workspace = makeMockWorkspace();
 
-      handler.execute.mockResolvedValue(right(workspace));
+      service.execute.mockResolvedValue(right(workspace));
 
       const result = await controller.handle(param, body);
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith({
         ...body,
         workspaceId: param.workspaceId,
       });
@@ -89,7 +89,7 @@ describe('UpdateWorkspaceController', () => {
     });
 
     it('should not leak Either internals in the successful response', async () => {
-      handler.execute.mockResolvedValue(right(makeMockWorkspace()));
+      service.execute.mockResolvedValue(right(makeMockWorkspace()));
 
       const result = await controller.handle(makeParam(), makeBody());
 
@@ -98,7 +98,7 @@ describe('UpdateWorkspaceController', () => {
     });
   });
 
-  describe('Error Path - Handler returns Left', () => {
+  describe('Error Path - Service returns Left', () => {
     it.each<{ scenario: string; errorMessage: string; errorStatus: number }>([
       {
         scenario: 'workspace not found',
@@ -111,15 +111,15 @@ describe('UpdateWorkspaceController', () => {
         errorStatus: statusCode.UNAUTHORIZED,
       },
     ])(
-      'should delegate to ErrorPresenter when handler fails ($scenario)',
+      'should delegate to ErrorPresenter when service fails ($scenario)',
       async ({ errorMessage, errorStatus }) => {
         const error = new HttpException(errorMessage, errorStatus);
 
-        handler.execute.mockResolvedValue(left(error));
+        service.execute.mockResolvedValue(left(error));
 
         await controller.handle(makeParam(), makeBody());
 
-        expect(handler.execute).toHaveBeenCalledTimes(1);
+        expect(service.execute).toHaveBeenCalledTimes(1);
         expect(ErrorPresenter.toHTTP).toHaveBeenCalledWith(error);
       },
     );

@@ -14,7 +14,7 @@ type Errors = HttpException;
 type Response = RecurringTransaction;
 
 @Injectable()
-export class CreateRecurringTransactionHandler implements Service<
+export class CreateRecurringTransactionService implements Service<
   Request,
   Errors,
   Response

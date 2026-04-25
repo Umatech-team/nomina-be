@@ -3,12 +3,12 @@ import { RecurringTransaction } from '@modules/transaction/entities/RecurringTra
 import { RecurringTransactionRepository } from '@modules/transaction/repositories/contracts/RecurringTransactionRepository';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { DeleteRecurringTransactionHandler } from './delete-recurring-transaction.handler';
+import { DeleteRecurringTransactionService } from './delete-recurring-transaction.service';
 
 const WORKSPACE_ID = 'workspace-id-abc';
 const RECURRING_ID = 'recurring-id-123';
 
-type Request = Parameters<DeleteRecurringTransactionHandler['execute']>[0];
+type Request = Parameters<DeleteRecurringTransactionService['execute']>[0];
 
 const makeRequest = (overrides: Partial<Request> = {}): Request => ({
   recurringTransactionId: RECURRING_ID,
@@ -51,8 +51,8 @@ const createMockRecurringTransactionRepository =
     createGeneratedTransactions: jest.fn(),
   });
 
-describe('DeleteRecurringTransactionHandler', () => {
-  let handler: DeleteRecurringTransactionHandler;
+describe('DeleteRecurringTransactionService', () => {
+  let service: DeleteRecurringTransactionService;
   let recurringRepository: jest.Mocked<RecurringTransactionRepository>;
 
   beforeEach(async () => {
@@ -60,7 +60,7 @@ describe('DeleteRecurringTransactionHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        DeleteRecurringTransactionHandler,
+        DeleteRecurringTransactionService,
         {
           provide: RecurringTransactionRepository,
           useValue: recurringRepository,
@@ -68,7 +68,7 @@ describe('DeleteRecurringTransactionHandler', () => {
       ],
     }).compile();
 
-    handler = module.get(DeleteRecurringTransactionHandler);
+    service = module.get(DeleteRecurringTransactionService);
   });
 
   afterEach(() => {
@@ -85,7 +85,7 @@ describe('DeleteRecurringTransactionHandler', () => {
     const { recurring } = arrangeSuccessMocks();
     const request = makeRequest();
 
-    const result = await handler.execute(request);
+    const result = await service.execute(request);
 
     expect(result.isRight()).toBe(true);
     expect(result.value).toBe(recurring);
@@ -97,7 +97,7 @@ describe('DeleteRecurringTransactionHandler', () => {
     recurringRepository.findById.mockResolvedValue(null);
     const request = makeRequest();
 
-    const result = await handler.execute(request);
+    const result = await service.execute(request);
 
     expect(result.isLeft()).toBe(true);
     expect((result.value as HttpException).getStatus()).toBe(
@@ -112,7 +112,7 @@ describe('DeleteRecurringTransactionHandler', () => {
     );
     const request = makeRequest({ workspaceId: WORKSPACE_ID });
 
-    const result = await handler.execute(request);
+    const result = await service.execute(request);
 
     expect(result.isLeft()).toBe(true);
     expect((result.value as HttpException).getStatus()).toBe(

@@ -5,11 +5,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { left, right } from '@shared/core/errors/Either';
 import { ListWorkspacesController } from './list-workspaces.controller';
 import { ListWorkspacesRequest } from './list-workspaces.dto';
-import { ListWorkspacesHandler } from './list-workspaces.handler';
+import { ListWorkspacesService } from './list-workspaces.service';
 
 describe('ListWorkspacesController', () => {
   let controller: ListWorkspacesController;
-  let handler: jest.Mocked<ListWorkspacesHandler>;
+  let service: jest.Mocked<ListWorkspacesService>;
 
   const makeSub = () => 'user-id-123';
 
@@ -30,7 +30,7 @@ describe('ListWorkspacesController', () => {
     return result.value;
   };
 
-  const makeHandlerResponse = (overrides?: {
+  const makeServiceResponse = (overrides?: {
     workspaces?: Array<{
       workspace: Workspace;
       role: UserRole;
@@ -46,15 +46,15 @@ describe('ListWorkspacesController', () => {
   });
 
   beforeEach(async () => {
-    const mockHandler = { execute: jest.fn() };
+    const mockService = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ListWorkspacesController],
-      providers: [{ provide: ListWorkspacesHandler, useValue: mockHandler }],
+      providers: [{ provide: ListWorkspacesService, useValue: mockService }],
     }).compile();
 
     controller = module.get<ListWorkspacesController>(ListWorkspacesController);
-    handler = module.get(ListWorkspacesHandler);
+    service = module.get(ListWorkspacesService);
   });
 
   afterEach(() => {
@@ -62,17 +62,17 @@ describe('ListWorkspacesController', () => {
   });
 
   describe('handle()', () => {
-    it('should call handler with merged sub+query and return mapped response on success (Right)', async () => {
+    it('should call service with merged sub+query and return mapped response on success (Right)', async () => {
       const sub = makeSub();
       const query = makeQuery();
-      const handlerResponse = makeHandlerResponse();
-      handler.execute.mockResolvedValue(right(handlerResponse));
+      const serviceResponse = makeServiceResponse();
+      service.execute.mockResolvedValue(right(serviceResponse));
 
       const result = await controller.handle({ sub } as never, query);
 
-      const { workspace } = handlerResponse.workspaces[0];
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith({ ...query, sub });
+      const { workspace } = serviceResponse.workspaces[0];
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith({ ...query, sub });
       expect(result).toEqual({
         data: {
           workspaces: [
@@ -95,18 +95,18 @@ describe('ListWorkspacesController', () => {
       const query = makeQuery({ page: 2, pageSize: 5 });
       const ws1 = makeWorkspace('Workspace A', 'ws-id-1');
       const ws2 = makeWorkspace('Workspace B', 'ws-id-2');
-      const handlerResponse = makeHandlerResponse({
+      const serviceResponse = makeServiceResponse({
         workspaces: [
           { workspace: ws1, role: UserRole.OWNER, isDefault: true },
           { workspace: ws2, role: UserRole.ADMIN, isDefault: false },
         ],
         total: 2,
       });
-      handler.execute.mockResolvedValue(right(handlerResponse));
+      service.execute.mockResolvedValue(right(serviceResponse));
 
       const result = await controller.handle({ sub } as never, query);
 
-      expect(handler.execute).toHaveBeenCalledWith({ ...query, sub });
+      expect(service.execute).toHaveBeenCalledWith({ ...query, sub });
       expect(result).toEqual({
         data: {
           workspaces: [
@@ -132,9 +132,9 @@ describe('ListWorkspacesController', () => {
       });
     });
 
-    it('should return an empty workspaces array when handler returns no workspaces', async () => {
-      const handlerResponse = makeHandlerResponse({ workspaces: [], total: 0 });
-      handler.execute.mockResolvedValue(right(handlerResponse));
+    it('should return an empty workspaces array when service returns no workspaces', async () => {
+      const serviceResponse = makeServiceResponse({ workspaces: [], total: 0 });
+      service.execute.mockResolvedValue(right(serviceResponse));
 
       const result = await controller.handle(
         { sub: makeSub() } as never,
@@ -158,14 +158,14 @@ describe('ListWorkspacesController', () => {
         new HttpException('Unexpected error', HttpStatus.INTERNAL_SERVER_ERROR),
       ],
     ])(
-      'should throw when handler returns an error — %s (Left)',
+      'should throw when service returns an error — %s (Left)',
       async (_, errorInstance) => {
-        handler.execute.mockResolvedValue(left(errorInstance as never));
+        service.execute.mockResolvedValue(left(errorInstance as never));
 
         await expect(
           controller.handle({ sub: makeSub() } as never, makeQuery()),
         ).rejects.toThrow(errorInstance.message);
-        expect(handler.execute).toHaveBeenCalledTimes(1);
+        expect(service.execute).toHaveBeenCalledTimes(1);
       },
     );
   });

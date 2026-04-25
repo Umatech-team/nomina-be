@@ -12,7 +12,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left } from '@shared/core/errors/Either';
 import { statusCode } from '@shared/core/types/statusCode';
 import { CreateWorkspaceInviteRequest } from './create-workspace-invite.dto';
-import { CreateWorkspaceInviteHandler } from './create-workspace-invite.handler';
+import { CreateWorkspaceInviteService } from './create-workspace-invite.service';
 
 type Request = CreateWorkspaceInviteRequest & TokenPayloadSchema;
 
@@ -60,8 +60,8 @@ function makeWorkspaceInvite(): WorkspaceInvite {
   return result.value;
 }
 
-describe('CreateWorkspaceInviteHandler', () => {
-  let handler: CreateWorkspaceInviteHandler;
+describe('CreateWorkspaceInviteService', () => {
+  let service: CreateWorkspaceInviteService;
   let userRepo: jest.Mocked<UserRepository>;
   let workspaceUserRepo: jest.Mocked<WorkspaceUserRepository>;
   let inviteRepo: jest.Mocked<WorkspaceInviteRepository>;
@@ -69,7 +69,7 @@ describe('CreateWorkspaceInviteHandler', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CreateWorkspaceInviteHandler,
+        CreateWorkspaceInviteService,
         {
           provide: UserRepository,
           useValue: {
@@ -114,7 +114,7 @@ describe('CreateWorkspaceInviteHandler', () => {
       ],
     }).compile();
 
-    handler = module.get(CreateWorkspaceInviteHandler);
+    service = module.get(CreateWorkspaceInviteService);
     userRepo = module.get(UserRepository);
     workspaceUserRepo = module.get(WorkspaceUserRepository);
     inviteRepo = module.get(WorkspaceInviteRepository);
@@ -139,7 +139,7 @@ describe('CreateWorkspaceInviteHandler', () => {
         arrangeSuccessMocks();
         const request = makeRequest({ role });
 
-        const result = await handler.execute(request);
+        const result = await service.execute(request);
 
         expect(result.isRight()).toBe(true);
         expect(result.value).toBeInstanceOf(WorkspaceInvite);
@@ -159,7 +159,7 @@ describe('CreateWorkspaceInviteHandler', () => {
     it('should return NOT_FOUND when user does not exist', async () => {
       userRepo.findUniqueById.mockResolvedValue(null);
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
@@ -175,7 +175,7 @@ describe('CreateWorkspaceInviteHandler', () => {
       userRepo.findUniqueById.mockResolvedValue(makeUser());
       workspaceUserRepo.findUserByWorkspaceAndUserId.mockResolvedValue(null);
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
@@ -192,7 +192,7 @@ describe('CreateWorkspaceInviteHandler', () => {
           makeWorkspaceUser(),
         );
 
-        const result = await handler.execute(makeRequest({ role }));
+        const result = await service.execute(makeRequest({ role }));
 
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
@@ -213,7 +213,7 @@ describe('CreateWorkspaceInviteHandler', () => {
       );
       jest.spyOn(WorkspaceInvite, 'create').mockReturnValueOnce(left(error));
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {

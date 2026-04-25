@@ -1,5 +1,5 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { Workspace } from '@modules/workspace/entities/Workspace';
 import { WorkspaceUser } from '@modules/workspace/entities/WorkspaceUser';
 import { HttpException } from '@nestjs/common';
@@ -8,7 +8,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left, right } from '@shared/core/errors/Either';
 import { statusCode } from '@shared/core/types/statusCode';
 import { FindWorkspaceController } from './find-workspace.controller';
-import { FindWorkspaceByIdHandler } from './find-workspace.handler';
+import { FindWorkspaceByIdService } from './find-workspace.service';
 
 type ParamRequest = { workspaceId: string };
 
@@ -60,10 +60,10 @@ function makeWorkspaceUser(role = UserRole.OWNER): WorkspaceUser {
 
 describe('FindWorkspaceController', () => {
   let controller: FindWorkspaceController;
-  let handler: jest.Mocked<FindWorkspaceByIdHandler>;
+  let service: jest.Mocked<FindWorkspaceByIdService>;
 
   beforeEach(async () => {
-    const mockHandler = { execute: jest.fn() };
+    const mockService = { execute: jest.fn() };
 
     jest.spyOn(ErrorPresenter, 'toHTTP').mockReturnValue(undefined as never);
 
@@ -71,14 +71,14 @@ describe('FindWorkspaceController', () => {
       controllers: [FindWorkspaceController],
       providers: [
         {
-          provide: FindWorkspaceByIdHandler,
-          useValue: mockHandler,
+          provide: FindWorkspaceByIdService,
+          useValue: mockService,
         },
       ],
     }).compile();
 
     controller = module.get(FindWorkspaceController);
-    handler = module.get(FindWorkspaceByIdHandler);
+    service = module.get(FindWorkspaceByIdService);
   });
 
   afterEach(() => {
@@ -86,20 +86,20 @@ describe('FindWorkspaceController', () => {
   });
 
   describe('Happy Path', () => {
-    it('should call handler with workspaceId and sub, then return workspace and role', async () => {
+    it('should call service with workspaceId and sub, then return workspace and role', async () => {
       const param = makeParam();
       const token = makeTokenPayload();
       const workspace = makeWorkspace();
       const workspaceUser = makeWorkspaceUser(UserRole.OWNER);
 
-      handler.execute.mockResolvedValue(
+      service.execute.mockResolvedValue(
         right({ workspace, role: workspaceUser.role }),
       );
 
       const result = await controller.handle(token, param);
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith({
         workspaceId: param.workspaceId,
         sub: token.sub,
       });
@@ -112,7 +112,7 @@ describe('FindWorkspaceController', () => {
     });
   });
 
-  describe('Error Paths - Handler returns Left', () => {
+  describe('Error Paths - Service returns Left', () => {
     it.each<{ scenario: string; message: string; status: number }>([
       {
         scenario: 'workspace not found',
@@ -131,7 +131,7 @@ describe('FindWorkspaceController', () => {
         const token = makeTokenPayload();
         const error = new HttpException(message, status);
 
-        handler.execute.mockResolvedValue(left(error));
+        service.execute.mockResolvedValue(left(error));
 
         await controller.handle(token, param);
 

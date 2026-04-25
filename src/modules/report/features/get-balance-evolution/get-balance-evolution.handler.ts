@@ -23,7 +23,7 @@ type Response = Array<{
 }>;
 
 @Injectable()
-export class BalanceEvolutionHandler {
+export class BalanceEvolutionService {
   constructor(private readonly drizzle: DrizzleService) {}
 
   async execute({

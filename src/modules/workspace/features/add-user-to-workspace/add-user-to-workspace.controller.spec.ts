@@ -1,8 +1,8 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import {
-  WorkspaceUser,
-  WorkspaceUserProps,
+    WorkspaceUser,
+    WorkspaceUserProps,
 } from '@modules/workspace/entities/WorkspaceUser';
 import { WorkspaceUserPresenter } from '@modules/workspace/presenters/WorkspaceUser.presenter';
 import { HttpException } from '@nestjs/common';
@@ -11,7 +11,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left, right } from '@shared/core/errors/Either';
 import { statusCode } from '@shared/core/types/statusCode';
 import { AddUserToWorkspaceController } from './add-user-to-workspace.controller';
-import { AddUserToWorkspaceHandler } from './add-user-to-workspace.handler';
+import { AddUserToWorkspaceService } from './add-user-to-workspace.service';
 
 type BodyRequest = { userId: string; role: UserRole };
 type ParamRequest = Pick<{ workspaceId: string }, 'workspaceId'>;
@@ -71,10 +71,10 @@ function makeError(message: string, status: number): HttpException {
 
 describe('AddUserToWorkspaceController', () => {
   let controller: AddUserToWorkspaceController;
-  let handler: jest.Mocked<AddUserToWorkspaceHandler>;
+  let service: jest.Mocked<AddUserToWorkspaceService>;
 
   beforeEach(async () => {
-    const mockHandler = { execute: jest.fn() };
+    const mockService = { execute: jest.fn() };
 
     jest.spyOn(ErrorPresenter, 'toHTTP').mockReturnValue(undefined as never);
     jest.spyOn(WorkspaceUserPresenter, 'toHTTP').mockReturnValue({
@@ -89,14 +89,14 @@ describe('AddUserToWorkspaceController', () => {
       controllers: [AddUserToWorkspaceController],
       providers: [
         {
-          provide: AddUserToWorkspaceHandler,
-          useValue: mockHandler,
+          provide: AddUserToWorkspaceService,
+          useValue: mockService,
         },
       ],
     }).compile();
 
     controller = module.get(AddUserToWorkspaceController);
-    handler = module.get(AddUserToWorkspaceHandler);
+    service = module.get(AddUserToWorkspaceService);
   });
 
   afterEach(() => {
@@ -104,18 +104,18 @@ describe('AddUserToWorkspaceController', () => {
   });
 
   describe('Happy Path', () => {
-    it('should call handler with merged body, workspaceId and sub and return wrapped presenter output', async () => {
+    it('should call service with merged body, workspaceId and sub and return wrapped presenter output', async () => {
       const body = makeBody();
       const param = makeParam();
       const token = makeTokenPayload();
       const workspaceUser = makeWorkspaceUser();
 
-      handler.execute.mockResolvedValue(right(workspaceUser));
+      service.execute.mockResolvedValue(right(workspaceUser));
 
       const result = await controller.handle(token, param, body);
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith({
         ...body,
         workspaceId: param.workspaceId,
         sub: token.sub,
@@ -133,7 +133,7 @@ describe('AddUserToWorkspaceController', () => {
     });
   });
 
-  describe('Error Paths - Handler returns Left', () => {
+  describe('Error Paths - Service returns Left', () => {
     it.each<{ scenario: string; errorMessage: string; errorStatus: number }>([
       {
         scenario: 'current user is not a workspace member',
@@ -152,18 +152,18 @@ describe('AddUserToWorkspaceController', () => {
         errorStatus: statusCode.CONFLICT,
       },
     ])(
-      'should delegate to ErrorPresenter when handler fails ($scenario)',
+      'should delegate to ErrorPresenter when service fails ($scenario)',
       async ({ errorMessage, errorStatus }) => {
         const body = makeBody();
         const param = makeParam();
         const token = makeTokenPayload();
         const error = makeError(errorMessage, errorStatus);
 
-        handler.execute.mockResolvedValue(left(error));
+        service.execute.mockResolvedValue(left(error));
 
         await controller.handle(token, param, body);
 
-        expect(handler.execute).toHaveBeenCalledWith({
+        expect(service.execute).toHaveBeenCalledWith({
           ...body,
           workspaceId: param.workspaceId,
           sub: token.sub,
@@ -188,11 +188,11 @@ describe('AddUserToWorkspaceController', () => {
         role: UserRole.ADMIN,
       });
 
-      handler.execute.mockResolvedValue(right(workspaceUser));
+      service.execute.mockResolvedValue(right(workspaceUser));
 
       await controller.handle(token, param, body);
 
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledWith({
         userId: 'user-xyz',
         role: UserRole.ADMIN,
         workspaceId: 'ws-from-param',
@@ -200,7 +200,7 @@ describe('AddUserToWorkspaceController', () => {
       });
     });
 
-    it('should pass the exact workspaceUser returned by the handler to WorkspaceUserPresenter', async () => {
+    it('should pass the exact workspaceUser returned by the service to WorkspaceUserPresenter', async () => {
       const body = makeBody();
       const param = makeParam();
       const token = makeTokenPayload();
@@ -209,7 +209,7 @@ describe('AddUserToWorkspaceController', () => {
         'distinct-id-999',
       );
 
-      handler.execute.mockResolvedValue(right(distinguishedUser));
+      service.execute.mockResolvedValue(right(distinguishedUser));
 
       await controller.handle(token, param, body);
 
@@ -222,7 +222,7 @@ describe('AddUserToWorkspaceController', () => {
   describe('Presenter Contract Compliance', () => {
     it('should call ErrorPresenter.toHTTP exactly once and not WorkspaceUserPresenter on error', async () => {
       const error = makeError('Some error', statusCode.BAD_REQUEST);
-      handler.execute.mockResolvedValue(left(error));
+      service.execute.mockResolvedValue(left(error));
 
       await controller.handle(makeTokenPayload(), makeParam(), makeBody());
 
@@ -232,7 +232,7 @@ describe('AddUserToWorkspaceController', () => {
 
     it('should call WorkspaceUserPresenter.toHTTP exactly once and not ErrorPresenter on success', async () => {
       const workspaceUser = makeWorkspaceUser();
-      handler.execute.mockResolvedValue(right(workspaceUser));
+      service.execute.mockResolvedValue(right(workspaceUser));
 
       await controller.handle(makeTokenPayload(), makeParam(), makeBody());
 

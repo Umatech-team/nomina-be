@@ -1,13 +1,13 @@
 import { RefreshTokensRepository } from '@modules/user/repositories/contracts/refresh-token.repository';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import {
-  createMockDateAddition,
-  createMockEncrypter,
-  createMockRefreshTokensRepository,
-  createMockUser,
-  createMockUserRepository,
-  createMockWorkspaceUser,
-  createMockWorkspaceUserRepository,
+    createMockDateAddition,
+    createMockEncrypter,
+    createMockRefreshTokensRepository,
+    createMockUser,
+    createMockUserRepository,
+    createMockWorkspaceUser,
+    createMockWorkspaceUserRepository,
 } from '@modules/user/test-helpers/mock-factories';
 import { Workspace } from '@modules/workspace/entities/Workspace';
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
@@ -18,7 +18,7 @@ import { Encrypter } from '@providers/cryptography/contracts/Encrypter';
 import { DateAddition } from '@providers/date/contracts/DateAddition';
 import { statusCode } from '@shared/core/types/statusCode';
 import { SwitchWorkspaceRequest } from './switch-workspace.dto';
-import { SwitchWorkspaceHandler } from './switch-workspace.handler';
+import { SwitchWorkspaceService } from './switch-workspace.service';
 
 const WORKSPACE_ID = 'workspace-id-123';
 const USER_ID = 'user-id-123';
@@ -37,8 +37,8 @@ function makeWorkspace(id = WORKSPACE_ID): Workspace {
   return { id, name: 'Test Workspace' } as unknown as Workspace;
 }
 
-describe('SwitchWorkspaceHandler', () => {
-  let handler: SwitchWorkspaceHandler;
+describe('SwitchWorkspaceService', () => {
+  let service: SwitchWorkspaceService;
   let workspaceRepository: jest.Mocked<WorkspaceRepository>;
   let workspaceUserRepository: jest.Mocked<WorkspaceUserRepository>;
   let userRepository: jest.Mocked<UserRepository>;
@@ -85,7 +85,7 @@ describe('SwitchWorkspaceHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        SwitchWorkspaceHandler,
+        SwitchWorkspaceService,
         { provide: WorkspaceRepository, useValue: workspaceRepository },
         { provide: WorkspaceUserRepository, useValue: workspaceUserRepository },
         { provide: UserRepository, useValue: userRepository },
@@ -95,7 +95,7 @@ describe('SwitchWorkspaceHandler', () => {
       ],
     }).compile();
 
-    handler = module.get<SwitchWorkspaceHandler>(SwitchWorkspaceHandler);
+    service = module.get<SwitchWorkspaceService>(SwitchWorkspaceService);
   });
 
   afterEach(() => {
@@ -107,7 +107,7 @@ describe('SwitchWorkspaceHandler', () => {
       arrangeSuccessMocks();
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isRight()).toBe(true);
       const value = result.value as {
@@ -132,7 +132,7 @@ describe('SwitchWorkspaceHandler', () => {
     it('should encrypt accessToken with full workspace context payload', async () => {
       arrangeSuccessMocks();
 
-      await handler.execute(makeRequest());
+      await service.execute(makeRequest());
 
       const [firstEncryptCall] = encrypter.encrypt.mock.calls;
       expect(firstEncryptCall[0]).toMatchObject({
@@ -147,7 +147,7 @@ describe('SwitchWorkspaceHandler', () => {
     it('should encrypt refreshToken with only sub payload', async () => {
       arrangeSuccessMocks();
 
-      await handler.execute(makeRequest());
+      await service.execute(makeRequest());
 
       const [, secondEncryptCall] = encrypter.encrypt.mock.calls;
       expect(secondEncryptCall[0]).toEqual({ sub: mockUser.id });
@@ -203,7 +203,7 @@ describe('SwitchWorkspaceHandler', () => {
       async (_label, arrange, assertSideEffects) => {
         arrange();
 
-        const result = await handler.execute(makeRequest());
+        const result = await service.execute(makeRequest());
 
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(HttpException);

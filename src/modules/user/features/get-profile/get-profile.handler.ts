@@ -10,7 +10,7 @@ type Errors = HttpException;
 type Response = User;
 
 @Injectable()
-export class GetProfileHandler implements Service<Request, Errors, Response> {
+export class GetProfileService implements Service<Request, Errors, Response> {
   constructor(private readonly userRepository: UserRepository) {}
 
   async execute({ sub }: Request): Promise<Either<Errors, Response>> {

@@ -18,7 +18,7 @@ type Response = Array<{
 const TOP_CATEGORIES_LIMIT = 5;
 
 @Injectable()
-export class GetExpensesByCategoryHandler {
+export class GetExpensesByCategoryService {
   constructor(private readonly drizzle: DrizzleService) {}
 
   async execute({ workspaceId, month, year }: Request): Promise<Response> {

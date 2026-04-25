@@ -1,5 +1,5 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { CategoryPresenter } from '@modules/category/presenters/Category.presenter';
 import { Controller, Get, HttpCode, Query, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -9,17 +9,17 @@ import { RolesGuard } from '@providers/auth/guards/Roles.guard';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-  ListCategoriesPipe,
-  type ListCategoriesRequest,
+    ListCategoriesPipe,
+    type ListCategoriesRequest,
 } from './list-categories.dto';
-import { ListCategoriesHandler } from './list-categories.handler';
+import { ListCategoriesService } from './list-categories.service';
 
 @ApiTags('Category')
 @Controller('category')
 @UseGuards(RolesGuard)
 @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.USER, UserRole.VIEWER)
 export class ListCategoriesController {
-  constructor(private readonly handler: ListCategoriesHandler) {}
+  constructor(private readonly service: ListCategoriesService) {}
 
   @Get()
   @HttpCode(statusCode.OK)
@@ -27,7 +27,7 @@ export class ListCategoriesController {
     @CurrentLoggedUser() { workspaceId, sub }: TokenPayloadSchema,
     @Query(ListCategoriesPipe) query: ListCategoriesRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...query,
       sub: workspaceId || sub,
     });

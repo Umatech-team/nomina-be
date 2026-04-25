@@ -8,7 +8,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left } from '@shared/core/errors/Either';
 import { statusCode } from '@shared/core/types/statusCode';
 import { CreateWorkspaceRequest } from './create-workspace.dto';
-import { CreateWorkspaceHandler } from './create-workspace.handler';
+import { CreateWorkspaceService } from './create-workspace.service';
 
 type Request = CreateWorkspaceRequest & Pick<TokenPayloadSchema, 'sub'>;
 
@@ -24,14 +24,14 @@ function makeRequest(
   };
 }
 
-describe('CreateWorkspaceHandler', () => {
-  let handler: CreateWorkspaceHandler;
+describe('CreateWorkspaceService', () => {
+  let service: CreateWorkspaceService;
   let workspaceRepo: jest.Mocked<WorkspaceRepository>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CreateWorkspaceHandler,
+        CreateWorkspaceService,
         {
           provide: WorkspaceRepository,
           useValue: {
@@ -46,7 +46,7 @@ describe('CreateWorkspaceHandler', () => {
       ],
     }).compile();
 
-    handler = module.get(CreateWorkspaceHandler);
+    service = module.get(CreateWorkspaceService);
     workspaceRepo = module.get(WorkspaceRepository);
   });
 
@@ -63,7 +63,7 @@ describe('CreateWorkspaceHandler', () => {
       arrangeSuccessMocks();
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
@@ -85,7 +85,7 @@ describe('CreateWorkspaceHandler', () => {
     it('should default currency to BRL when not provided', async () => {
       arrangeSuccessMocks();
 
-      const result = await handler.execute(
+      const result = await service.execute(
         makeRequest({ currency: undefined }),
       );
 
@@ -98,7 +98,7 @@ describe('CreateWorkspaceHandler', () => {
     it('should set isDefault to true on workspaceUser when isDefault is true', async () => {
       arrangeSuccessMocks();
 
-      const result = await handler.execute(makeRequest({ isDefault: true }));
+      const result = await service.execute(makeRequest({ isDefault: true }));
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
@@ -115,7 +115,7 @@ describe('CreateWorkspaceHandler', () => {
       );
       jest.spyOn(Workspace, 'create').mockReturnValueOnce(left(error));
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBe(error);
@@ -129,7 +129,7 @@ describe('CreateWorkspaceHandler', () => {
       );
       jest.spyOn(WorkspaceUser, 'create').mockReturnValueOnce(left(error));
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBe(error);

@@ -1,14 +1,14 @@
 import { RefreshTokensRepository } from '@modules/user/repositories/contracts/refresh-token.repository';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import {
-  createMockDateAddition,
-  createMockDefaultWorkspaceResult,
-  createMockEncrypter,
-  createMockHashComparer,
-  createMockRefreshTokensRepository,
-  createMockUser,
-  createMockUserRepository,
-  createMockWorkspaceUserRepository,
+    createMockDateAddition,
+    createMockDefaultWorkspaceResult,
+    createMockEncrypter,
+    createMockHashComparer,
+    createMockRefreshTokensRepository,
+    createMockUser,
+    createMockUserRepository,
+    createMockWorkspaceUserRepository,
 } from '@modules/user/test-helpers/mock-factories';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { HttpException } from '@nestjs/common';
@@ -17,10 +17,10 @@ import { Encrypter } from '@providers/cryptography/contracts/Encrypter';
 import { HashComparer } from '@providers/cryptography/contracts/HashComparer';
 import { DateAddition } from '@providers/date/contracts/DateAddition';
 import { LoginUserRequest } from './login-user.dto';
-import { LoginUserHandler } from './login-user.handler';
+import { LoginUserService } from './login-user.service';
 
-describe('LoginUserHandler', () => {
-  let handler: LoginUserHandler;
+describe('LoginUserService', () => {
+  let service: LoginUserService;
   let userRepository: jest.Mocked<UserRepository>;
   let workspaceUserRepository: jest.Mocked<WorkspaceUserRepository>;
   let refreshTokensRepository: jest.Mocked<RefreshTokensRepository>;
@@ -65,7 +65,7 @@ describe('LoginUserHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        LoginUserHandler,
+        LoginUserService,
         { provide: UserRepository, useValue: userRepository },
         { provide: WorkspaceUserRepository, useValue: workspaceUserRepository },
         { provide: RefreshTokensRepository, useValue: refreshTokensRepository },
@@ -75,7 +75,7 @@ describe('LoginUserHandler', () => {
       ],
     }).compile();
 
-    handler = module.get<LoginUserHandler>(LoginUserHandler);
+    service = module.get<LoginUserService>(LoginUserService);
   });
 
   afterEach(() => {
@@ -86,7 +86,7 @@ describe('LoginUserHandler', () => {
     it('should orchestrate login flow and return tokens on success (Right)', async () => {
       const request = makeRequest();
       arrangeSuccessMocks();
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
       expect(userRepository.findUniqueByEmail).toHaveBeenCalledWith(
         request.email,
       );
@@ -116,7 +116,7 @@ describe('LoginUserHandler', () => {
       arrangeSuccessMocks();
       userRepository.findUniqueByEmail.mockResolvedValue(null);
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       expect((result.value as HttpException).getStatus()).toBe(401);
@@ -127,7 +127,7 @@ describe('LoginUserHandler', () => {
       arrangeSuccessMocks();
       hashComparer.compare.mockResolvedValue(false);
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       expect((result.value as HttpException).getStatus()).toBe(401);
@@ -142,7 +142,7 @@ describe('LoginUserHandler', () => {
         null,
       );
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       expect((result.value as HttpException).getStatus()).toBe(401);

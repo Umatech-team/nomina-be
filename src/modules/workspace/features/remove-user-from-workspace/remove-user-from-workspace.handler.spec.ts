@@ -4,7 +4,7 @@ import { WorkspaceUser } from '@modules/workspace/entities/WorkspaceUser';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { RemoveUserFromWorkspaceHandler } from './remove-user-from-workspace.handler';
+import { RemoveUserFromWorkspaceService } from './remove-user-from-workspace.service';
 
 type Request = {
   userId: string;
@@ -31,8 +31,8 @@ function makeWorkspaceUser(): WorkspaceUser {
   return result.value;
 }
 
-describe('RemoveUserFromWorkspaceHandler', () => {
-  let handler: RemoveUserFromWorkspaceHandler;
+describe('RemoveUserFromWorkspaceService', () => {
+  let service: RemoveUserFromWorkspaceService;
   let workspaceUserRepository: jest.Mocked<WorkspaceUserRepository>;
 
   beforeEach(async () => {
@@ -40,12 +40,12 @@ describe('RemoveUserFromWorkspaceHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        RemoveUserFromWorkspaceHandler,
+        RemoveUserFromWorkspaceService,
         { provide: WorkspaceUserRepository, useValue: workspaceUserRepository },
       ],
     }).compile();
 
-    handler = module.get(RemoveUserFromWorkspaceHandler);
+    service = module.get(RemoveUserFromWorkspaceService);
   });
 
   afterEach(() => {
@@ -63,7 +63,7 @@ describe('RemoveUserFromWorkspaceHandler', () => {
       );
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isRight()).toBe(true);
       expect(result.value).toBeNull();
@@ -83,7 +83,7 @@ describe('RemoveUserFromWorkspaceHandler', () => {
       );
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(HttpException);

@@ -5,7 +5,7 @@ import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/W
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
 import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UpdateWorkspaceUserHandler } from './update-workspace-user.handler';
+import { UpdateWorkspaceUserService } from './update-workspace-user.service';
 
 type Request = { workspaceId: string; role: UserRole; sub: string };
 
@@ -30,8 +30,8 @@ function makeWorkspaceUser(role: UserRole = UserRole.ADMIN): WorkspaceUser {
   return result.value;
 }
 
-describe('UpdateWorkspaceUserHandler', () => {
-  let handler: UpdateWorkspaceUserHandler;
+describe('UpdateWorkspaceUserService', () => {
+  let service: UpdateWorkspaceUserService;
   let workspaceUserRepository: jest.Mocked<WorkspaceUserRepository>;
 
   beforeEach(async () => {
@@ -39,13 +39,13 @@ describe('UpdateWorkspaceUserHandler', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        UpdateWorkspaceUserHandler,
+        UpdateWorkspaceUserService,
         { provide: WorkspaceRepository, useValue: {} },
         { provide: WorkspaceUserRepository, useValue: workspaceUserRepository },
       ],
     }).compile();
 
-    handler = module.get(UpdateWorkspaceUserHandler);
+    service = module.get(UpdateWorkspaceUserService);
   });
 
   afterEach(() => {
@@ -64,7 +64,7 @@ describe('UpdateWorkspaceUserHandler', () => {
         workspaceUserRepository.updateUser.mockResolvedValue(updatedUser);
         const request = makeRequest({ role: newRole });
 
-        const result = await handler.execute(request);
+        const result = await service.execute(request);
 
         expect(result.isRight()).toBe(true);
         expect(result.value).toBeInstanceOf(WorkspaceUser);
@@ -85,7 +85,7 @@ describe('UpdateWorkspaceUserHandler', () => {
       );
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(HttpException);
@@ -100,7 +100,7 @@ describe('UpdateWorkspaceUserHandler', () => {
       );
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(HttpException);
@@ -115,7 +115,7 @@ describe('UpdateWorkspaceUserHandler', () => {
       );
       const request = makeRequest({ role: UserRole.OWNER });
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(HttpException);

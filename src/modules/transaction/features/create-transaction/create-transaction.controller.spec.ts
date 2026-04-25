@@ -6,7 +6,7 @@ import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left, right } from '@shared/core/errors/Either';
 import { CreateTransactionController } from './create-transaction.controller';
 import { CreateTransactionRequest } from './create-transaction.dto';
-import { CreateTransactionHandler } from './create-transaction.handle';
+import { CreateTransactionService } from './create-transaction.handle';
 
 const WORKSPACE_ID = 'workspace-uuid-abc';
 const USER_ID = 'user-uuid-abc';
@@ -55,24 +55,24 @@ const makeTransaction = (
 
 describe('CreateTransactionController', () => {
   let controller: CreateTransactionController;
-  let handler: jest.Mocked<CreateTransactionHandler>;
+  let service: jest.Mocked<CreateTransactionService>;
 
   beforeEach(async () => {
-    const mockHandler = {
+    const mockService = {
       execute: jest.fn(),
-    } as unknown as jest.Mocked<CreateTransactionHandler>;
+    } as unknown as jest.Mocked<CreateTransactionService>;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CreateTransactionController],
-      providers: [{ provide: CreateTransactionHandler, useValue: mockHandler }],
+      providers: [{ provide: CreateTransactionService, useValue: mockService }],
     }).compile();
 
     controller = module.get<CreateTransactionController>(
       CreateTransactionController,
     );
-    handler = module.get<CreateTransactionHandler>(
-      CreateTransactionHandler,
-    ) as jest.Mocked<CreateTransactionHandler>;
+    service = module.get<CreateTransactionService>(
+      CreateTransactionService,
+    ) as jest.Mocked<CreateTransactionService>;
   });
 
   afterEach(() => {
@@ -80,14 +80,14 @@ describe('CreateTransactionController', () => {
   });
 
   describe('handle – Success', () => {
-    it('should call handler.execute with body merged with token payload', async () => {
+    it('should call service.execute with body merged with token payload', async () => {
       const body = makeBody();
-      handler.execute.mockResolvedValue(right(makeTransaction()));
+      service.execute.mockResolvedValue(right(makeTransaction()));
 
       await controller.handle(tokenPayload, body);
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith({
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith({
         ...body,
         sub: USER_ID,
         workspaceId: WORKSPACE_ID,
@@ -96,7 +96,7 @@ describe('CreateTransactionController', () => {
 
     it('should return serialized transaction wrapped in data on success', async () => {
       const transaction = makeTransaction();
-      handler.execute.mockResolvedValue(right(transaction));
+      service.execute.mockResolvedValue(right(transaction));
 
       const result = await controller.handle(tokenPayload, makeBody());
 
@@ -113,7 +113,7 @@ describe('CreateTransactionController', () => {
     });
 
     it('should not expose Either internals on successful response', async () => {
-      handler.execute.mockResolvedValue(right(makeTransaction()));
+      service.execute.mockResolvedValue(right(makeTransaction()));
 
       const result = await controller.handle(tokenPayload, makeBody());
 
@@ -123,7 +123,7 @@ describe('CreateTransactionController', () => {
 
     it('should convert amount from cents to decimal in the response', async () => {
       const transaction = makeTransaction({ amount: 15000n });
-      handler.execute.mockResolvedValue(right(transaction));
+      service.execute.mockResolvedValue(right(transaction));
 
       const result = await controller.handle(tokenPayload, makeBody());
 
@@ -137,9 +137,9 @@ describe('CreateTransactionController', () => {
       [HttpStatus.NOT_FOUND, 'Account not found'],
       [HttpStatus.BAD_REQUEST, 'Invalid request'],
     ])(
-      'should throw when handler returns Left(%i)',
+      'should throw when service returns Left(%i)',
       async (status, message) => {
-        handler.execute.mockResolvedValue(
+        service.execute.mockResolvedValue(
           left(new HttpException(message, status)),
         );
 
@@ -153,8 +153,8 @@ describe('CreateTransactionController', () => {
       },
     );
 
-    it('should call handler.execute exactly once per request on error path', async () => {
-      handler.execute.mockResolvedValue(
+    it('should call service.execute exactly once per request on error path', async () => {
+      service.execute.mockResolvedValue(
         left(new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)),
       );
 
@@ -162,7 +162,7 @@ describe('CreateTransactionController', () => {
         controller.handle(tokenPayload, makeBody()),
       ).rejects.toThrow();
 
-      expect(handler.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledTimes(1);
     });
   });
 });

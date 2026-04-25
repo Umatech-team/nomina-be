@@ -15,7 +15,7 @@ type Errors = HttpException;
 type Response = WorkspaceUser;
 
 @Injectable()
-export class AcceptWorkspaceInviteHandler implements Service<
+export class AcceptWorkspaceInviteService implements Service<
   Request,
   Errors,
   Response

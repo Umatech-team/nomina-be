@@ -1,5 +1,5 @@
 import { TransactionStatus, TransactionType } from '@constants/enums';
-import { HttpException } from '@nestjs/common';
+// HttpException REMOVIDO. O domínio deve lançar erros de domínio ou retornar Left(DomainError).
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
@@ -15,13 +15,16 @@ export interface TransactionProps {
   date: Date;
   type: keyof typeof TransactionType;
   status: TransactionStatus;
+  installmentGroupId: string | null;
+  installmentNumber: number | null;
+  installmentCount: number | null;
   recurringId: string | null;
   createdAt: Date;
   updatedAt: Date | null;
 }
 
 export class Transaction extends AggregateRoot<TransactionProps> {
-  constructor(props: TransactionProps, id?: string) {
+  private constructor(props: TransactionProps, id?: string) {
     super(props, id);
   }
 
@@ -35,42 +38,37 @@ export class Transaction extends AggregateRoot<TransactionProps> {
       | 'description'
       | 'destinationAccountId'
       | 'categoryId'
+      | 'installmentGroupId'
+      | 'installmentNumber'
+      | 'installmentCount'
     >,
     id?: string,
   ): Either<Error, Transaction> {
-    if (props.amount <= 0) {
-      return left(
-        new HttpException('The amount must be greater than zero', 400),
-      );
+    if (props.amount <= 0n) {
+      return left(new Error('The amount must be greater than zero')); // Substituir por DomainError
     }
 
     if (!props.title || props.title.trim() === '') {
-      return left(new HttpException('The title is required', 400));
+      return left(new Error('The title is required'));
     }
 
     if (!props.date) {
-      return left(new HttpException('The date is required', 400));
+      return left(new Error('The date is required'));
     }
 
     if (!props.type) {
-      return left(new HttpException('The type is required', 400));
+      return left(new Error('The type is required'));
     }
 
     if (props.type === 'TRANSFER') {
       if (!props.destinationAccountId) {
         return left(
-          new HttpException(
-            'Conta destino é obrigatória para transferências',
-            400,
-          ),
+          new Error('Conta destino é obrigatória para transferências'),
         );
       }
       if (props.destinationAccountId === props.accountId) {
         return left(
-          new HttpException(
-            'Conta destino deve ser diferente da conta origem',
-            400,
-          ),
+          new Error('Conta destino deve ser diferente da conta origem'),
         );
       }
     }
@@ -89,10 +87,12 @@ export class Transaction extends AggregateRoot<TransactionProps> {
       updatedAt: props.updatedAt ?? null,
       status,
       recurringId: props.recurringId ?? null,
+      installmentGroupId: props.installmentGroupId ?? null,
+      installmentNumber: props.installmentNumber ?? null,
+      installmentCount: props.installmentCount ?? null,
     };
 
-    const createdTransaction = new Transaction(transactionProps, id);
-    return right(createdTransaction);
+    return right(new Transaction(transactionProps, id));
   }
 
   get workspaceId(): string {
@@ -151,47 +151,75 @@ export class Transaction extends AggregateRoot<TransactionProps> {
     return this.props.updatedAt;
   }
 
-  set title(value: string) {
-    this.props.title = value;
+  /**
+   * Reflete a intenção de corrigir os dados básicos de uma transação em uma única operação.
+   */
+  public updateDetails(
+    title: string,
+    description: string | null,
+  ): Either<Error, void> {
+    if (!title || title.trim() === '') {
+      return left(new Error('The title is required'));
+    }
+    this.props.title = title;
+    this.props.description = description;
+    this.touch();
+    return right(undefined);
+  }
+
+  /**
+   * Alterar o valor não é apenas mudar um número, exige validação da regra de negócio.
+   */
+  public correctAmount(newAmount: bigint): Either<Error, void> {
+    if (newAmount <= 0n) {
+      return left(new Error('The amount must be greater than zero'));
+    }
+    this.props.amount = newAmount;
+    this.touch();
+    return right(undefined);
+  }
+
+  /**
+   * Reclassificação financeira tem semântica própria.
+   */
+  public reclassify(newCategoryId: string | null): void {
+    this.props.categoryId = newCategoryId;
     this.touch();
   }
 
-  set description(value: string | null) {
-    this.props.description = value;
+  /**
+   * A data pode impactar o status. Se remarcada para o futuro, volta para PENDING.
+   */
+  public reschedule(newDate: Date): Either<Error, void> {
+    if (!newDate) {
+      return left(new Error('The date is required'));
+    }
+    this.props.date = newDate;
+
+    if (
+      newDate > new Date() &&
+      this.props.status === TransactionStatus.COMPLETED
+    ) {
+      this.props.status = TransactionStatus.PENDING;
+    }
+
     this.touch();
+    return right(undefined);
   }
 
-  set amount(value: bigint) {
-    this.props.amount = value;
+  /**
+   * Operações de ciclo de vida do status da transação.
+   */
+  public complete(): Either<Error, void> {
+    if (this.props.status === TransactionStatus.COMPLETED) {
+      return left(new Error('Transaction is already completed'));
+    }
+    this.props.status = TransactionStatus.COMPLETED;
     this.touch();
+    return right(undefined);
   }
 
-  set date(value: Date) {
-    this.props.date = value;
-    this.touch();
-  }
-
-  set type(value: keyof typeof TransactionType) {
-    this.props.type = value;
-    this.touch();
-  }
-
-  set status(value: TransactionStatus) {
-    this.props.status = value;
-    this.touch();
-  }
-
-  set categoryId(value: string | null) {
-    this.props.categoryId = value;
-    this.touch();
-  }
-
-  set destinationAccountId(value: string | null) {
-    this.props.destinationAccountId = value;
-    this.touch();
-  }
-
-  private touch() {
+  private touch(): void {
     this.props.updatedAt = new Date();
   }
 }

@@ -5,14 +5,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { left, right } from '@shared/core/errors/Either';
 import { GetProfileController } from './get-profile.controller';
-import { GetProfileHandler } from './get-profile.handler';
+import { GetProfileService } from './get-profile.service';
 
 // IMPORTANTE: Estou assumindo que o seu Controller usa um Presenter para retornar { data: ... }
 // Se você não usa um Presenter, apenas remova a validação de formato.
 
 describe('GetProfileController', () => {
   let controller: GetProfileController;
-  let handler: jest.Mocked<GetProfileHandler>;
+  let service: jest.Mocked<GetProfileService>;
 
   // 1. FACTORY: Centraliza o Payload do Token
   const makeTokenPayload = (
@@ -25,15 +25,15 @@ describe('GetProfileController', () => {
   });
 
   beforeEach(async () => {
-    const mockHandler = { execute: jest.fn() };
+    const mockService = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GetProfileController],
-      providers: [{ provide: GetProfileHandler, useValue: mockHandler }],
+      providers: [{ provide: GetProfileService, useValue: mockService }],
     }).compile();
 
     controller = module.get<GetProfileController>(GetProfileController);
-    handler = module.get(GetProfileHandler);
+    service = module.get(GetProfileService);
   });
 
   afterEach(() => {
@@ -41,16 +41,16 @@ describe('GetProfileController', () => {
   });
 
   describe('handle()', () => {
-    it('should route token payload to handler and return formatted data on success (Right)', async () => {
+    it('should route token payload to service and return formatted data on success (Right)', async () => {
       const payload = makeTokenPayload();
       const mockUser = createMockUser({
         name: 'John Doe',
         email: 'john@example.com',
       });
-      handler.execute.mockResolvedValue(right(mockUser));
+      service.execute.mockResolvedValue(right(mockUser));
       const result = await controller.handle(payload);
-      expect(handler.execute).toHaveBeenCalledTimes(1);
-      expect(handler.execute).toHaveBeenCalledWith(
+      expect(service.execute).toHaveBeenCalledTimes(1);
+      expect(service.execute).toHaveBeenCalledWith(
         expect.objectContaining({ sub: payload.sub }),
       );
 
@@ -68,12 +68,12 @@ describe('GetProfileController', () => {
         new HttpException('Server error', HttpStatus.INTERNAL_SERVER_ERROR),
       ],
     ])(
-      'should throw HTTP exception when handler returns error %s (Left)',
+      'should throw HTTP exception when service returns error %s (Left)',
       async (_, errorInstance) => {
         const payload = makeTokenPayload();
-        handler.execute.mockResolvedValue(left(errorInstance));
+        service.execute.mockResolvedValue(left(errorInstance));
         await expect(controller.handle(payload)).rejects.toThrow(errorInstance);
-        expect(handler.execute).toHaveBeenCalledWith(
+        expect(service.execute).toHaveBeenCalledWith(
           expect.objectContaining({ sub: payload.sub }),
         );
       },

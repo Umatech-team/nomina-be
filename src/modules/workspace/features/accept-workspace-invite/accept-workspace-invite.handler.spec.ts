@@ -7,7 +7,7 @@ import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { left } from '@shared/core/errors/Either';
 import { statusCode } from '@shared/core/types/statusCode';
-import { AcceptWorkspaceInviteHandler } from './accept-workspace-invite.handler';
+import { AcceptWorkspaceInviteService } from './accept-workspace-invite.service';
 
 type Request = { code: string; sub: string };
 
@@ -41,15 +41,15 @@ function makeWorkspaceInvite(overrides?: {
   return result.value;
 }
 
-describe('AcceptWorkspaceInviteHandler', () => {
-  let handler: AcceptWorkspaceInviteHandler;
+describe('AcceptWorkspaceInviteService', () => {
+  let service: AcceptWorkspaceInviteService;
   let inviteRepo: jest.Mocked<WorkspaceInviteRepository>;
   let workspaceUserRepo: jest.Mocked<WorkspaceUserRepository>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AcceptWorkspaceInviteHandler,
+        AcceptWorkspaceInviteService,
         {
           provide: WorkspaceInviteRepository,
           useValue: {
@@ -73,7 +73,7 @@ describe('AcceptWorkspaceInviteHandler', () => {
       ],
     }).compile();
 
-    handler = module.get(AcceptWorkspaceInviteHandler);
+    service = module.get(AcceptWorkspaceInviteService);
     inviteRepo = module.get(WorkspaceInviteRepository);
     workspaceUserRepo = module.get(WorkspaceUserRepository);
   });
@@ -95,7 +95,7 @@ describe('AcceptWorkspaceInviteHandler', () => {
       arrangeSuccessMocks(invite);
       const request = makeRequest();
 
-      const result = await handler.execute(request);
+      const result = await service.execute(request);
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
@@ -149,7 +149,7 @@ describe('AcceptWorkspaceInviteHandler', () => {
       async ({ setup, expectedMessage, expectedStatus }) => {
         setup(inviteRepo);
 
-        const result = await handler.execute(makeRequest());
+        const result = await service.execute(makeRequest());
 
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(HttpException);
@@ -179,7 +179,7 @@ describe('AcceptWorkspaceInviteHandler', () => {
         existingMember.value,
       );
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       expect((result.value as HttpException).message).toBe(
@@ -206,7 +206,7 @@ describe('AcceptWorkspaceInviteHandler', () => {
         .spyOn(WorkspaceUser, 'create')
         .mockReturnValueOnce(left(entityError));
 
-      const result = await handler.execute(makeRequest());
+      const result = await service.execute(makeRequest());
 
       expect(result.isLeft()).toBe(true);
       expect((result.value as HttpException).getStatus()).toBe(

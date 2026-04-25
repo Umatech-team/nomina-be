@@ -16,7 +16,7 @@ type Response = {
 };
 
 @Injectable()
-export class ListRecurringTransactionsHandler
+export class ListRecurringTransactionsService
   implements Service<Request, Errors, Response>
 {
   constructor(
