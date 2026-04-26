@@ -11,8 +11,8 @@ export type InvoiceCycle = {
   dueDate: Date;
 };
 
-export interface DateProvider {
-  now(): Date;
-  toTimezone(date: Date, timezone: string): Date;
-  calculateInvoiceCycle(params: InvoiceCycleParams): InvoiceCycle;
+export abstract class DateProvider {
+  abstract now(): Date;
+  abstract toTimezone(date: Date, timezone: string): Date;
+  abstract calculateInvoiceCycle(params: InvoiceCycleParams): InvoiceCycle;
 }
