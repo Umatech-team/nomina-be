@@ -47,10 +47,6 @@ export class RefreshToken extends Entity<RefreshTokenProps> {
     return this.props.expiresIn;
   }
 
-  get createdAt(): Date {
-    return this.props.createdAt;
-  }
-
   public isExpired(referenceDate: Date = new Date()): boolean {
     return this.props.expiresIn <= referenceDate;
   }
