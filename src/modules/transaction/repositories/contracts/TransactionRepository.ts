@@ -1,21 +1,24 @@
 import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpensesByCategory';
 import { Transaction } from '../../entities/Transaction';
 
+export interface ListTransactionsParams {
+  workspaceId: string;
+  page: number;
+  pageSize: number;
+  startDate?: Date;
+  endDate?: Date;
+  type?: string;
+  categoryId?: string;
+  accountId?: string;
+  title?: string;
+  status?: string;
+}
 export abstract class TransactionRepository {
   abstract create(transaction: Transaction): Promise<void>;
   abstract findUniqueById(id: string): Promise<Transaction | null>;
   abstract listTransactionsByWorkspaceId(
-    workspaceId: string,
-    page: number,
-    pageSize: number,
-    startDate?: Date,
-    endDate?: Date,
-    type?: string,
-    categoryId?: string,
-    accountId?: string,
-    title?: string,
-    status?: string,
-  ): Promise<Transaction[]>;
+    params: ListTransactionsParams,
+  ): Promise<{ transactions: Transaction[]; total: number }>;
 
   abstract getTopExpensesByCategory(
     workspaceId: string,
