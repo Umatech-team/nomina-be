@@ -5,10 +5,10 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    BalanceEvolutionPipe,
-    type BalanceEvolutionRequest,
+  BalanceEvolutionPipe,
+  type BalanceEvolutionRequest,
 } from './get-balance-evolution.dto';
-import { BalanceEvolutionService } from './get-balance-evolution.service';
+import { BalanceEvolutionService } from './get-balance-evolution.handler';
 
 @ApiTags('Report')
 @Controller('report')
