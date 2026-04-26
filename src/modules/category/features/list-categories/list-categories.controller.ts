@@ -9,10 +9,10 @@ import { RolesGuard } from '@providers/auth/guards/Roles.guard';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    ListCategoriesPipe,
-    type ListCategoriesRequest,
+  ListCategoriesPipe,
+  type ListCategoriesRequest,
 } from './list-categories.dto';
-import { ListCategoriesService } from './list-categories.service';
+import { ListCategoriesService } from './list-categories.handler';
 
 @ApiTags('Category')
 @Controller('category')
