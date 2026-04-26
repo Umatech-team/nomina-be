@@ -21,6 +21,10 @@ export abstract class BaseAccount<
     return this.props.name;
   }
 
+  get timezone(): string {
+    return this.props.timezone;
+  }
+
   public updateName(name: string) {
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       throw new Error('Nome inválido.');
