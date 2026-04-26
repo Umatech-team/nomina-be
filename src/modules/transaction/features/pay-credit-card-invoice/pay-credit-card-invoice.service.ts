@@ -1,17 +1,21 @@
-import { AccountType, TransactionStatus } from '@constants/enums';
+import { TransactionStatus } from '@constants/enums';
+import { CreditCard } from '@modules/account/entities/CreditCardAccount';
 import {
   AccountNotFoundError,
-  AccountTypeError,
+  InvalidAccountError,
 } from '@modules/account/errors';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { Transaction } from '@modules/transaction/entities/Transaction';
+import {
+  CannotPayInvoiceWithCreditCardError,
+  SourceAndDestinationAccountMustBeDifferentError,
+} from '@modules/transaction/errors';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
+import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { statusCode } from '@shared/core/types/statusCode';
-import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { PayCreditCardInvoiceRequest } from './pay-credit-card-invoice.dto';
 
 type Request = PayCreditCardInvoiceRequest &
@@ -26,77 +30,68 @@ export class PayCreditCardInvoiceService implements Service<
   constructor(
     private readonly accountRepository: AccountRepository,
     private readonly transactionRepository: TransactionRepository,
+    private readonly dateProvider: DayJsDateProvider,
   ) {}
 
   async execute(props: Request): Promise<Either<Error, Transaction>> {
     const creditCardAccount = await this.accountRepository.findById(
       props.creditCardAccountId,
     );
-
-    if (!creditCardAccount) {
-      return left(new AccountNotFoundError('Cartão de crédito não encontrado'));
+    if (creditCardAccount?.workspaceId !== props.workspaceId) {
+      return left(new AccountNotFoundError());
     }
-
-    if (creditCardAccount.workspaceId !== props.workspaceId) {
-      return left(new UnauthorizedError());
-    }
-
-    if (creditCardAccount.type !== AccountType.CREDIT_CARD) {
-      return left(new UnauthorizedError());
-    }
-
-    const sourceAccount = await this.accountRepository.findById(
-      props.sourceAccountId,
-    );
-
-    if (!sourceAccount) {
-      return left(new AccountNotFoundError('Conta de origem não encontrada'));
-    }
-
-    if (sourceAccount.workspaceId !== props.workspaceId) {
+    if (!(creditCardAccount instanceof CreditCard)) {
       return left(
-        new UnauthorizedError(
-          'Conta de origem não pertence ao workspace do usuário',
-        ),
-      );
-    }
-
-    if (sourceAccount.type === AccountType.CREDIT_CARD) {
-      return left(
-        new AccountTypeError(
-          'Conta de origem não pode ser um cartão de crédito',
+        new InvalidAccountError(
+          'A conta de destino deve ser um cartão de crédito.',
         ),
       );
     }
 
     if (props.sourceAccountId === props.creditCardAccountId) {
-      return left(
-        new HttpException(
-          'Source and destination accounts must be different',
-          statusCode.BAD_REQUEST,
-        ),
-      );
+      return left(new SourceAndDestinationAccountMustBeDifferentError());
+    }
+    const sourceAccount = await this.accountRepository.findById(
+      props.sourceAccountId,
+    );
+    if (sourceAccount?.workspaceId !== props.workspaceId) {
+      return left(new AccountNotFoundError('Conta de origem não encontrada.'));
+    }
+    if (sourceAccount instanceof CreditCard) {
+      return left(new CannotPayInvoiceWithCreditCardError());
     }
 
     const amountBigInt = BigInt(props.amount);
+    const tz = sourceAccount.timezone;
+    const today = this.dateProvider.startOfDay(this.dateProvider.now(), tz);
 
-    const transaction = Transaction.create({
-      amount: amountBigInt,
-      description: `Pagamento da fatura do cartão de crédito ${creditCardAccount.name}`,
-      sourceAccountId: props.sourceAccountId,
-      destinationAccountId: props.creditCardAccountId,
-      status: TransactionStatus.COMPLETED,
+    const transactionOrError = Transaction.create({
       workspaceId: props.workspaceId,
-      createdBy: props.sub,
+      accountId: props.sourceAccountId,
+      destinationAccountId: props.creditCardAccountId,
+      categoryId: props.categoryId ?? null,
+      title: 'Pagamento de Fatura',
+      description:
+        props.description ?? `Pagamento da fatura: ${creditCardAccount.name}`,
+      amount: amountBigInt,
+      date: today,
+      type: 'TRANSFER',
+      status: TransactionStatus.COMPLETED,
     });
 
-    const sourceNewBalance = Number(sourceAccount.balance - amountBigInt);
-    const destNewBalance = Number(creditCardAccount.balance + amountBigInt);
+    if (transactionOrError.isLeft()) return left(transactionOrError.value);
+    const transaction = transactionOrError.value;
+
+    const debitResult = sourceAccount.debit(amountBigInt);
+    if (debitResult.isLeft()) return left(debitResult.value);
+
+    const paymentResult = creditCardAccount.payInvoice(amountBigInt);
+    if (paymentResult.isLeft()) return left(paymentResult.value);
 
     await this.transactionRepository.createWithBalanceUpdate(
       transaction,
-      sourceNewBalance,
-      destNewBalance,
+      Number(sourceAccount.balance),
+      Number(creditCardAccount.balance),
     );
 
     return right(transaction);
