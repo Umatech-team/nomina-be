@@ -1,6 +1,6 @@
 import { DatabaseModule } from '@infra/databases/Database.module';
 import { FindMonthSummaryController } from '@modules/report/features/get-month-summary/get-month-summary.controller';
-import { FindMonthSummaryService } from '@modules/report/features/get-month-summary/get-month-summary.service';
+import { FindMonthSummaryService } from '@modules/report/features/get-month-summary/get-month-summary.handler';
 import { UserModule } from '@modules/user/User.module';
 import { Module } from '@nestjs/common';
 import { CreateRecurringTransactionController } from './features/create-recurring-transaction/create-recurring-transaction.controller';
@@ -18,7 +18,7 @@ import { FindTransactionByIdService } from './features/find-transaction/find-tra
 import { ListRecurringTransactionsController } from './features/list-recurring-transactions/list-recurring-transactions.controller';
 import { ListRecurringTransactionsService } from './features/list-recurring-transactions/list-recurring-transactions.service';
 import { ListTransactionController } from './features/list-transaction/list-transaction.controller';
-import { ListTransactionByIdService } from './features/list-transaction/list-transaction.service';
+import { ListTransactionsService } from './features/list-transaction/list-transaction.service';
 import { ToggleActiveRecurringTransactionController } from './features/toggle-active-recurring-transaction/toggle-active-recurring-transaction.controller';
 import { ToggleActiveRecurringTransactionService } from './features/toggle-active-recurring-transaction/toggle-active-recurring-transaction.service';
 import { ToggleTransactionStatusController } from './features/toggle-transaction-status/toggle-transaction-status.controller';
@@ -58,7 +58,7 @@ import { GenerateRecurringTransactionsService } from './services/generate-recurr
     DeleteTransactionService,
     FindMonthSummaryService,
     FindTransactionByIdService,
-    ListTransactionByIdService,
+    ListTransactionsService,
     UpdateTransactionService,
     ToggleTransactionStatusService,
     CreateRecurringTransactionService,
