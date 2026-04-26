@@ -73,6 +73,7 @@ export const workspaceUsers = pgTable(
     userId: text('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    timezone: text('time_zone').notNull().default('America/Sao_Paulo'),
     isDefault: boolean('is_default').default(false).notNull(),
     role: text('role').notNull(),
     joinedAt: timestamp('joined_at', { withTimezone: true, mode: 'date' })
