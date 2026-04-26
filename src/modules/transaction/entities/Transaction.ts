@@ -96,6 +96,10 @@ export class Transaction extends AggregateRoot<TransactionProps> {
     return right(new Transaction(transactionProps, id));
   }
 
+  static restore(props: TransactionProps, id?: string): Transaction {
+    return new Transaction(props, id);
+  }
+
   get workspaceId(): string {
     return this.props.workspaceId;
   }
@@ -150,6 +154,18 @@ export class Transaction extends AggregateRoot<TransactionProps> {
 
   get updatedAt(): Date | null {
     return this.props.updatedAt;
+  }
+
+  get installmentGroupId(): string | null {
+    return this.props.installmentGroupId;
+  }
+
+  get installmentNumber(): number | null {
+    return this.props.installmentNumber;
+  }
+
+  get installmentCount(): number | null {
+    return this.props.installmentCount;
   }
 
   /**
