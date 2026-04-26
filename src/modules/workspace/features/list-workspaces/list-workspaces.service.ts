@@ -31,7 +31,7 @@ export class ListWorkspacesService implements Service<
     pageSize,
     sub,
   }: Request): Promise<Either<never, Response>> {
-    const result = await this.workspaceRepository.findManyByUserId(
+    const result = await this.workspaceRepository.findOwnedByUserId(
       sub,
       page,
       pageSize,
