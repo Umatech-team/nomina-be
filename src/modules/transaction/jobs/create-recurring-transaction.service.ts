@@ -12,6 +12,7 @@ const BATCH_SIZE = 50;
 const LOCK_TTL_SECONDS = 300;
 const CACHE_TTL_SECONDS = 86400; // 24 horas
 const MAX_GENERATIONS_PER_RECURRING = 365;
+const TIMEZONE = 'America/Sao_Paulo';
 
 interface Response {
   generatedCount: number;
@@ -93,7 +94,7 @@ export class GenerateRecurringTransactionsJobService {
     const transactionsToCreate: Array<Transaction> = [];
 
     let targetDate = recurring.lastGenerated
-      ? this.calculateNextDateService.execute(recurring)
+      ? this.calculateNextDateService.execute(recurring, TIMEZONE)
       : recurring.startDate;
 
     let generationCount = 0;
@@ -129,7 +130,7 @@ export class GenerateRecurringTransactionsJobService {
           `[Job] Erro ao criar transação derivada da recorrência ${recurring.id}:`,
           transactionOrError.value,
         );
-        targetDate = this.calculateNextDateService.execute(recurring);
+        targetDate = this.calculateNextDateService.execute(recurring, TIMEZONE);
         continue;
       }
 
@@ -137,7 +138,7 @@ export class GenerateRecurringTransactionsJobService {
 
       recurring.markAsGenerated(targetDate);
 
-      targetDate = this.calculateNextDateService.execute(recurring);
+      targetDate = this.calculateNextDateService.execute(recurring, TIMEZONE);
       generationCount++;
     }
 
