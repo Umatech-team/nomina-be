@@ -5,8 +5,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { Roles } from '@providers/auth/decorators/Roles.decorator';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    RemoveWorkspacePipe,
-    type RemoveWorkspaceRequest,
+  RemoveWorkspacePipe,
+  type RemoveWorkspaceRequest,
 } from './remove-user-from-workspace.dto';
 import { RemoveUserFromWorkspaceService } from './remove-user-from-workspace.service';
 
