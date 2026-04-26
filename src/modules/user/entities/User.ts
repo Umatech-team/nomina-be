@@ -1,4 +1,3 @@
-import { HttpException } from '@nestjs/common';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
@@ -24,18 +23,15 @@ export class User extends AggregateRoot<UserProps> {
       'createdAt' | 'updatedAt' | 'phone' | 'avatarUrl'
     >,
     id?: string,
-  ): Either<HttpException, User> {
+  ): Either<Error, User> {
     if (!props.name || props.name.trim().length < 4) {
       return left(
-        new HttpException(
-          'Name is required and must be at least 4 characters long.',
-          400,
-        ),
+        new Error('O nome é obrigatório e deve ter pelo menos 4 caracteres.'),
       );
     }
 
     if (!User.isValidEmail(props.email)) {
-      return left(new HttpException('Invalid email address.', 400));
+      return left(new Error('Endereço de e-mail inválido.'));
     }
 
     const userProps: UserProps = {
@@ -46,68 +42,75 @@ export class User extends AggregateRoot<UserProps> {
       avatarUrl: props.avatarUrl ?? null,
     };
 
-    const user = new User(userProps, id);
-    return right(user);
+    return right(new User(userProps, id));
   }
 
   private static isValidEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
-  get createdAt() {
+  get createdAt(): Date {
     return this.props.createdAt;
   }
 
-  get updatedAt() {
-    return this.props.updatedAt;
+  get updatedAt(): Date | null {
+    return this.props.updatedAt ?? null;
   }
 
-  get name() {
+  get name(): string {
     return this.props.name;
   }
 
-  set name(name: string) {
-    this.props.name = name;
-    this.touch();
-  }
-
-  get email() {
+  get email(): string {
     return this.props.email;
-  }
-
-  set email(email: string) {
-    this.props.email = email;
-    this.touch();
   }
 
   get phone(): string | null {
     return this.props.phone ?? null;
   }
 
-  set phone(phone: string | null) {
-    this.props.phone = phone;
-    this.touch();
-  }
-
-  get passwordHash() {
+  get passwordHash(): string {
     return this.props.passwordHash;
-  }
-
-  set passwordHash(passwordHash: string) {
-    this.props.passwordHash = passwordHash;
-    this.touch();
   }
 
   get avatarUrl(): string | null {
     return this.props.avatarUrl ?? null;
   }
 
-  set avatarUrl(avatarUrl: string | null) {
-    this.props.avatarUrl = avatarUrl;
+  public updateProfile(
+    name: string,
+    phone?: string | null,
+    avatarUrl?: string | null,
+  ): Either<Error, void> {
+    if (!name || name.trim().length < 4) {
+      return left(
+        new Error('O nome é obrigatório e deve ter pelo menos 4 caracteres.'),
+      );
+    }
+    this.props.name = name;
+    if (phone !== undefined) this.props.phone = phone;
+    if (avatarUrl !== undefined) this.props.avatarUrl = avatarUrl;
+
+    this.touch();
+    return right(undefined);
+  }
+
+  public changeEmail(newEmail: string): Either<Error, void> {
+    if (!User.isValidEmail(newEmail)) {
+      return left(new Error('Endereço de e-mail inválido.'));
+    }
+    this.props.email = newEmail;
+    this.touch();
+    return right(undefined);
+  }
+
+  public changePassword(newPasswordHash: string): void {
+    if (!newPasswordHash) return;
+    this.props.passwordHash = newPasswordHash;
     this.touch();
   }
 
-  private touch() {
+  private touch(): void {
     this.props.updatedAt = new Date();
   }
 }
