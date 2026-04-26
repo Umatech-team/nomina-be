@@ -6,8 +6,8 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    UpdateTransactionPipe,
-    type UpdateTransactionRequest,
+  UpdateTransactionPipe,
+  type UpdateTransactionRequest,
 } from './update-transaction.dto';
 import { UpdateTransactionService } from './update-transaction.service';
 
