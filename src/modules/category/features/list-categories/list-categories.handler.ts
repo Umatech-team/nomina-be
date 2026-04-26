@@ -7,18 +7,17 @@ import { Either, right } from '@shared/core/errors/Either';
 import { ListCategoriesRequest } from './list-categories.dto';
 
 type Request = ListCategoriesRequest & Pick<TokenPayloadSchema, 'sub'>;
-
-type Errors = never;
-
 type Response = {
   categories: Category[];
   total: number;
 };
 
 @Injectable()
-export class ListCategoriesService
-  implements Service<Request, Errors, Response>
-{
+export class ListCategoriesService implements Service<
+  Request,
+  Error,
+  Response
+> {
   constructor(private readonly categoryRepository: CategoryRepository) {}
 
   async execute({
@@ -26,7 +25,7 @@ export class ListCategoriesService
     page,
     pageSize,
     type,
-  }: Request): Promise<Either<Errors, Response>> {
+  }: Request): Promise<Either<Error, Response>> {
     const { categories, total } =
       await this.categoryRepository.findManyByWorkspaceId(
         sub,
