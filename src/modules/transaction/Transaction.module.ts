@@ -4,9 +4,9 @@ import { FindMonthSummaryService } from '@modules/report/features/get-month-summ
 import { UserModule } from '@modules/user/User.module';
 import { Module } from '@nestjs/common';
 import { CreateRecurringTransactionController } from './features/create-recurring-transaction/create-recurring-transaction.controller';
-import { CreateRecurringTransactionService } from './features/create-recurring-transaction/create-recurring-transaction.handle';
+import { CreateRecurringTransactionService } from './features/create-recurring-transaction/create-recurring-transaction.service';
 import { CreateTransactionController } from './features/create-transaction/create-transaction.controller';
-import { CreateTransactionService } from './features/create-transaction/create-transaction.handle';
+import { CreateTransactionService } from './features/create-transaction/create-transaction.service';
 import { DeleteRecurringTransactionController } from './features/delete-recurring-transaction/delete-recurring-transaction.controller';
 import { DeleteRecurringTransactionService } from './features/delete-recurring-transaction/delete-recurring-transaction.service';
 import { DeleteTransactionController } from './features/delete-transaction/delete-transaction.controller';
