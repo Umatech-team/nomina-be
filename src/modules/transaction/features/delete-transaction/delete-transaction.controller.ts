@@ -5,8 +5,8 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    DeleteTransactionPipe,
-    type DeleteTransactionRequest,
+  DeleteTransactionPipe,
+  type DeleteTransactionRequest,
 } from './delete-transaction.dto';
 import { DeleteTransactionService } from './delete-transaction.service';
 
