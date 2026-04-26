@@ -4,10 +4,10 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    CashFlowEvolutionPipe,
-    type CashFlowEvolutionRequest,
+  CashFlowEvolutionPipe,
+  type CashFlowEvolutionRequest,
 } from './cash-flow-evolution.dto';
-import { CashFlowEvolutionService } from './cash-flow-evolution.service';
+import { CashFlowEvolutionService } from './cash-flow-evolution.handler';
 
 @ApiTags('Report')
 @Controller('report')
