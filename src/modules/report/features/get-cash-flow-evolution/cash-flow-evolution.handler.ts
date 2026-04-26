@@ -3,6 +3,7 @@ import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import * as schema from '@infra/databases/drizzle/schema';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
+import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
 import { MoneyUtils } from '@utils/MoneyUtils';
 import { and, desc, eq, gte, lte, ne, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
@@ -19,24 +20,26 @@ type Response = Array<{
 
 @Injectable()
 export class CashFlowEvolutionService {
-  constructor(private readonly drizzle: DrizzleService) {}
+  constructor(
+    private readonly drizzle: DrizzleService,
+    private readonly dateProvider: DayJsDateProvider,
+  ) {}
 
   async execute({
     workspaceId,
     startDate,
     endDate,
   }: Request): Promise<Response> {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const workspaceTimezone = 'America/Sao_Paulo'; // TODO: Buscar timezone real do workspace no banco e usar aqui, ao invés de hardcoded
 
-    end.setUTCHours(23, 59, 59, 999);
+    const start = this.dateProvider.startOfDay(startDate, workspaceTimezone);
+    const end = this.dateProvider.endOfDay(endDate, workspaceTimezone);
 
     const destAccount = alias(schema.accounts, 'dest_account');
 
-    const effectiveType =
-      sql<string>`CASE WHEN ${schema.transactions.type} = 'TRANSFER' AND ${destAccount.type} = ${AccountType.CREDIT_CARD} THEN 'EXPENSE' ELSE ${schema.transactions.type} END`;
+    const effectiveType = sql<string>`CASE WHEN ${schema.transactions.type} = 'TRANSFER' AND ${destAccount.type} = ${AccountType.CREDIT_CARD} THEN 'EXPENSE' ELSE ${schema.transactions.type} END`;
 
-    const dateFormatted = sql<string>`to_char(${schema.transactions.date}, 'YYYY-MM-DD')`;
+    const dateFormatted = sql<string>`to_char(${schema.transactions.date} AT TIME ZONE 'UTC' AT TIME ZONE ${workspaceTimezone}, 'YYYY-MM-DD')`;
 
     const incomes =
       sql<number>`COALESCE(SUM(CASE WHEN ${effectiveType} = 'INCOME' THEN ${schema.transactions.amount} ELSE 0 END), 0)`.mapWith(
