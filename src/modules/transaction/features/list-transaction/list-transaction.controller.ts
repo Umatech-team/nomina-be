@@ -9,12 +9,12 @@ import {
   ListTransactionsPipe,
   type ListTransactionsRequest,
 } from './list-transaction.dto';
-import { ListTransactionByIdService } from './list-transaction.service';
+import { ListTransactionsService } from './list-transaction.service';
 
 @ApiTags('Transaction')
 @Controller('transaction')
 export class ListTransactionController {
-  constructor(private readonly service: ListTransactionByIdService) {}
+  constructor(private readonly service: ListTransactionsService) {}
 
   @Get('list')
   @HttpCode(statusCode.OK)
@@ -52,7 +52,12 @@ export class ListTransactionController {
     }
 
     return {
-      data: data.value.map(TransactionPreviewPresenter.toHTTP),
+      data: {
+        transactions: data.value.transactions.map((transaction) =>
+          TransactionPreviewPresenter.toHTTP(transaction),
+        ),
+        total: data.value.total,
+      },
     };
   }
 }
