@@ -34,3 +34,21 @@ export class CategoryHasTransactionsError extends BusinessRuleDomainError {
     );
   }
 }
+
+export class CategoryNotFoundError extends BusinessRuleDomainError {
+  constructor() {
+    super('Categoria não encontrada.');
+  }
+}
+
+export class ConflictCategoryError extends Error {
+  constructor(reason: string) {
+    super(`Conflito na operação de categoria: ${reason}`);
+  }
+}
+
+export class CategoryHasChildrenError extends Error {
+  constructor() {
+    super('Não é possível excluir a categoria pois ela possui subcategorias.');
+  }
+}
