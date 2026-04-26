@@ -17,6 +17,26 @@ export class DayJsDateProvider implements DateProvider {
     return dayjs().utc().toDate();
   }
 
+  parse(date: string | Date): Date {
+    return dayjs(date).toDate();
+  }
+
+  startOfDay(date: string | Date, tz: string = 'America/Sao_Paulo'): Date {
+    return dayjs(date).tz(tz).startOf('day').toDate();
+  }
+
+  startOfMonth(date: string | Date, tz: string = 'America/Sao_Paulo'): Date {
+    return dayjs(date).tz(tz).startOf('month').toDate();
+  }
+
+  endOfMonth(date: string | Date, tz: string = 'America/Sao_Paulo'): Date {
+    return dayjs(date).tz(tz).endOf('month').toDate();
+  }
+
+  endOfDay(date: string | Date, tz: string = 'America/Sao_Paulo'): Date {
+    return dayjs(date).tz(tz).endOf('day').toDate();
+  }
+
   toTimezone(date: Date, timezone: string): Date {
     return dayjs(date).tz(timezone).toDate();
   }
