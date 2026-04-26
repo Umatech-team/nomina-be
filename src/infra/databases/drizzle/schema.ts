@@ -56,6 +56,7 @@ export const workspaces = pgTable('workspaces', {
     .$default(() => crypto.randomUUID()),
   name: text('name').notNull(),
   currency: text('currency').default('BRL').notNull(),
+  timezone: text('time_zone').default('America/Sao_Paulo').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
     .notNull(),
