@@ -21,3 +21,29 @@ export class UserAlreadyExistsError extends ConflictDomainError {
     super('Usuário já existe');
   }
 }
+
+export class EmailAlreadyInUseError extends ConflictDomainError {
+  constructor() {
+    super('O email já está em uso por outro usuário');
+  }
+}
+
+export class InvalidRefreshTokenError extends BusinessRuleDomainError {
+  constructor() {
+    super('O token de atualização é inválido ou expirou');
+  }
+}
+
+export class InvalidPasswordError extends BusinessRuleDomainError {
+  constructor() {
+    super('A senha atual fornecida é inválida');
+  }
+}
+
+export class PasswordTooWeakError extends BusinessRuleDomainError {
+  constructor() {
+    super(
+      'A nova senha é muito fraca. Ela deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e símbolos.',
+    );
+  }
+}
