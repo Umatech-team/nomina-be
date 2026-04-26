@@ -1,4 +1,5 @@
 import { CreditCard } from '@modules/account/entities/CreditCardAccount';
+import { AnyAccount } from '@modules/account/entities/types';
 import { ConflictAccountError } from '@modules/account/errors';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { Injectable } from '@nestjs/common';
@@ -14,7 +15,11 @@ type Request = UpdateAccountRequest & { accountId: string } & Pick<
   >;
 
 @Injectable()
-export class UpdateAccountService implements Service<Request, Error, void> {
+export class UpdateAccountService implements Service<
+  Request,
+  Error,
+  AnyAccount
+> {
   constructor(private readonly accountRepository: AccountRepository) {}
 
   private validateCreditCardFields(
@@ -44,7 +49,7 @@ export class UpdateAccountService implements Service<Request, Error, void> {
     closingDay,
     dueDay,
     creditLimit,
-  }: Request): Promise<Either<Error, void>> {
+  }: Request): Promise<Either<Error, AnyAccount>> {
     const account = await this.accountRepository.findById(accountId);
 
     if (account?.workspaceId !== workspaceId) {
@@ -78,6 +83,6 @@ export class UpdateAccountService implements Service<Request, Error, void> {
 
     await this.accountRepository.update(account);
 
-    return right(undefined);
+    return right(account);
   }
 }
