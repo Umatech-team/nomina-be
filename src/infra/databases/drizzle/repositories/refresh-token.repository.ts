@@ -7,9 +7,7 @@ import { RefreshTokenMapper } from '../mappers/refresh-token.mapper';
 import * as schema from '../schema';
 
 @Injectable()
-export class RefreshTokenRepositoryImplementation
-  implements RefreshTokensRepository
-{
+export class RefreshTokenRepositoryImplementation implements RefreshTokensRepository {
   constructor(private readonly drizzle: DrizzleService) {}
   async create(refreshToken: RefreshToken): Promise<void> {
     await this.drizzle.db.insert(schema.refreshTokens).values({
