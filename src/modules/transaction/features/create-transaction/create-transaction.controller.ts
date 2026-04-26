@@ -6,10 +6,10 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    CreateTransactionPipe,
-    type CreateTransactionRequest,
+  CreateTransactionPipe,
+  type CreateTransactionRequest,
 } from './create-transaction.dto';
-import { CreateTransactionService } from './create-transaction.handle';
+import { CreateTransactionService } from './create-transaction.service';
 
 @ApiTags('Transaction')
 @Controller('transaction')
