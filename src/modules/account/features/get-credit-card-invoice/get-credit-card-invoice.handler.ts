@@ -1,4 +1,3 @@
-import { AccountType } from '@constants/enums';
 import { CreditCard } from '@modules/account/entities/CreditCardAccount';
 import {
   AccountNotFoundError,
@@ -43,10 +42,11 @@ export class GetCreditCardInvoiceService implements Service<
     const account = await this.accountRepository.findById(props.accountId);
 
     if (!account) return left(new AccountNotFoundError());
+
     if (account.workspaceId !== props.workspaceId)
       return left(new UnauthorizedError());
-    if (account.type !== AccountType.CREDIT_CARD)
-      return left(new AccountTypeError());
+
+    if (!(account instanceof CreditCard)) return left(new AccountTypeError());
 
     const institutionTimezone = account.timezone ?? 'America/Sao_Paulo';
 
