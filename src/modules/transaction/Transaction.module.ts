@@ -12,7 +12,7 @@ import { DeleteRecurringTransactionService } from './features/delete-recurring-t
 import { DeleteTransactionController } from './features/delete-transaction/delete-transaction.controller';
 import { DeleteTransactionService } from './features/delete-transaction/delete-transaction.service';
 import { FindRecurringTransactionController } from './features/find-recurring-transaction/find-recurring-transaction.controller';
-import { FindRecurringTransactionService } from './features/find-recurring-transaction/find-recurring-transaction.handle';
+import { FindRecurringTransactionService } from './features/find-recurring-transaction/find-recurring-transaction.service';
 import { FindTransactionController } from './features/find-transaction/find-transaction.controller';
 import { FindTransactionByIdService } from './features/find-transaction/find-transaction.handle';
 import { ListRecurringTransactionsController } from './features/list-recurring-transactions/list-recurring-transactions.controller';
