@@ -5,8 +5,8 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    SwitchWorkspacePipe,
-    type SwitchWorkspaceRequest,
+  SwitchWorkspacePipe,
+  type SwitchWorkspaceRequest,
 } from './switch-workspace.dto';
 import { SwitchWorkspaceService } from './switch-workspace.service';
 
