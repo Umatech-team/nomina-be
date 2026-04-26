@@ -3,6 +3,7 @@ import { FindMonthSummaryController } from '@modules/report/features/get-month-s
 import { FindMonthSummaryService } from '@modules/report/features/get-month-summary/get-month-summary.service';
 import { UserModule } from '@modules/user/User.module';
 import { Module } from '@nestjs/common';
+import { DateModule } from '@providers/date/Date.module';
 import { CreateRecurringTransactionController } from './features/create-recurring-transaction/create-recurring-transaction.controller';
 import { CreateRecurringTransactionService } from './features/create-recurring-transaction/create-recurring-transaction.service';
 import { CreateTransactionController } from './features/create-transaction/create-transaction.controller';
@@ -52,7 +53,7 @@ import { GenerateRecurringTransactionsService } from './services/generate-recurr
     DeleteTransactionController,
     ToggleActiveRecurringTransactionController,
   ],
-  imports: [DatabaseModule, UserModule],
+  imports: [DatabaseModule, UserModule, DateModule],
   providers: [
     CreateTransactionService,
     DeleteTransactionService,
