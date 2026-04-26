@@ -7,10 +7,9 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { Roles } from '@providers/auth/decorators/Roles.decorator';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
-
 import {
-    AddWorkspaceUserPipe,
-    type AddWorkspaceUserRequest,
+  AddWorkspaceUserPipe,
+  type AddWorkspaceUserRequest,
 } from './add-user-to-workspace.dto';
 import { AddUserToWorkspaceService } from './add-user-to-workspace.service';
 
