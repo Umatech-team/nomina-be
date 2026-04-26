@@ -1,7 +1,7 @@
 import { DatabaseModule } from '@infra/databases/Database.module';
 import { Module } from '@nestjs/common';
 import { ListCategoriesController } from './features/list-categories/list-categories.controller';
-import { ListCategoriesService } from './features/list-categories/list-categories.service';
+import { ListCategoriesService } from './features/list-categories/list-categories.handler';
 
 @Module({
   imports: [DatabaseModule],
