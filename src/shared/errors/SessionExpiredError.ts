@@ -1,10 +1,7 @@
-import { ServiceError } from '@shared/core/errors/ServiceError';
-import { statusCode } from '@shared/core/types/statusCode';
+import { UnauthorizedDomainError } from '@shared/core/errors/DomainError';
 
-export class SessionExpiredError extends Error implements ServiceError {
-  statusCode: number = statusCode.FORBIDDEN;
-
+export class SessionExpiredError extends UnauthorizedDomainError {
   constructor() {
-    super('Token Inválido');
+    super('Sessão expirada. Por favor, faça login novamente para continuar.');
   }
 }
