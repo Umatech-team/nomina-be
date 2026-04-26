@@ -3,12 +3,12 @@ import { Module } from '@nestjs/common';
 import { CryptographyModule } from '@providers/cryptography/Cryptography.module';
 import { DateModule } from '@providers/date/Date.module';
 import { CreateUserController } from './features/create-user/create-user.controller';
-import { CreateUserService } from './features/create-user/create-user.service';
 import { GetProfileController } from './features/get-profile/get-profile.controller';
-import { GetProfileService } from './features/get-profile/get-profile.service';
 import { LoginUserController } from './features/login-user/login-user.controller';
-import { LoginUserService } from './features/login-user/login-user.service';
 import { RefreshTokenController } from './features/refresh-token/refresh-token.controller';
+import { CreateUserService } from './features/create-user/create-user.service';
+import { GetProfileService } from './features/get-profile/get-profile.service';
+import { LoginUserService } from './features/login-user/login-user.service';
 import { RefreshTokenService } from './features/refresh-token/refresh-token.service';
 
 @Module({
