@@ -1,8 +1,8 @@
 import {
-    Controller,
-    HttpCode,
-    Post,
-    UnauthorizedException,
+  Controller,
+  HttpCode,
+  Post,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiKey } from '@providers/auth/decorators/ApiKey.decorator';
