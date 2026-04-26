@@ -1,20 +1,16 @@
 import { AccountType } from '@constants/enums';
 import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import * as schema from '@infra/databases/drizzle/schema';
-import {
-    HttpException,
-    Injectable,
-    UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Either, left, right } from '@shared/core/errors/Either';
+import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { MoneyUtils } from '@utils/MoneyUtils';
 import { and, eq, gte, lt, lte, ne, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { BalanceEvolutionRequest } from './get-balance-evolution.dto';
 
 type Request = BalanceEvolutionRequest & TokenPayloadBase;
-type Errors = HttpException;
 type Response = Array<{
   date: string;
   income: number;
@@ -30,7 +26,7 @@ export class BalanceEvolutionService {
     workspaceId,
     sub,
     period,
-  }: Request): Promise<Either<Errors, Response>> {
+  }: Request): Promise<Either<Error, Response>> {
     const userIsMemberOfWorkspace = await this.drizzle.db
       .select({
         workspaceId: schema.workspaceUsers.workspaceId,
@@ -44,9 +40,7 @@ export class BalanceEvolutionService {
       );
 
     if (userIsMemberOfWorkspace.length === 0) {
-      return left(
-        new UnauthorizedException('Usuario não tem acesso a esse workspace'),
-      );
+      return left(new UnauthorizedError('Usuário não pertence ao workspace.'));
     }
 
     const endDate = new Date();
@@ -61,10 +55,7 @@ export class BalanceEvolutionService {
 
     const isCompleted = eq(schema.transactions.status, 'COMPLETED');
 
-    const isNotCreditCard = ne(
-      schema.accounts.type,
-      AccountType.CREDIT_CARD,
-    );
+    const isNotCreditCard = ne(schema.accounts.type, AccountType.CREDIT_CARD);
 
     const isCreditCardInvoicePayment = and(
       eq(schema.transactions.type, 'TRANSFER'),
@@ -130,7 +121,11 @@ export class BalanceEvolutionService {
             reportFilter,
           ),
         )
-        .groupBy(schema.transactions.date, schema.transactions.type, destAccount.type),
+        .groupBy(
+          schema.transactions.date,
+          schema.transactions.type,
+          destAccount.type,
+        ),
     ]);
 
     const resolveType = (type: string, destType: string | null) =>
