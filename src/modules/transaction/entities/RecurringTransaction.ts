@@ -77,7 +77,7 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return right(new RecurringTransaction(recurringTransactionProps, id));
   }
 
-  static reconstitute(
+  static restore(
     props: RecurringTransactionProps,
     id: string,
   ): RecurringTransaction {
