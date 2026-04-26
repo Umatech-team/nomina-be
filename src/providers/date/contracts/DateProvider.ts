@@ -20,6 +20,7 @@ export abstract class DateProvider {
     timezone: string,
   ): Date;
 
+  abstract format(date: Date, formatString: string, timezone: string): string;
   abstract toTimezone(date: Date, timezone: string): Date;
   abstract calculateInvoiceCycle(params: InvoiceCycleParams): InvoiceCycle;
   abstract addDaysInCurrentDate(days: number): Date;
