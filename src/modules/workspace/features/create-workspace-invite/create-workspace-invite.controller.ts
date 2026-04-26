@@ -1,9 +1,9 @@
 import { UserRole } from '@constants/enums';
 import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import {
-    CheckLimit,
-    ResourceType,
-    SubscriptionLimitsGuard,
+  CheckLimit,
+  ResourceType,
+  SubscriptionLimitsGuard,
 } from '@modules/subscription';
 import { WorkspaceInvitePresenter } from '@modules/workspace/presenters/WorkspaceInvite.presenter';
 import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
@@ -14,8 +14,8 @@ import { RolesGuard } from '@providers/auth/guards/Roles.guard';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    CreateWorkspaceInvitePipe,
-    type CreateWorkspaceInviteRequest,
+  CreateWorkspaceInvitePipe,
+  type CreateWorkspaceInviteRequest,
 } from './create-workspace-invite.dto';
 import { CreateWorkspaceInviteService } from './create-workspace-invite.service';
 
