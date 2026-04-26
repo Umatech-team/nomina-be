@@ -4,10 +4,10 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    GetExpensesByCategoryPipe,
-    type GetExpensesByCategoryRequest,
+  GetExpensesByCategoryPipe,
+  type GetExpensesByCategoryRequest,
 } from './get-expenses-by-category.dto';
-import { GetExpensesByCategoryService } from './get-expenses-by-category.service';
+import { GetExpensesByCategoryService } from './get-expenses-by-category.handler';
 
 @ApiTags('Report')
 @Controller('report')
