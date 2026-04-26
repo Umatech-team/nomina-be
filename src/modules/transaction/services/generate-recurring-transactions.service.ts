@@ -2,7 +2,7 @@ import { TransactionStatus } from '@constants/enums';
 import { RedisService } from '@infra/cache/redis/RedisService';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { Injectable } from '@nestjs/common';
-import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 import { Transaction } from '../entities/Transaction';
 import { RecurringTransactionRepository } from '../repositories/contracts/RecurringTransactionRepository';
@@ -26,7 +26,7 @@ export class GenerateRecurringTransactionsService {
     private readonly recurringRepository: RecurringTransactionRepository,
     private readonly calculateNextDateService: CalculateNextGenerationDateService,
     private readonly redis: RedisService,
-    private readonly dateProvider: DayJsDateProvider,
+    private readonly dateProvider: DateProvider,
     private readonly accountRepository: AccountRepository,
   ) {}
 

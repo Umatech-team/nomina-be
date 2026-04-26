@@ -2,7 +2,7 @@ import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import * as schema from '@infra/databases/drizzle/schema';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
-import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { MoneyUtils } from '@utils/MoneyUtils';
 import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import { GetExpensesByCategoryRequest } from './get-expenses-by-category.dto';
@@ -22,7 +22,7 @@ const TOP_CATEGORIES_LIMIT = 5;
 export class GetExpensesByCategoryService {
   constructor(
     private readonly drizzle: DrizzleService,
-    private readonly dateProvider: DayJsDateProvider,
+    private readonly dateProvider: DateProvider,
   ) {}
 
   async execute({ workspaceId, month, year }: Request): Promise<Response> {

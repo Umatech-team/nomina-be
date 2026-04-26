@@ -11,7 +11,7 @@ import {
 import { RecurringTransactionRepository } from '@modules/transaction/repositories/contracts/RecurringTransactionRepository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
-import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
@@ -32,7 +32,7 @@ export class UpdateRecurringTransactionService implements Service<
     private readonly recurringRepository: RecurringTransactionRepository,
     private readonly categoryRepository: CategoryRepository,
     private readonly accountRepository: AccountRepository,
-    private readonly dateProvider: DayJsDateProvider,
+    private readonly dateProvider: DateProvider,
   ) {}
 
   async execute(request: Request): Promise<Either<Error, Response>> {

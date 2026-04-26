@@ -10,7 +10,7 @@ import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 
 import { WrongCredentialsError } from '@modules/user/errors';
-import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { LoginUserRequest } from './login-user.dto';
 
@@ -28,7 +28,7 @@ export class LoginUserService implements Service<Request, Error, Response> {
     private readonly refreshTokensRepository: RefreshTokensRepository,
     private readonly hashComparer: HashComparer,
     private readonly encrypter: Encrypter,
-    private readonly dateProvider: DayJsDateProvider,
+    private readonly dateProvider: DateProvider,
   ) {}
 
   async execute({

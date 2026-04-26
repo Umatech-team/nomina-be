@@ -3,7 +3,7 @@ import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import * as schema from '@infra/databases/drizzle/schema';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
-import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { MoneyUtils } from '@utils/MoneyUtils';
 import { and, desc, eq, gte, lte, ne, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
@@ -22,7 +22,7 @@ type Response = Array<{
 export class CashFlowEvolutionService {
   constructor(
     private readonly drizzle: DrizzleService,
-    private readonly dateProvider: DayJsDateProvider,
+    private readonly dateProvider: DateProvider,
   ) {}
 
   async execute({

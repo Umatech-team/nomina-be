@@ -1,11 +1,11 @@
 import { RecurrenceFrequency } from '@constants/enums';
 import { Injectable } from '@nestjs/common';
-import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 
 @Injectable()
 export class CalculateNextGenerationDateService {
-  constructor(private readonly dateProvider: DayJsDateProvider) {}
+  constructor(private readonly dateProvider: DateProvider) {}
 
   execute(recurring: RecurringTransaction, timezone: string): Date {
     const baseDate = recurring.lastGenerated ?? recurring.startDate;

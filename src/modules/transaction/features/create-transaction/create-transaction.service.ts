@@ -6,13 +6,13 @@ import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
-import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 
 import { CreditCard } from '@modules/account/entities/CreditCardAccount';
 import { CategoryNotFoundError } from '@modules/category/errors';
 import { DestinationAccountRequiredForTransferError } from '@modules/transaction/errors';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { CreateTransactionRequest } from './create-transaction.dto';
 
@@ -28,7 +28,7 @@ export class CreateTransactionService implements Service<
     private readonly accountRepository: AccountRepository,
     private readonly categoryRepository: CategoryRepository,
     private readonly transactionRepository: TransactionRepository,
-    private readonly dateProvider: DayJsDateProvider,
+    private readonly dateProvider: DateProvider,
   ) {}
 
   async execute(request: Request): Promise<Either<Error, Transaction>> {

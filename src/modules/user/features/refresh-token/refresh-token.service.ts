@@ -7,7 +7,7 @@ import { WorkspaceUserRepository } from '@modules/workspace/repositories/contrac
 import { HttpException, Injectable } from '@nestjs/common';
 import { Decoder } from '@providers/cryptography/contracts/Decoder';
 import { Encrypter } from '@providers/cryptography/contracts/Encrypter';
-import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { SessionExpiredError } from '@shared/errors/SessionExpiredError';
@@ -24,7 +24,7 @@ export class RefreshTokenService implements Service<string, Error, Response> {
     private readonly refreshTokensRepository: RefreshTokensRepository,
     private readonly decrypter: Decoder,
     private readonly encrypter: Encrypter,
-    private readonly dateProvider: DayJsDateProvider,
+    private readonly dateProvider: DateProvider,
     private readonly workspaceUserRepository: WorkspaceUserRepository,
   ) {}
 

@@ -1,7 +1,7 @@
 import { TransactionStatus } from '@constants/enums';
 import { RedisService } from '@infra/cache/redis/RedisService';
 import { Injectable } from '@nestjs/common';
-import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { Either, right } from '@shared/core/errors/Either';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 import { Transaction } from '../entities/Transaction';
@@ -24,7 +24,7 @@ export class GenerateRecurringTransactionsJobService {
     private readonly recurringRepository: RecurringTransactionRepository,
     private readonly calculateNextDateService: CalculateNextGenerationDateService,
     private readonly redis: RedisService,
-    private readonly dateProvider: DayJsDateProvider,
+    private readonly dateProvider: DateProvider,
   ) {}
 
   async execute(): Promise<Either<Error, Response>> {

@@ -11,7 +11,7 @@ import {
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
-import { DayJsDateProvider } from '@providers/date/implementations/Dayjs';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
@@ -31,7 +31,7 @@ export class UpdateTransactionService implements Service<
     private readonly accountRepository: AccountRepository,
     private readonly categoryRepository: CategoryRepository,
     private readonly transactionRepository: TransactionRepository,
-    private readonly dateProvider: DayJsDateProvider,
+    private readonly dateProvider: DateProvider,
   ) {}
 
   async execute(request: Request): Promise<Either<Error, Transaction>> {
