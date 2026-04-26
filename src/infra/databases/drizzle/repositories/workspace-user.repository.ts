@@ -1,3 +1,4 @@
+import { UserRole } from '@constants/enums';
 import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import { WorkspaceUser } from '@modules/workspace/entities/WorkspaceUser';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
@@ -7,10 +8,36 @@ import { WorkspaceUserMapper } from '../mappers/workspace-user.mapper';
 import * as schema from '../schema';
 
 @Injectable()
-export class WorkspaceUserRepositoryImplementation
-  implements WorkspaceUserRepository
-{
+export class WorkspaceUserRepositoryImplementation implements WorkspaceUserRepository {
   constructor(private readonly drizzle: DrizzleService) {}
+
+  async findOwnerByWorkspaceId(
+    workspaceId: string,
+  ): Promise<WorkspaceUser | null> {
+    const [workspaceUser] = await this.drizzle.db
+      .select()
+      .from(schema.workspaceUsers)
+      .where(
+        and(
+          eq(schema.workspaceUsers.workspaceId, workspaceId),
+          eq(schema.workspaceUsers.role, UserRole.OWNER),
+        ),
+      )
+      .limit(1);
+
+    if (!workspaceUser) return null;
+
+    return WorkspaceUserMapper.toDomain(workspaceUser);
+  }
+
+  async countByWorkspaceId(workspaceId: string): Promise<number> {
+    const [{ totalCount }] = await this.drizzle.db
+      .select({ totalCount: count() })
+      .from(schema.workspaceUsers)
+      .where(eq(schema.workspaceUsers.workspaceId, workspaceId));
+
+    return totalCount;
+  }
 
   async findDefaultWorkspaceByUserId(
     userId: string,
