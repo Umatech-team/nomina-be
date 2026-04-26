@@ -1,5 +1,4 @@
 import { TransactionStatus, TransactionType } from '@constants/enums';
-// HttpException REMOVIDO. O domínio deve lançar erros de domínio ou retornar Left(DomainError).
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
@@ -51,6 +50,8 @@ export class Transaction extends AggregateRoot<TransactionProps> {
     if (!props.title || props.title.trim() === '') {
       return left(new Error('The title is required'));
     }
+
+    if (!props.status) return left(new Error('O status é obrigatório'));
 
     if (!props.date) {
       return left(new Error('The date is required'));
