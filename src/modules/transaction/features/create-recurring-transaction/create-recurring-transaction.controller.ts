@@ -6,10 +6,10 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    CreateRecurringTransactionPipe,
-    type CreateRecurringTransactionRequest,
+  CreateRecurringTransactionPipe,
+  type CreateRecurringTransactionRequest,
 } from './create-recurring-transaction.dto';
-import { CreateRecurringTransactionService } from './create-recurring-transaction.handle';
+import { CreateRecurringTransactionService } from './create-recurring-transaction.service';
 
 @ApiTags('Recurring Transaction')
 @Controller('transaction')
