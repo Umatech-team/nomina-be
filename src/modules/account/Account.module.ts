@@ -15,8 +15,9 @@ import { ListAccountsController } from './features/list-accounts/list-accounts.c
 import { ListAccountsService } from './features/list-accounts/list-accounts.service';
 import { UpdateAccountController } from './features/update-account/update-account.controller';
 import { UpdateAccountService } from './features/update-account/update-account.service';
+import { DateModule } from '@providers/date/Date.module';
 @Module({
-  imports: [DatabaseModule, SubscriptionModule],
+  imports: [DatabaseModule, SubscriptionModule, DateModule],
   controllers: [
     CreateAccountController,
     UpdateAccountController,
