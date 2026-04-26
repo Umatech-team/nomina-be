@@ -6,6 +6,12 @@ export abstract class WorkspaceUserRepository {
     workspaceName: string;
   } | null>;
 
+  abstract findOwnerByWorkspaceId(
+    workspaceId: string,
+  ): Promise<WorkspaceUser | null>;
+
+  abstract countByWorkspaceId(workspaceId: string): Promise<number>;
+
   abstract addUserToWorkspace(
     workspaceUser: WorkspaceUser,
   ): Promise<WorkspaceUser>;
