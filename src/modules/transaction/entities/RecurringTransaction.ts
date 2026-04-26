@@ -1,29 +1,13 @@
 import { RecurrenceFrequency, TransactionType } from '@constants/enums';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
-import { BusinessRuleDomainError } from '@shared/core/errors/categories';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
-
-export class InvalidAmountError extends BusinessRuleDomainError {
-  constructor() {
-    super('O valor da transação deve ser maior que zero.');
-  }
-}
-export class InvalidRecurrenceIntervalError extends BusinessRuleDomainError {
-  constructor() {
-    super('O intervalo de recorrência deve ser maior que zero.');
-  }
-}
-export class InvalidTransferError extends BusinessRuleDomainError {
-  constructor(reason: string) {
-    super(`Transferência inválida: ${reason}`);
-  }
-}
-export class InvalidDateRangeError extends BusinessRuleDomainError {
-  constructor() {
-    super('A data de término não pode ser anterior à data de início.');
-  }
-}
+import {
+  InvalidAmountError,
+  InvalidDateRangeError,
+  InvalidRecurrenceIntervalError,
+  InvalidTransferError,
+} from '../errors';
 
 export interface RecurringTransactionProps {
   workspaceId: string;
@@ -93,7 +77,6 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return right(new RecurringTransaction(recurringTransactionProps, id));
   }
 
-  // Método exclusivo para o Mapper recriar a entidade vinda do banco de dados
   static reconstitute(
     props: RecurringTransactionProps,
     id: string,
@@ -101,7 +84,6 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return new RecurringTransaction(props, id);
   }
 
-  // GETTERS (Leitura pura)
   get workspaceId(): string {
     return this.props.workspaceId;
   }
@@ -158,14 +140,9 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return this.props.active;
   }
 
-  // CORREÇÃO: Conversão para decimal retorna number, não bigint
   get amountDecimal(): number {
     return Number(this.props.amount) / 100;
   }
-
-  // ---------------------------------------------------------------------------
-  // MÉTODOS DE MUTAÇÃO (COMPORTAMENTOS RICOS)
-  // ---------------------------------------------------------------------------
 
   public updateDetails(
     title: string,
@@ -173,7 +150,7 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     categoryId: string,
   ): void {
     if (!title || title.trim() === '')
-      throw new Error('O título é obrigatório.'); // Pode usar um erro de domínio aqui
+      throw new Error('O título é obrigatório.');
     this.props.title = title;
     this.props.description = description;
     this.props.categoryId = categoryId;
@@ -217,7 +194,7 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
 
   public convertToIncomeOrExpense(type: 'INCOME' | 'EXPENSE'): void {
     this.props.type = type;
-    this.props.destinationAccountId = null; // Limpa a sujeira de uma possível transferência anterior
+    this.props.destinationAccountId = null;
   }
 
   public markAsGenerated(generationDate: Date): void {
