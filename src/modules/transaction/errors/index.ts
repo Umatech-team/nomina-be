@@ -52,3 +52,9 @@ export class SourceAndDestinationAccountMustBeDifferentError extends BusinessRul
     );
   }
 }
+
+export class TransactionNotFoundError extends BusinessRuleDomainError {
+  constructor() {
+    super('Transação não encontrada.');
+  }
+}
