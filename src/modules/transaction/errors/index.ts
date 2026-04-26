@@ -58,3 +58,9 @@ export class TransactionNotFoundError extends BusinessRuleDomainError {
     super('Transação não encontrada.');
   }
 }
+
+export class CannotPayInvoiceWithCreditCardError extends BusinessRuleDomainError {
+  constructor() {
+    super('Não é possível pagar uma fatura usando outro cartão de crédito.');
+  }
+}
