@@ -17,6 +17,23 @@ export class DayJsDateProvider implements DateProvider {
     return dayjs().utc().toDate();
   }
 
+  format(
+    date: Date,
+    formatStr: string,
+    tz: string = 'America/Sao_Paulo',
+  ): string {
+    return dayjs(date).tz(tz).format(formatStr);
+  }
+
+  add(
+    date: Date,
+    amount: number,
+    unit: 'day' | 'month' | 'year',
+    tz: string = 'America/Sao_Paulo',
+  ): Date {
+    return dayjs(date).tz(tz).add(amount, unit).toDate();
+  }
+
   parse(date: string | Date): Date {
     return dayjs(date).toDate();
   }
