@@ -6,8 +6,8 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    ListWorkspacesPipe,
-    type ListWorkspacesRequest,
+  ListWorkspacesPipe,
+  type ListWorkspacesRequest,
 } from './list-workspaces.dto';
 import { ListWorkspacesService } from './list-workspaces.service';
 
