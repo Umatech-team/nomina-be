@@ -1,24 +1,21 @@
 import { Transaction } from '@modules/transaction/entities/Transaction';
+import { TransactionNotFoundError } from '@modules/transaction/errors';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { statusCode } from '@shared/core/types/statusCode';
+import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { FindTransactionRequest } from './find-transaction.dto';
 
 type Request = FindTransactionRequest & Pick<TokenPayloadBase, 'sub'>;
 
-type Errors = HttpException;
-
-type Response = Transaction;
-
 @Injectable()
 export class FindTransactionByIdService implements Service<
   Request,
-  Errors,
-  Response
+  Error,
+  Transaction
 > {
   constructor(
     private readonly transactionRepository: TransactionRepository,
@@ -28,20 +25,18 @@ export class FindTransactionByIdService implements Service<
   async execute({
     sub,
     transactionId,
-  }: Request): Promise<Either<Errors, Response>> {
+  }: Request): Promise<Either<Error, Transaction>> {
     const user = await this.userRepository.findUniqueById(sub);
 
     if (!user) {
-      return left(new HttpException('Unauthorized', statusCode.UNAUTHORIZED));
+      return left(new UnauthorizedError());
     }
 
     const transaction =
       await this.transactionRepository.findUniqueById(transactionId);
 
     if (!transaction) {
-      return left(
-        new HttpException('Transaction not found', statusCode.NOT_FOUND),
-      );
+      return left(new TransactionNotFoundError());
     }
 
     return right(transaction);
