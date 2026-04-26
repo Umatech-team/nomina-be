@@ -223,4 +223,13 @@ export class Transaction extends AggregateRoot<TransactionProps> {
   private touch(): void {
     this.props.updatedAt = new Date();
   }
+
+  public markAsPending(): Either<Error, void> {
+    if (this.props.status === TransactionStatus.PENDING) {
+      return left(new Error('A transação já está pendente.'));
+    }
+    this.props.status = TransactionStatus.PENDING;
+    this.touch();
+    return right(undefined);
+  }
 }
