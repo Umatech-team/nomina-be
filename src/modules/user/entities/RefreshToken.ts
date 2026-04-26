@@ -1,12 +1,10 @@
 import { Entity } from '@shared/core/Entities/Entity';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { Optional } from '@shared/core/types/Optional';
 
 export interface RefreshTokenProps {
   userId: string;
   token: string;
   expiresIn: Date;
-  createdAt: Date;
 }
 
 export class RefreshToken extends Entity<RefreshTokenProps> {
@@ -15,7 +13,7 @@ export class RefreshToken extends Entity<RefreshTokenProps> {
   }
 
   static create(
-    props: Optional<RefreshTokenProps, 'createdAt'>,
+    props: RefreshTokenProps,
     id?: string,
   ): Either<Error, RefreshToken> {
     if (!props.token) return left(new Error('O token não pode ser vazio.'));
@@ -28,10 +26,13 @@ export class RefreshToken extends Entity<RefreshTokenProps> {
 
     const refreshTokenProps: RefreshTokenProps = {
       ...props,
-      createdAt: props.createdAt ?? new Date(),
     };
 
     return right(new RefreshToken(refreshTokenProps, id));
+  }
+
+  static restore(props: RefreshTokenProps, id?: string): RefreshToken {
+    return new RefreshToken(props, id);
   }
 
   get userId(): string {
