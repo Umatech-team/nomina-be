@@ -1,10 +1,16 @@
-import { SubscriptionStatus } from '@constants/enums';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
+import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
 import { WorkspaceRepository } from '@modules/workspace/repositories/contracts/WorkspaceRepository';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Either, left, right } from '@shared/core/errors/Either';
+import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { getPlanLimits } from '../constants/PlanLimits';
+import {
+  MissingWorkspaceIdError,
+  PlanLimitReachedError,
+  SubscriptionNotActiveError,
+} from '../errors';
 import { SubscriptionRepository } from '../repositories/contracts/SubscriptionRepository';
 
 export enum ResourceType {
@@ -15,12 +21,10 @@ export enum ResourceType {
 }
 
 interface Request {
-  userId: string;
+  userId: string; // Usuário executando a ação
   resourceType: ResourceType;
   workspaceId?: string;
 }
-
-type Errors = HttpException;
 
 interface Response {
   allowed: boolean;
@@ -35,141 +39,77 @@ export class CheckSubscriptionLimitsService {
     private readonly workspaceRepository: WorkspaceRepository,
     private readonly workspaceUserRepository: WorkspaceUserRepository,
     private readonly accountRepository: AccountRepository,
+    private readonly categoryRepository: CategoryRepository,
   ) {}
 
   async execute({
     userId,
     resourceType,
     workspaceId,
-  }: Request): Promise<Either<Errors, Response>> {
-    const subscription = await this.subscriptionRepository.findByUserId(userId);
+  }: Request): Promise<Either<Error, Response>> {
+    let billingUserId = userId;
 
+    if (workspaceId && resourceType !== ResourceType.WORKSPACE) {
+      const ownerVinc =
+        await this.workspaceUserRepository.findOwnerByWorkspaceId(workspaceId);
+      if (!ownerVinc) {
+        return left(new UnauthorizedError());
+      }
+      billingUserId = ownerVinc.userId;
+    }
+
+    const subscription =
+      await this.subscriptionRepository.findByUserId(billingUserId);
     const planId = subscription?.planId ?? 'plan_free';
     const limits = getPlanLimits(planId);
 
-    if (subscription && subscription.status !== SubscriptionStatus.ACTIVE) {
-      return left(
-        new HttpException(
-          'Subscription is not active. Please renew your plan.',
-          403,
-        ),
-      );
+    if (subscription && !subscription.hasAccess()) {
+      return left(new SubscriptionNotActiveError());
     }
 
     switch (resourceType) {
       case ResourceType.WORKSPACE:
-        return this.checkWorkspaceLimit(userId, limits.maxWorkspaces);
+        return this.checkLimit(limits.maxWorkspaces, () =>
+          this.workspaceRepository.countOwnedByUserId(billingUserId),
+        );
 
       case ResourceType.WORKSPACE_MEMBER:
-        if (!workspaceId) {
-          throw new Error(
-            'workspaceId required for workspace member limit check',
-          );
-        }
-        return this.checkWorkspaceMemberLimit(
-          workspaceId,
-          limits.maxMembersPerWorkspace,
+        if (!workspaceId) return left(new MissingWorkspaceIdError());
+        return this.checkLimit(limits.maxMembersPerWorkspace, () =>
+          this.workspaceUserRepository.countByWorkspaceId(workspaceId),
         );
 
       case ResourceType.ACCOUNT:
-        if (!workspaceId) {
-          throw new Error('workspaceId required for account limit check');
-        }
-        return this.checkAccountLimit(
-          workspaceId,
-          limits.maxAccountsPerWorkspace,
+        if (!workspaceId) return left(new MissingWorkspaceIdError());
+        return this.checkLimit(limits.maxAccountsPerWorkspace, () =>
+          this.accountRepository.countByWorkspaceId(workspaceId),
         );
 
       case ResourceType.CATEGORY:
-        return right({
-          allowed: true,
-          currentCount: 0,
-          limit: limits.maxCategories,
-        });
+        if (!workspaceId) return left(new MissingWorkspaceIdError());
+        return this.checkLimit(limits.maxCategories, () =>
+          this.categoryRepository.countByWorkspaceId(workspaceId),
+        );
 
       default:
         return right({ allowed: true, currentCount: 0, limit: -1 });
     }
   }
 
-  private async checkWorkspaceLimit(
-    userId: string,
-    maxWorkspaces: number,
-  ): Promise<Either<Errors, Response>> {
-    if (maxWorkspaces === -1) {
+  private async checkLimit(
+    limit: number,
+    countFn: () => Promise<number>,
+  ): Promise<Either<Error, Response>> {
+    if (limit === -1) {
       return right({ allowed: true, currentCount: 0, limit: -1 });
     }
 
-    const result = await this.workspaceRepository.findManyByUserId(
-      userId,
-      1,
-      maxWorkspaces,
-    );
-    const currentCount = result.workspaces.length;
+    const currentCount = await countFn();
 
-    if (currentCount >= maxWorkspaces) {
-      return left(
-        new HttpException(
-          `Workspace limit reached (${currentCount}/${maxWorkspaces}). Upgrade to create more.`,
-          403,
-        ),
-      );
+    if (currentCount >= limit) {
+      return left(new PlanLimitReachedError(currentCount, limit));
     }
 
-    return right({ allowed: true, currentCount, limit: maxWorkspaces });
-  }
-
-  private async checkAccountLimit(
-    workspaceId: string,
-    maxAccounts: number,
-  ): Promise<Either<Errors, Response>> {
-    if (maxAccounts === -1) {
-      return right({ allowed: true, currentCount: 0, limit: -1 });
-    }
-
-    const result = await this.accountRepository.findManyByWorkspaceId(
-      workspaceId,
-      1,
-      maxAccounts,
-    );
-    const currentCount = result.accounts.length;
-
-    if (currentCount >= maxAccounts) {
-      return left(
-        new HttpException(
-          `Account limit reached (${currentCount}/${maxAccounts}). Upgrade to create more.`,
-          403,
-        ),
-      );
-    }
-
-    return right({ allowed: true, currentCount, limit: maxAccounts });
-  }
-
-  private async checkWorkspaceMemberLimit(
-    workspaceId: string,
-    maxMembers: number,
-  ): Promise<Either<Errors, Response>> {
-    if (maxMembers === -1) {
-      return right({ allowed: true, currentCount: 0, limit: -1 });
-    }
-
-    const result = await this.workspaceUserRepository.findUsersByWorkspaceId(
-      workspaceId,
-      1,
-      maxMembers,
-    );
-    const currentCount = result.total;
-
-    if (currentCount >= maxMembers) {
-      return left(
-        new HttpException(
-          `Workspace member limit reached (${currentCount}/${maxMembers}). Upgrade to add more members.`,
-          403,
-        ),
-      );
-    }
-
-    return right({ allowed: true, currentCount, limit: maxMembers });
+    return right({ allowed: true, currentCount, limit });
   }
 }
