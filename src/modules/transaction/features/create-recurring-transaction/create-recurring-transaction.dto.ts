@@ -8,63 +8,30 @@ const createRecurringTransactionSchema = z
     categoryId: z.string().uuid('ID da categoria inválido'),
     title: z.string().min(1, 'Título é obrigatório'),
     description: z.string().optional().nullable(),
-    amount: z.coerce
-      .bigint()
-      .positive('Valor deve ser positivo')
-      .max(9999999999n, 'Valor é muito grande'),
+    amount: z.coerce.bigint().positive('Valor deve ser positivo'),
     frequency: z.nativeEnum(RecurrenceFrequency),
     type: z.nativeEnum(TransactionType),
     interval: z.coerce
       .number()
       .int()
       .positive('Intervalo deve ser um número positivo')
-      .max(365, 'Intervalo deve ser no máximo 365'),
+      .max(365),
     startDate: z
       .string()
-      .refine(
-        (dateString) => {
-          const date = new Date(dateString);
-          return !Number.isNaN(date.getTime());
-        },
-        {
-          message: 'Data de início deve estar em um formato válido',
-        },
-      )
-      .transform((dateString) => new Date(dateString)),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato deve ser YYYY-MM-DD'),
     endDate: z
       .string()
-      .refine(
-        (dateString) => {
-          const date = new Date(dateString);
-          return !Number.isNaN(date.getTime());
-        },
-        {
-          message: 'Data de fim deve estar em um formato válido',
-        },
-      )
-      .transform((dateString) => new Date(dateString))
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato deve ser YYYY-MM-DD')
       .optional()
       .nullable(),
     active: z.boolean().optional(),
-    timezoneOffset: z.coerce
-      .number()
-      .int()
-      .min(-720, 'Offset de timezone inválido')
-      .max(840, 'Offset de timezone inválido')
-      .default(0),
-    destinationAccountId: z
-      .string()
-      .uuid('ID da conta destino inválido')
-      .optional()
-      .nullable(),
+    destinationAccountId: z.string().uuid().optional().nullable(),
   })
   .refine(
-    (data) => {
-      if (data.type === TransactionType.TRANSFER) {
-        return !!data.destinationAccountId;
-      }
-      return true;
-    },
+    (data) =>
+      data.type === TransactionType.TRANSFER
+        ? !!data.destinationAccountId
+        : true,
     {
       message: 'Conta destino é obrigatória para transferências',
       path: ['destinationAccountId'],
