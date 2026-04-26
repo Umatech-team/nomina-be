@@ -10,6 +10,7 @@ export abstract class AccountRepository {
   abstract findById(accountId: string): Promise<AnyAccount | null>;
   abstract update(account: AnyAccount): Promise<AnyAccount>;
   abstract delete(accountId: string): Promise<void>;
+
   abstract findManyByWorkspaceId(
     workspaceId: string,
     page: number,
@@ -17,4 +18,6 @@ export abstract class AccountRepository {
   ): Promise<{ accounts: AnyAccount[]; total: number }>;
 
   abstract findAllByWorkspaceId(workspaceId: string): Promise<AnyAccount[]>;
+
+  abstract countByWorkspaceId(workspaceId: string): Promise<number>;
 }
