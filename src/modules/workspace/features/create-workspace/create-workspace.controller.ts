@@ -9,8 +9,8 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    CreateWorkspacePipe,
-    type CreateWorkspaceRequest,
+  CreateWorkspacePipe,
+  type CreateWorkspaceRequest,
 } from './create-workspace.dto';
 import { CreateWorkspaceService } from './create-workspace.service';
 
