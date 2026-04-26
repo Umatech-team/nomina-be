@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { Body, Controller, HttpCode, Patch } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
@@ -8,12 +8,12 @@ import {
   SwitchWorkspacePipe,
   type SwitchWorkspaceRequest,
 } from './switch-workspace.dto';
-import { SwitchWorkspaceHandler } from './switch-workspace.handler';
+import { SwitchWorkspaceService } from './switch-workspace.service';
 
 @ApiTags('Workspace')
 @Controller('workspace')
 export class SwitchWorkspaceController {
-  constructor(private readonly handler: SwitchWorkspaceHandler) {}
+  constructor(private readonly service: SwitchWorkspaceService) {}
 
   @Patch('switch')
   @HttpCode(statusCode.OK)
@@ -38,7 +38,7 @@ export class SwitchWorkspaceController {
     @CurrentLoggedUser() { sub }: TokenPayloadSchema,
     @Body(SwitchWorkspacePipe) body: SwitchWorkspaceRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...body,
       sub,
     });

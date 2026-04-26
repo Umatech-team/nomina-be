@@ -1,22 +1,23 @@
 import { DatabaseModule } from '@infra/databases/Database.module';
+import { PayCreditCardInvoiceService } from '@modules/transaction/features/pay-credit-card-invoice/pay-credit-card-invoice.service';
 import { Module } from '@nestjs/common';
 import { SubscriptionModule } from '../subscription/Subscription.module';
+import { PayCreditCardInvoiceController } from '../transaction/features/pay-credit-card-invoice/pay-credit-card-invoice.controller';
 import { CreateAccountController } from './features/create-account/create-account.controller';
-import { CreateAccountHandler } from './features/create-account/create-account.handler';
+import { CreateAccountService } from './features/create-account/create-account.service';
 import { DeleteAccountController } from './features/delete-account/delete-account.controller';
-import { DeleteAccountHandler } from './features/delete-account/delete-account.handler';
+import { DeleteAccountService } from './features/delete-account/delete-account.handler';
 import { FindAccountController } from './features/find-account/find-account.controller';
-import { FindAccountByIdHandler } from './features/find-account/find-account.handler';
+import { FindAccountByIdService } from './features/find-account/find-account.handler';
 import { GetCreditCardInvoiceController } from './features/get-credit-card-invoice/get-credit-card-invoice.controller';
-import { GetCreditCardInvoiceHandler } from './features/get-credit-card-invoice/get-credit-card-invoice.handler';
+import { GetCreditCardInvoiceService } from './features/get-credit-card-invoice/get-credit-card-invoice.handler';
 import { ListAccountsController } from './features/list-accounts/list-accounts.controller';
-import { ListAccountsHandler } from './features/list-accounts/list-accounts.handler';
-import { PayCreditCardInvoiceController } from './features/pay-credit-card-invoice/pay-credit-card-invoice.controller';
-import { PayCreditCardInvoiceHandler } from './features/pay-credit-card-invoice/pay-credit-card-invoice.handler';
+import { ListAccountsService } from './features/list-accounts/list-accounts.service';
 import { UpdateAccountController } from './features/update-account/update-account.controller';
-import { UpdateAccountHandler } from './features/update-account/update-account.handler';
+import { UpdateAccountService } from './features/update-account/update-account.service';
+import { DateModule } from '@providers/date/Date.module';
 @Module({
-  imports: [DatabaseModule, SubscriptionModule],
+  imports: [DatabaseModule, SubscriptionModule, DateModule],
   controllers: [
     CreateAccountController,
     UpdateAccountController,
@@ -27,22 +28,22 @@ import { UpdateAccountHandler } from './features/update-account/update-account.h
     PayCreditCardInvoiceController,
   ],
   providers: [
-    CreateAccountHandler,
-    UpdateAccountHandler,
-    DeleteAccountHandler,
-    FindAccountByIdHandler,
-    ListAccountsHandler,
-    GetCreditCardInvoiceHandler,
-    PayCreditCardInvoiceHandler,
+    CreateAccountService,
+    UpdateAccountService,
+    DeleteAccountService,
+    FindAccountByIdService,
+    ListAccountsService,
+    GetCreditCardInvoiceService,
+    PayCreditCardInvoiceService,
   ],
   exports: [
-    CreateAccountHandler,
-    UpdateAccountHandler,
-    DeleteAccountHandler,
-    FindAccountByIdHandler,
-    ListAccountsHandler,
-    GetCreditCardInvoiceHandler,
-    PayCreditCardInvoiceHandler,
+    CreateAccountService,
+    UpdateAccountService,
+    DeleteAccountService,
+    FindAccountByIdService,
+    ListAccountsService,
+    GetCreditCardInvoiceService,
+    PayCreditCardInvoiceService,
   ],
 })
 export class AccountModule {}

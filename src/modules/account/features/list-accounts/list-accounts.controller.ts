@@ -1,5 +1,5 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { AccountPresenter } from '@modules/account/presenters/Account.presenter';
 import { Controller, Get, HttpCode, Query, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -12,14 +12,14 @@ import {
   ListAccountsPipe,
   type ListAccountsRequest,
 } from './list-accounts.dto';
-import { ListAccountsHandler } from './list-accounts.handler';
+import { ListAccountsService } from './list-accounts.service';
 
 @ApiTags('Account')
 @Controller('account')
 @UseGuards(RolesGuard)
 @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.USER, UserRole.VIEWER)
 export class ListAccountsController {
-  constructor(private readonly handler: ListAccountsHandler) {}
+  constructor(private readonly service: ListAccountsService) {}
 
   @Get()
   @HttpCode(statusCode.OK)
@@ -27,7 +27,7 @@ export class ListAccountsController {
     @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
     @Query(ListAccountsPipe) query: ListAccountsRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...query,
       workspaceId,
     });

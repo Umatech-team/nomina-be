@@ -7,9 +7,7 @@ import { eq } from 'drizzle-orm';
 import { WorkspaceInviteMapper } from '../mappers/workspace-invite.mapper';
 
 @Injectable()
-export class WorkspaceInviteRepositoryImplementation
-  implements WorkspaceInviteRepository
-{
+export class WorkspaceInviteRepositoryImplementation implements WorkspaceInviteRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
   async create(invite: WorkspaceInvite): Promise<WorkspaceInvite> {

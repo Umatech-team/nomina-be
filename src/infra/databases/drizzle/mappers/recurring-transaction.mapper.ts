@@ -9,22 +9,22 @@ type RecurringTransactionDrizzleInsert =
 
 export class RecurringTransactionMapper {
   static toDomain(raw: RecurringTransactionDrizzle): RecurringTransaction {
-    return new RecurringTransaction(
+    return RecurringTransaction.restore(
       {
-        accountId: raw.accountId,
-        destinationAccountId: raw.destinationAccountId ?? null,
-        amount: BigInt(raw.amount),
-        categoryId: raw.categoryId,
-        title: raw.title,
-        description: raw.description,
         workspaceId: raw.workspaceId,
-        frequency: raw.frequency as RecurrenceFrequency,
-        startDate: raw.startDate,
-        endDate: raw.endDate,
-        active: raw.active,
+        accountId: raw.accountId,
+        categoryId: raw.categoryId ?? null,
+        destinationAccountId: raw.destinationAccountId ?? null,
+        title: raw.title,
+        description: raw.description ?? null,
+        amount: BigInt(raw.amount),
         type: raw.type as TransactionType,
+        frequency: raw.frequency as RecurrenceFrequency,
         interval: raw.interval,
-        lastGenerated: raw.lastGenerated,
+        startDate: raw.startDate,
+        endDate: raw.endDate ?? null,
+        active: raw.active,
+        lastGenerated: raw.lastGenerated ?? null,
       },
       raw.id,
     );
@@ -35,19 +35,19 @@ export class RecurringTransactionMapper {
   ): RecurringTransactionDrizzleInsert {
     return {
       id: entity.id,
+      workspaceId: entity.workspaceId,
       accountId: entity.accountId,
-      destinationAccountId: entity.destinationAccountId,
-      amount: Number(entity.amount),
       categoryId: entity.categoryId,
+      destinationAccountId: entity.destinationAccountId,
       title: entity.title,
       description: entity.description,
-      workspaceId: entity.workspaceId,
+      amount: Number(entity.amount),
+      type: entity.type,
       frequency: entity.frequency,
+      interval: entity.interval,
       startDate: entity.startDate,
       endDate: entity.endDate,
       active: entity.active,
-      type: entity.type,
-      interval: entity.interval,
       lastGenerated: entity.lastGenerated,
     };
   }

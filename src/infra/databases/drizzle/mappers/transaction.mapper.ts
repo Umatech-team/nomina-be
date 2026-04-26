@@ -7,21 +7,24 @@ type TransactionDrizzleInsert = typeof schema.transactions.$inferInsert;
 
 export class TransactionMapper {
   static toDomain(raw: TransactionDrizzle): Transaction {
-    return new Transaction(
+    return Transaction.restore(
       {
-        createdAt: raw.createdAt,
-        updatedAt: raw.updatedAt,
-        accountId: raw.accountId,
-        destinationAccountId: raw.destinationAccountId ?? null,
-        amount: BigInt(raw.amount),
-        categoryId: raw.categoryId,
-        date: raw.date,
-        title: raw.title,
-        description: raw.description,
-        recurringId: raw.recurringId,
-        status: raw.status as TransactionStatus,
-        type: raw.type as TransactionType,
         workspaceId: raw.workspaceId,
+        accountId: raw.accountId,
+        categoryId: raw.categoryId ?? null,
+        destinationAccountId: raw.destinationAccountId ?? null,
+        title: raw.title,
+        description: raw.description ?? null,
+        amount: BigInt(raw.amount),
+        date: raw.date,
+        type: raw.type as TransactionType,
+        status: raw.status as TransactionStatus,
+        recurringId: raw.recurringId ?? null,
+        installmentGroupId: raw.installmentGroupId ?? null,
+        installmentNumber: raw.installmentNumber ?? null,
+        installmentCount: raw.installmentCount ?? null,
+        createdAt: raw.createdAt,
+        updatedAt: raw.updatedAt ?? null,
       },
       raw.id,
     );
@@ -30,19 +33,22 @@ export class TransactionMapper {
   static toDatabase(entity: Transaction): TransactionDrizzleInsert {
     return {
       id: entity.id,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt as Date,
+      workspaceId: entity.workspaceId,
       accountId: entity.accountId,
-      destinationAccountId: entity.destinationAccountId,
-      amount: Number(entity.amount),
       categoryId: entity.categoryId,
-      date: entity.date,
+      destinationAccountId: entity.destinationAccountId,
       title: entity.title,
       description: entity.description,
-      recurringId: entity.recurringId,
-      status: entity.status,
+      amount: Number(entity.amount),
+      date: entity.date,
       type: entity.type,
-      workspaceId: entity.workspaceId,
+      status: entity.status,
+      recurringId: entity.recurringId,
+      installmentGroupId: entity.installmentGroupId,
+      installmentNumber: entity.installmentNumber,
+      installmentCount: entity.installmentCount,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt ?? null,
     };
   }
 }

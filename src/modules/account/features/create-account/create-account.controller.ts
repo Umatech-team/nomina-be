@@ -1,5 +1,5 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { AccountPresenter } from '@modules/account/presenters/Account.presenter';
 import { CheckLimit } from '@modules/subscription/decorators/CheckLimit.decorator';
 import { SubscriptionLimitsGuard } from '@modules/subscription/guards/SubscriptionLimits.guard';
@@ -15,7 +15,7 @@ import {
   CreateAccountPipe,
   type CreateAccountRequest,
 } from './create-account.dto';
-import { CreateAccountHandler } from './create-account.handler';
+import { CreateAccountService } from './create-account.service';
 
 @ApiTags('Account')
 @Controller('account')
@@ -24,7 +24,7 @@ import { CreateAccountHandler } from './create-account.handler';
 @CheckLimit(ResourceType.ACCOUNT)
 @Roles(UserRole.OWNER, UserRole.ADMIN)
 export class CreateAccountController {
-  constructor(private readonly handler: CreateAccountHandler) {}
+  constructor(private readonly service: CreateAccountService) {}
 
   @Post('create')
   @HttpCode(statusCode.CREATED)
@@ -32,7 +32,7 @@ export class CreateAccountController {
     @CurrentLoggedUser() { workspaceId, sub }: TokenPayloadSchema,
     @Body(CreateAccountPipe) body: CreateAccountRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...body,
       workspaceId,
       sub,

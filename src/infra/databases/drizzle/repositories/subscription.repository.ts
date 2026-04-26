@@ -7,9 +7,7 @@ import { SubscriptionMapper } from '../mappers/subscription.mapper';
 import * as schema from '../schema';
 
 @Injectable()
-export class SubscriptionRepositoryImplementation
-  implements SubscriptionRepository
-{
+export class SubscriptionRepositoryImplementation implements SubscriptionRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
   async create(subscription: Subscription): Promise<Subscription> {

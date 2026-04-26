@@ -56,6 +56,7 @@ export const workspaces = pgTable('workspaces', {
     .$default(() => crypto.randomUUID()),
   name: text('name').notNull(),
   currency: text('currency').default('BRL').notNull(),
+  timezone: text('time_zone').default('America/Sao_Paulo').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
     .defaultNow()
     .notNull(),
@@ -73,6 +74,7 @@ export const workspaceUsers = pgTable(
     userId: text('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    timezone: text('time_zone').notNull().default('America/Sao_Paulo'),
     isDefault: boolean('is_default').default(false).notNull(),
     role: text('role').notNull(),
     joinedAt: timestamp('joined_at', { withTimezone: true, mode: 'date' })
@@ -125,8 +127,7 @@ export const accounts = pgTable('accounts', {
   name: text('name').notNull(),
   type: text('type').notNull(),
   balance: bigint('balance', { mode: 'number' }).default(0).notNull(),
-  icon: text('icon'),
-  color: text('color'),
+  timezone: text('time_zone').notNull().default('America/Sao_Paulo'),
   closingDay: integer('closing_day'),
   dueDay: integer('due_day'),
   creditLimit: bigint('credit_limit', { mode: 'number' }),
@@ -227,6 +228,10 @@ export const transactions = pgTable(
     type: text('type').notNull(),
     status: text('status').notNull(),
 
+    installmentGroupId: text('installment_group_id'),
+    installmentNumber: integer('installment_number'),
+    installmentCount: integer('installment_count'),
+
     recurringId: text('recurring_transaction_id').references(
       () => recurringTransactions.id,
     ),
@@ -259,6 +264,7 @@ export const transactions = pgTable(
       table.date,
     ),
     index('idx_trans_destination_account').on(table.destinationAccountId),
+    index('idx_trans_installment_group').on(table.installmentGroupId),
   ],
 );
 

@@ -12,7 +12,8 @@ export abstract class WorkspaceRepository {
   abstract update(workspace: Workspace): Promise<Workspace>;
   abstract delete(id: string): Promise<void>;
   abstract findById(id: string): Promise<Workspace | null>;
-  abstract findManyByUserId(
+
+  abstract findOwnedByUserId(
     userId: string,
     page: number,
     limit: number,
@@ -24,4 +25,6 @@ export abstract class WorkspaceRepository {
     }>;
     total: number;
   }>;
+
+  abstract countOwnedByUserId(userId: string): Promise<number>;
 }

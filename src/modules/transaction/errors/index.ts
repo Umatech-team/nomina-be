@@ -1,0 +1,66 @@
+import { BusinessRuleDomainError } from '@shared/core/errors/DomainError';
+
+export class InvalidAmountError extends BusinessRuleDomainError {
+  constructor() {
+    super('O valor da transação deve ser maior que zero.');
+  }
+}
+export class InvalidRecurrenceIntervalError extends BusinessRuleDomainError {
+  constructor() {
+    super('O intervalo de recorrência deve ser maior que zero.');
+  }
+}
+export class InvalidTransferError extends BusinessRuleDomainError {
+  constructor(reason: string) {
+    super(`Transferência inválida: ${reason}`);
+  }
+}
+export class InvalidDateRangeError extends BusinessRuleDomainError {
+  constructor() {
+    super('A data de término não pode ser anterior à data de início.');
+  }
+}
+
+export class StartDateCannotBeTodayOrPastError extends BusinessRuleDomainError {
+  constructor() {
+    super('A data de início deve ser no futuro.');
+  }
+}
+
+export class EndDateMustBeInTheFutureError extends BusinessRuleDomainError {
+  constructor() {
+    super('A data de término deve ser no futuro.');
+  }
+}
+
+export class RecurringTransactionNotFoundError extends BusinessRuleDomainError {
+  constructor() {
+    super('Transação recorrente não encontrada.');
+  }
+}
+
+export class DestinationAccountRequiredForTransferError extends BusinessRuleDomainError {
+  constructor() {
+    super('Conta destino é obrigatória para transações do tipo transferência.');
+  }
+}
+
+export class SourceAndDestinationAccountMustBeDifferentError extends BusinessRuleDomainError {
+  constructor() {
+    super(
+      'Conta origem e destino devem ser diferentes para transações do tipo transferência.',
+    );
+  }
+}
+
+export class TransactionNotFoundError extends BusinessRuleDomainError {
+  constructor() {
+    super('Transação não encontrada.');
+  }
+}
+
+export class CannotPayInvoiceWithCreditCardError extends BusinessRuleDomainError {
+  constructor() {
+    super('Não é possível pagar uma fatura usando outro cartão de crédito.');
+  }
+}

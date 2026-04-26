@@ -2,42 +2,31 @@ import { AccountType } from '@constants/enums';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
-const createAccountSchema = z
-  .object({
-    name: z
-      .string()
-      .trim()
-      .min(1, 'Nome é obrigatório')
-      .max(100, 'Nome muito longo'),
-    type: z.nativeEnum(AccountType),
-    icon: z.string().trim().optional().nullable(),
-    color: z
-      .string()
-      .trim()
-      .regex(/^#[0-9A-Fa-f]{6}$/, 'Cor inválida (use formato #RRGGBB)')
-      .optional()
-      .nullable(),
-    closingDay: z.number().int().min(1).max(31).optional().nullable(),
-    dueDay: z.number().int().min(1).max(31).optional().nullable(),
-    creditLimit: z.coerce
-      .number()
-      .positive('Limite deve ser positivo')
-      .optional()
-      .nullable(),
-  })
-  .refine(
-    (data) => {
-      if (data.type === AccountType.CREDIT_CARD) {
-        return data.closingDay != null && data.dueDay != null;
-      }
-      return true;
-    },
-    {
-      message:
-        'Dia de fechamento e vencimento são obrigatórios para cartão de crédito',
-      path: ['closingDay'],
-    },
-  );
+const baseAccountSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Nome é obrigatório')
+    .max(100, 'Nome muito longo'),
+  timezone: z.string().default('America/Sao_Paulo'),
+});
 
-export const CreateAccountPipe = new ZodValidationPipe(createAccountSchema);
+export const createAccountSchema = z.discriminatedUnion('type', [
+  baseAccountSchema.extend({
+    type: z.literal(AccountType.CREDIT_CARD),
+    creditLimit: z.coerce.number().positive('Limite deve ser positivo'),
+    closingDay: z.number().int().min(1).max(31),
+    dueDay: z.number().int().min(1).max(31),
+  }),
+  baseAccountSchema.extend({
+    type: z.literal(AccountType.CHECKING),
+    balance: z.coerce.number().optional().default(0),
+  }),
+  baseAccountSchema.extend({
+    type: z.literal(AccountType.CASH),
+    balance: z.coerce.number().optional().default(0),
+  }),
+]);
+
 export type CreateAccountRequest = z.infer<typeof createAccountSchema>;
+export const CreateAccountPipe = new ZodValidationPipe(createAccountSchema);

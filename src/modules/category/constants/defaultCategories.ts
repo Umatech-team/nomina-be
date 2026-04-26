@@ -1,7 +1,6 @@
 import { TransactionType } from '@constants/enums';
 
 export const DEFAULT_CATEGORIES = [
-  // DESPESAS
   {
     name: 'Alimentação',
     type: TransactionType.EXPENSE,
@@ -31,7 +30,6 @@ export const DEFAULT_CATEGORIES = [
     type: TransactionType.EXPENSE,
   },
 
-  // RECEITAS
   {
     name: 'Salário',
     type: TransactionType.INCOME,

@@ -1,5 +1,5 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { Controller, Delete, HttpCode, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
@@ -10,13 +10,13 @@ import {
   DeleteAccountPipe,
   type DeleteAccountRequest,
 } from './delete-account.dto';
-import { DeleteAccountHandler } from './delete-account.handler';
+import { DeleteAccountService } from './delete-account.handler';
 
 @ApiTags('Account')
 @Controller('account')
 @Roles(UserRole.OWNER)
 export class DeleteAccountController {
-  constructor(private readonly handler: DeleteAccountHandler) {}
+  constructor(private readonly service: DeleteAccountService) {}
 
   @Delete(':accountId')
   @HttpCode(statusCode.NO_CONTENT)
@@ -24,7 +24,7 @@ export class DeleteAccountController {
     @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
     @Param(DeleteAccountPipe) { accountId }: DeleteAccountRequest,
   ) {
-    const result = await this.handler.execute({
+    const result = await this.service.execute({
       accountId,
       workspaceId,
     });

@@ -80,11 +80,11 @@ export class CategoryRepositoryImplementation implements CategoryRepository {
     limit?: number,
   ): Promise<{ categories: Category[]; total: number }> {
     const parentIdCondition =
-      filters?.parentId !== undefined
-        ? filters.parentId === null
+      filters?.parentId === undefined
+        ? undefined
+        : filters.parentId === null
           ? isNull(schema.categories.parentId)
-          : eq(schema.categories.parentId, filters.parentId)
-        : undefined;
+          : eq(schema.categories.parentId, filters.parentId);
 
     const conditions = and(
       or(
@@ -116,6 +116,23 @@ export class CategoryRepositoryImplementation implements CategoryRepository {
       categories: categories.map(CategoryMapper.toDomain),
       total: totalCount,
     };
+  }
+
+  async countByWorkspaceId(workspaceId: string): Promise<number> {
+    const [{ totalCount }] = await this.drizzle.db
+      .select({ totalCount: count() })
+      .from(schema.categories)
+      .where(
+        and(
+          eq(schema.categories.workspaceId, workspaceId),
+          or(
+            eq(schema.categories.isSystemCategory, false),
+            isNull(schema.categories.isSystemCategory),
+          ),
+        ),
+      );
+
+    return totalCount;
   }
 
   async countChildren(categoryId: string): Promise<number> {

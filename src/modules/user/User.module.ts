@@ -3,13 +3,13 @@ import { Module } from '@nestjs/common';
 import { CryptographyModule } from '@providers/cryptography/Cryptography.module';
 import { DateModule } from '@providers/date/Date.module';
 import { CreateUserController } from './features/create-user/create-user.controller';
-import { CreateUserHandler } from './features/create-user/create-user.handler';
 import { GetProfileController } from './features/get-profile/get-profile.controller';
-import { GetProfileHandler } from './features/get-profile/get-profile.handler';
 import { LoginUserController } from './features/login-user/login-user.controller';
-import { LoginUserHandler } from './features/login-user/login-user.handler';
 import { RefreshTokenController } from './features/refresh-token/refresh-token.controller';
-import { RefreshTokenHandler } from './features/refresh-token/refresh-token.handler';
+import { CreateUserService } from './features/create-user/create-user.service';
+import { GetProfileService } from './features/get-profile/get-profile.service';
+import { LoginUserService } from './features/login-user/login-user.service';
+import { RefreshTokenService } from './features/refresh-token/refresh-token.service';
 
 @Module({
   controllers: [
@@ -20,10 +20,10 @@ import { RefreshTokenHandler } from './features/refresh-token/refresh-token.hand
   ],
   imports: [DatabaseModule, CryptographyModule, DateModule],
   providers: [
-    CreateUserHandler,
-    GetProfileHandler,
-    LoginUserHandler,
-    RefreshTokenHandler,
+    CreateUserService,
+    GetProfileService,
+    LoginUserService,
+    RefreshTokenService,
   ],
 })
 export class UserModule {}

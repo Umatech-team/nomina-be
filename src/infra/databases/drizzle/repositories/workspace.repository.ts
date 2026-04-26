@@ -11,13 +11,17 @@ import * as schema from '../schema';
 @Injectable()
 export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
   constructor(private readonly drizzle: DrizzleService) {}
+
   async create(workspace: Workspace): Promise<Workspace> {
     const [createdWorkspace] = await this.drizzle.db
       .insert(schema.workspaces)
       .values({
         id: workspace.id,
         name: workspace.name,
-      });
+        currency: workspace.currency,
+        timezone: workspace.timezone,
+      })
+      .returning();
 
     return WorkspaceMapper.toDomain(createdWorkspace);
   }
@@ -42,6 +46,8 @@ export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
       await tx.insert(schema.workspaces).values({
         id: workspace.id,
         name: workspace.name,
+        currency: workspace.currency,
+        timezone: workspace.timezone,
       });
 
       await tx.insert(schema.workspaceUsers).values({
@@ -58,6 +64,7 @@ export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
         name: 'Carteira',
         type: AccountType.CASH,
         balance: 0,
+        timezone: workspace.timezone,
       });
     });
   }
@@ -67,8 +74,11 @@ export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
       .update(schema.workspaces)
       .set({
         name: workspace.name,
+        currency: workspace.currency,
+        timezone: workspace.timezone,
       })
-      .where(eq(schema.workspaces.id, workspace.id));
+      .where(eq(schema.workspaces.id, workspace.id))
+      .returning();
 
     return WorkspaceMapper.toDomain(updatedWorkspace);
   }
@@ -80,16 +90,16 @@ export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
   }
 
   async findById(id: string): Promise<Workspace | null> {
-    const workspace = await this.drizzle.db
+    const [workspace] = await this.drizzle.db
       .select()
       .from(schema.workspaces)
       .where(eq(schema.workspaces.id, id))
       .limit(1);
 
-    return workspace.length ? WorkspaceMapper.toDomain(workspace[0]) : null;
+    return workspace ? WorkspaceMapper.toDomain(workspace) : null;
   }
 
-  async findManyByUserId(
+  async findOwnedByUserId(
     userId: string,
     page: number,
     limit: number,
@@ -103,27 +113,50 @@ export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
   }> {
     const skip = (page - 1) * limit;
 
-    const workspaceUsersQuery = await this.drizzle.db
-      .select({
-        workspaceUser: schema.workspaceUsers,
-        workspace: schema.workspaces,
-      })
-      .from(schema.workspaceUsers)
-      .innerJoin(
-        schema.workspaces,
-        eq(schema.workspaceUsers.workspaceId, schema.workspaces.id),
-      )
-      .where(
-        and(
-          eq(schema.workspaceUsers.userId, userId),
-          eq(schema.workspaceUsers.role, UserRole.OWNER),
-        ),
-      )
-      .limit(limit)
-      .offset(skip);
+    const [workspaceUsersQuery, [{ totalCount }]] = await Promise.all([
+      this.drizzle.db
+        .select({
+          workspaceUser: schema.workspaceUsers,
+          workspace: schema.workspaces,
+        })
+        .from(schema.workspaceUsers)
+        .innerJoin(
+          schema.workspaces,
+          eq(schema.workspaceUsers.workspaceId, schema.workspaces.id),
+        )
+        .where(
+          and(
+            eq(schema.workspaceUsers.userId, userId),
+            eq(schema.workspaceUsers.role, UserRole.OWNER),
+          ),
+        )
+        .limit(limit)
+        .offset(skip),
 
-    const [totalRecord] = await this.drizzle.db
-      .select({ value: count() })
+      this.drizzle.db
+        .select({ totalCount: count() })
+        .from(schema.workspaceUsers)
+        .where(
+          and(
+            eq(schema.workspaceUsers.userId, userId),
+            eq(schema.workspaceUsers.role, UserRole.OWNER),
+          ),
+        ),
+    ]);
+
+    return {
+      workspaces: workspaceUsersQuery.map((row) => ({
+        workspace: WorkspaceMapper.toDomain(row.workspace),
+        role: row.workspaceUser.role as UserRole,
+        isDefault: row.workspaceUser.isDefault,
+      })),
+      total: totalCount,
+    };
+  }
+
+  async countOwnedByUserId(userId: string): Promise<number> {
+    const [{ totalCount }] = await this.drizzle.db
+      .select({ totalCount: count() })
       .from(schema.workspaceUsers)
       .where(
         and(
@@ -132,13 +165,6 @@ export class WorkspaceRepositoryImplementation implements WorkspaceRepository {
         ),
       );
 
-    return {
-      workspaces: workspaceUsersQuery.map((row) => ({
-        workspace: WorkspaceMapper.toDomain(row.workspace),
-        role: row.workspaceUser.role as UserRole,
-        isDefault: row.workspaceUser.isDefault,
-      })),
-      total: totalRecord.value,
-    };
+    return totalCount;
   }
 }

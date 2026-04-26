@@ -1,40 +1,42 @@
 import { RecurrenceFrequency } from '@constants/enums';
 import { Injectable } from '@nestjs/common';
-import { addDays, addMonths, addYears, lastDayOfMonth } from 'date-fns';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
 
 @Injectable()
 export class CalculateNextGenerationDateService {
-  execute(recurring: RecurringTransaction): Date {
-    const baseDate = recurring.lastGenerated ?? recurring.startDate;
+  constructor(private readonly dateProvider: DateProvider) {}
 
-    let nextDate: Date;
+  execute(recurring: RecurringTransaction, timezone: string): Date {
+    const baseDate = recurring.lastGenerated ?? recurring.startDate;
 
     switch (recurring.frequency) {
       case RecurrenceFrequency.WEEKLY:
-        nextDate = addDays(baseDate, 7 * recurring.interval);
-        break;
+        return this.dateProvider.add(
+          baseDate,
+          recurring.interval * 7,
+          'day',
+          timezone,
+        );
 
-      case RecurrenceFrequency.MONTHLY: {
-        nextDate = addMonths(baseDate, recurring.interval);
-
-        const baseDayOfMonth = baseDate.getDate();
-        const nextDayOfMonth = nextDate.getDate();
-
-        if (baseDayOfMonth !== nextDayOfMonth) {
-          nextDate = lastDayOfMonth(nextDate);
-        }
-        break;
-      }
+      case RecurrenceFrequency.MONTHLY:
+        return this.dateProvider.add(
+          baseDate,
+          recurring.interval,
+          'month',
+          timezone,
+        );
 
       case RecurrenceFrequency.YEARLY:
-        nextDate = addYears(baseDate, recurring.interval);
-        break;
+        return this.dateProvider.add(
+          baseDate,
+          recurring.interval,
+          'year',
+          timezone,
+        );
 
       default:
         throw new Error(`Unknown frequency: ${recurring.frequency}`);
     }
-
-    return nextDate;
   }
 }

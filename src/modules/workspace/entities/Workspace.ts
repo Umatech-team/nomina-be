@@ -1,31 +1,37 @@
-import { HttpException } from '@nestjs/common';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
-import { Either, right } from '@shared/core/errors/Either';
+import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
 
 export interface WorkspaceProps {
   name: string;
   currency: string;
+  timezone: string;
   createdAt: Date;
 }
 
 export class Workspace extends AggregateRoot<WorkspaceProps> {
-  constructor(props: WorkspaceProps, id?: string) {
+  private constructor(props: WorkspaceProps, id?: string) {
     super(props, id);
   }
 
   static create(
-    props: Optional<WorkspaceProps, 'createdAt' | 'currency'>,
+    props: Optional<WorkspaceProps, 'createdAt' | 'currency' | 'timezone'>,
     id?: string,
-  ): Either<HttpException, Workspace> {
+  ): Either<Error, Workspace> {
+    if (!props.name || props.name.trim().length < 2) {
+      return left(
+        new Error('O nome do workspace deve ter no mínimo 2 caracteres.'),
+      );
+    }
+
     const workspaceProps: WorkspaceProps = {
       ...props,
       createdAt: props.createdAt ?? new Date(),
       currency: props.currency ?? 'BRL',
+      timezone: props.timezone ?? 'America/Sao_Paulo',
     };
 
-    const workspace = new Workspace(workspaceProps, id ?? crypto.randomUUID());
-    return right(workspace);
+    return right(new Workspace(workspaceProps, id));
   }
 
   get name(): string {
@@ -36,15 +42,28 @@ export class Workspace extends AggregateRoot<WorkspaceProps> {
     return this.props.currency;
   }
 
+  get timezone(): string {
+    return this.props.timezone;
+  }
+
   get createdAt(): Date {
     return this.props.createdAt;
   }
 
-  set name(value: string) {
-    this.props.name = value;
-  }
+  public updateDetails(
+    name: string,
+    currency: string,
+    timezone: string,
+  ): Either<Error, void> {
+    if (!name || name.trim().length < 2) {
+      return left(
+        new Error('O nome do workspace deve ter no mínimo 2 caracteres.'),
+      );
+    }
 
-  set currency(value: string) {
-    this.props.currency = value;
+    this.props.name = name;
+    this.props.currency = currency;
+    this.props.timezone = timezone;
+    return right(undefined);
   }
 }

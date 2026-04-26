@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { RecurringTransactionPresenter } from '@modules/transaction/presenters/RecurringTransaction.presenter';
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -9,12 +9,12 @@ import {
   CreateRecurringTransactionPipe,
   type CreateRecurringTransactionRequest,
 } from './create-recurring-transaction.dto';
-import { CreateRecurringTransactionHandler } from './create-recurring-transaction.handle';
+import { CreateRecurringTransactionService } from './create-recurring-transaction.service';
 
 @ApiTags('Recurring Transaction')
 @Controller('transaction')
 export class CreateRecurringTransactionController {
-  constructor(private readonly handler: CreateRecurringTransactionHandler) {}
+  constructor(private readonly service: CreateRecurringTransactionService) {}
 
   @Post('recurring')
   @HttpCode(statusCode.CREATED)
@@ -23,7 +23,7 @@ export class CreateRecurringTransactionController {
     @Body(CreateRecurringTransactionPipe)
     body: CreateRecurringTransactionRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...body,
       sub,
       workspaceId,

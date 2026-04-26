@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { WorkspaceUserPresenter } from '@modules/workspace/presenters/WorkspaceUser.presenter';
 import { Controller, Get, HttpCode, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -9,12 +9,12 @@ import {
   ListWorkspaceUsersPipe,
   type ListWorkspaceUsersRequest,
 } from './list-user-from-workspace.dto';
-import { ListUsersFromWorkspaceHandler } from './list-user-from-workspace.handler';
+import { ListUsersFromWorkspaceService } from './list-user-from-workspace.service';
 
 @ApiTags('Workspace')
 @Controller('workspace')
 export class ListUsersFromWorkspaceController {
-  constructor(private readonly handler: ListUsersFromWorkspaceHandler) {}
+  constructor(private readonly service: ListUsersFromWorkspaceService) {}
 
   @Get(':workspaceId/users')
   @HttpCode(statusCode.OK)
@@ -24,7 +24,7 @@ export class ListUsersFromWorkspaceController {
     @Query(ListWorkspaceUsersPipe)
     query: Omit<ListWorkspaceUsersRequest, 'workspaceId'>,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...query,
       workspaceId,
       sub,

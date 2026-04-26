@@ -1,21 +1,21 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { MonthSummaryPresenter } from '@modules/report/presenters/MonthlySummary.presenter';
 import { Controller, Get, HttpCode } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
-import { FindMonthSummaryHandler } from './get-month-summary.handler';
+import { FindMonthSummaryService } from './get-month-summary.service';
 
 @ApiTags('Report')
 @Controller('report')
 export class FindMonthSummaryController {
-  constructor(private readonly handler: FindMonthSummaryHandler) {}
+  constructor(private readonly service: FindMonthSummaryService) {}
 
   @Get('month-summary')
   @HttpCode(statusCode.OK)
   async handle(@CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       sub,
       workspaceId,
     });

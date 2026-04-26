@@ -1,9 +1,13 @@
 import { RecurrenceFrequency, TransactionType } from '@constants/enums';
-import { HttpException } from '@nestjs/common';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
-import { statusCode } from '@shared/core/types/statusCode';
+import {
+  InvalidAmountError,
+  InvalidDateRangeError,
+  InvalidRecurrenceIntervalError,
+  InvalidTransferError,
+} from '../errors';
 
 export interface RecurringTransactionProps {
   workspaceId: string;
@@ -23,49 +27,38 @@ export interface RecurringTransactionProps {
 }
 
 export class RecurringTransaction extends AggregateRoot<RecurringTransactionProps> {
-  constructor(props: RecurringTransactionProps, id?: string) {
+  private constructor(props: RecurringTransactionProps, id?: string) {
     super(props, id);
   }
 
   static create(
     props: Optional<
       RecurringTransactionProps,
-      'interval' | 'endDate' | 'lastGenerated' | 'active' | 'description' | 'destinationAccountId'
+      | 'interval'
+      | 'endDate'
+      | 'lastGenerated'
+      | 'active'
+      | 'description'
+      | 'destinationAccountId'
     >,
     id?: string,
-  ): Either<HttpException, RecurringTransaction> {
-    if (props.amount <= 0) {
-      return left(
-        new HttpException(
-          'O valor deve ser maior que zero',
-          statusCode.BAD_REQUEST,
-        ),
-      );
-    }
+  ): Either<Error, RecurringTransaction> {
+    if (props.amount <= 0n) return left(new InvalidAmountError());
+    if (props.interval !== undefined && props.interval <= 0)
+      return left(new InvalidRecurrenceIntervalError());
 
-    if (props.interval !== undefined && props.interval <= 0) {
-      return left(
-        new HttpException(
-          'O intervalo deve ser maior que zero',
-          statusCode.BAD_REQUEST,
-        ),
-      );
+    if (props.endDate && props.endDate < props.startDate) {
+      return left(new InvalidDateRangeError());
     }
 
     if (props.type === 'TRANSFER') {
       if (!props.destinationAccountId) {
-        return left(
-          new HttpException(
-            'Conta destino é obrigatória para transferências',
-            statusCode.BAD_REQUEST,
-          ),
-        );
+        return left(new InvalidTransferError('Conta destino é obrigatória.'));
       }
       if (props.destinationAccountId === props.accountId) {
         return left(
-          new HttpException(
-            'Conta destino deve ser diferente da conta origem',
-            statusCode.BAD_REQUEST,
+          new InvalidTransferError(
+            'Conta destino deve ser diferente da origem.',
           ),
         );
       }
@@ -79,15 +72,16 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
       endDate: props.endDate ?? null,
       lastGenerated: props.lastGenerated ?? null,
       active: props.active ?? true,
-      categoryId: props.categoryId ?? null,
     };
 
-    const recurringTransaction = new RecurringTransaction(
-      recurringTransactionProps,
-      id,
-    );
+    return right(new RecurringTransaction(recurringTransactionProps, id));
+  }
 
-    return right(recurringTransaction);
+  static restore(
+    props: RecurringTransactionProps,
+    id: string,
+  ): RecurringTransaction {
+    return new RecurringTransaction(props, id);
   }
 
   get workspaceId(): string {
@@ -122,10 +116,6 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return this.props.amount;
   }
 
-  get amountDecimal(): bigint {
-    return this.props.amount / 100n;
-  }
-
   get frequency(): RecurrenceFrequency {
     return this.props.frequency;
   }
@@ -150,55 +140,72 @@ export class RecurringTransaction extends AggregateRoot<RecurringTransactionProp
     return this.props.active;
   }
 
-  set title(value: string) {
-    this.props.title = value;
+  get amountDecimal(): number {
+    return Number(this.props.amount) / 100;
   }
 
-  set description(value: string | null) {
-    this.props.description = value;
+  public updateDetails(
+    title: string,
+    description: string | null,
+    categoryId: string,
+  ): void {
+    if (!title || title.trim() === '')
+      throw new Error('O título é obrigatório.');
+    this.props.title = title;
+    this.props.description = description;
+    this.props.categoryId = categoryId;
   }
 
-  set amount(value: bigint) {
-    this.props.amount = value;
+  public updateAmount(newAmount: bigint): Either<Error, void> {
+    if (newAmount <= 0n) return left(new InvalidAmountError());
+    this.props.amount = newAmount;
+    return right(undefined);
   }
 
-  set categoryId(value: string) {
-    this.props.categoryId = value;
+  public updateSchedule(
+    startDate: Date,
+    endDate: Date | null,
+    frequency: RecurrenceFrequency,
+    interval: number,
+  ): Either<Error, void> {
+    if (interval <= 0) return left(new InvalidRecurrenceIntervalError());
+    if (endDate && endDate < startDate)
+      return left(new InvalidDateRangeError());
+
+    this.props.startDate = startDate;
+    this.props.endDate = endDate;
+    this.props.frequency = frequency;
+    this.props.interval = interval;
+    return right(undefined);
   }
 
-  set frequency(value: RecurrenceFrequency) {
-    this.props.frequency = value;
+  public convertToTransfer(destinationAccountId: string): Either<Error, void> {
+    if (!destinationAccountId)
+      return left(new InvalidTransferError('Conta destino é obrigatória.'));
+    if (destinationAccountId === this.props.accountId)
+      return left(
+        new InvalidTransferError('Conta destino deve ser diferente da origem.'),
+      );
+
+    this.props.type = 'TRANSFER';
+    this.props.destinationAccountId = destinationAccountId;
+    return right(undefined);
   }
 
-  set interval(value: number) {
-    this.props.interval = value;
+  public convertToIncomeOrExpense(type: 'INCOME' | 'EXPENSE'): void {
+    this.props.type = type;
+    this.props.destinationAccountId = null;
   }
 
-  set startDate(value: Date) {
-    this.props.startDate = value;
+  public markAsGenerated(generationDate: Date): void {
+    this.props.lastGenerated = generationDate;
   }
 
-  set endDate(value: Date | null) {
-    this.props.endDate = value;
-  }
-
-  set lastGenerated(value: Date | null) {
-    this.props.lastGenerated = value;
-  }
-
-  set type(value: keyof typeof TransactionType) {
-    this.props.type = value;
-  }
-
-  set destinationAccountId(value: string | null) {
-    this.props.destinationAccountId = value;
-  }
-
-  deactivate(): void {
+  public deactivate(): void {
     this.props.active = false;
   }
 
-  activate(): void {
+  public activate(): void {
     this.props.active = true;
   }
 }

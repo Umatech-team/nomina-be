@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { CheckLimit } from '@modules/subscription/decorators/CheckLimit.decorator';
 import { SubscriptionLimitsGuard } from '@modules/subscription/guards/SubscriptionLimits.guard';
 import { ResourceType } from '@modules/subscription/services/CheckSubscriptionLimits.service';
@@ -12,12 +12,12 @@ import {
   CreateWorkspacePipe,
   type CreateWorkspaceRequest,
 } from './create-workspace.dto';
-import { CreateWorkspaceHandler } from './create-workspace.handler';
+import { CreateWorkspaceService } from './create-workspace.service';
 
 @ApiTags('Workspace')
 @Controller('workspace')
 export class CreateWorkspaceController {
-  constructor(private readonly handler: CreateWorkspaceHandler) {}
+  constructor(private readonly service: CreateWorkspaceService) {}
 
   @Post()
   @HttpCode(statusCode.CREATED)
@@ -27,7 +27,7 @@ export class CreateWorkspaceController {
     @CurrentLoggedUser() { sub }: TokenPayloadSchema,
     @Body(CreateWorkspacePipe) body: CreateWorkspaceRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...body,
       sub,
     });

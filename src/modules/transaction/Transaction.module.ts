@@ -1,34 +1,35 @@
 import { DatabaseModule } from '@infra/databases/Database.module';
 import { FindMonthSummaryController } from '@modules/report/features/get-month-summary/get-month-summary.controller';
-import { FindMonthSummaryHandler } from '@modules/report/features/get-month-summary/get-month-summary.handler';
+import { FindMonthSummaryService } from '@modules/report/features/get-month-summary/get-month-summary.service';
 import { UserModule } from '@modules/user/User.module';
 import { Module } from '@nestjs/common';
+import { DateModule } from '@providers/date/Date.module';
 import { CreateRecurringTransactionController } from './features/create-recurring-transaction/create-recurring-transaction.controller';
-import { CreateRecurringTransactionHandler } from './features/create-recurring-transaction/create-recurring-transaction.handle';
+import { CreateRecurringTransactionService } from './features/create-recurring-transaction/create-recurring-transaction.service';
 import { CreateTransactionController } from './features/create-transaction/create-transaction.controller';
-import { CreateTransactionHandler } from './features/create-transaction/create-transaction.handle';
+import { CreateTransactionService } from './features/create-transaction/create-transaction.service';
 import { DeleteRecurringTransactionController } from './features/delete-recurring-transaction/delete-recurring-transaction.controller';
-import { DeleteRecurringTransactionHandler } from './features/delete-recurring-transaction/delete-recurring-transaction.handler';
+import { DeleteRecurringTransactionService } from './features/delete-recurring-transaction/delete-recurring-transaction.service';
 import { DeleteTransactionController } from './features/delete-transaction/delete-transaction.controller';
-import { DeleteTransactionHandler } from './features/delete-transaction/delete-transaction.handler';
+import { DeleteTransactionService } from './features/delete-transaction/delete-transaction.service';
 import { FindRecurringTransactionController } from './features/find-recurring-transaction/find-recurring-transaction.controller';
-import { FindRecurringTransactionHandler } from './features/find-recurring-transaction/find-recurring-transaction.handle';
+import { FindRecurringTransactionService } from './features/find-recurring-transaction/find-recurring-transaction.service';
 import { FindTransactionController } from './features/find-transaction/find-transaction.controller';
-import { FindTransactionByIdHandler } from './features/find-transaction/find-transaction.handle';
+import { FindTransactionByIdService } from './features/find-transaction/find-transaction.handle';
 import { ListRecurringTransactionsController } from './features/list-recurring-transactions/list-recurring-transactions.controller';
-import { ListRecurringTransactionsHandler } from './features/list-recurring-transactions/list-recurring-transactions.handler';
+import { ListRecurringTransactionsService } from './features/list-recurring-transactions/list-recurring-transactions.service';
 import { ListTransactionController } from './features/list-transaction/list-transaction.controller';
-import { ListTransactionByIdHandler } from './features/list-transaction/list-transaction.handler';
+import { ListTransactionsService } from './features/list-transaction/list-transaction.service';
 import { ToggleActiveRecurringTransactionController } from './features/toggle-active-recurring-transaction/toggle-active-recurring-transaction.controller';
-import { ToggleActiveRecurringTransactionHandler } from './features/toggle-active-recurring-transaction/toggle-active-recurring-transaction.handler';
+import { ToggleActiveRecurringTransactionService } from './features/toggle-active-recurring-transaction/toggle-active-recurring-transaction.service';
 import { ToggleTransactionStatusController } from './features/toggle-transaction-status/toggle-transaction-status.controller';
-import { ToggleTransactionStatusHandler } from './features/toggle-transaction-status/toggle-transaction-status.handler';
+import { ToggleTransactionStatusService } from './features/toggle-transaction-status/toggle-transaction-status.service';
 import { UpdateRecurringTransactionController } from './features/update-recurring-transaction/update-recurring-transaction.controller';
-import { UpdateRecurringTransactionHandler } from './features/update-recurring-transaction/update-recurring-transaction.handler';
+import { UpdateRecurringTransactionService } from './features/update-recurring-transaction/update-recurring-transaction.service';
 import { UpdateTransactionController } from './features/update-transaction/update-transaction.controller';
-import { UpdateTransactionHandler } from './features/update-transaction/update-transaction.handler';
+import { UpdateTransactionService } from './features/update-transaction/update-transaction.service';
 import { GenerateRecurringTransactionJobController } from './jobs/create-recurring-transaction.controller';
-import { GenerateRecurringTransactionsJobHandler } from './jobs/create-recurring-transaction.handler';
+import { GenerateRecurringTransactionsJobService } from './jobs/create-recurring-transaction.service';
 import { CalculateNextGenerationDateService } from './services/calculate-next-generation-date.service';
 import { GenerateRecurringTransactionsService } from './services/generate-recurring-transactions.service';
 
@@ -52,24 +53,24 @@ import { GenerateRecurringTransactionsService } from './services/generate-recurr
     DeleteTransactionController,
     ToggleActiveRecurringTransactionController,
   ],
-  imports: [DatabaseModule, UserModule],
+  imports: [DatabaseModule, UserModule, DateModule],
   providers: [
-    CreateTransactionHandler,
-    DeleteTransactionHandler,
-    FindMonthSummaryHandler,
-    FindTransactionByIdHandler,
-    ListTransactionByIdHandler,
-    UpdateTransactionHandler,
-    ToggleTransactionStatusHandler,
-    CreateRecurringTransactionHandler,
-    UpdateRecurringTransactionHandler,
-    DeleteRecurringTransactionHandler,
-    ListRecurringTransactionsHandler,
-    FindRecurringTransactionHandler,
-    ToggleActiveRecurringTransactionHandler,
+    CreateTransactionService,
+    DeleteTransactionService,
+    FindMonthSummaryService,
+    FindTransactionByIdService,
+    ListTransactionsService,
+    UpdateTransactionService,
+    ToggleTransactionStatusService,
+    CreateRecurringTransactionService,
+    UpdateRecurringTransactionService,
+    DeleteRecurringTransactionService,
+    ListRecurringTransactionsService,
+    FindRecurringTransactionService,
+    ToggleActiveRecurringTransactionService,
     CalculateNextGenerationDateService,
     GenerateRecurringTransactionsService,
-    GenerateRecurringTransactionsJobHandler,
+    GenerateRecurringTransactionsJobService,
   ],
 })
 export class TransactionModule {}

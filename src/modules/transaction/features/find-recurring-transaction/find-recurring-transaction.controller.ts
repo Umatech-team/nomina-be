@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { RecurringTransactionPresenter } from '@modules/transaction/presenters/RecurringTransaction.presenter';
 import { Controller, Get, HttpCode, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -9,12 +9,12 @@ import {
   FindRecurringTransactionPipe,
   type FindRecurringTransactionRequest,
 } from './find-recurring-transaction.dto';
-import { FindRecurringTransactionHandler } from './find-recurring-transaction.handle';
+import { FindRecurringTransactionService } from './find-recurring-transaction.service';
 
 @ApiTags('Recurring Transaction')
 @Controller('transaction/recurring')
 export class FindRecurringTransactionController {
-  constructor(private readonly handler: FindRecurringTransactionHandler) {}
+  constructor(private readonly service: FindRecurringTransactionService) {}
 
   @Get(':recurringTransactionId')
   @HttpCode(statusCode.OK)
@@ -22,7 +22,7 @@ export class FindRecurringTransactionController {
     @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
     @Param(FindRecurringTransactionPipe) param: FindRecurringTransactionRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...param,
       workspaceId,
     });
