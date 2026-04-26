@@ -1,6 +1,6 @@
 import { DatabaseModule } from '@infra/databases/Database.module';
 import { FindMonthSummaryController } from '@modules/report/features/get-month-summary/get-month-summary.controller';
-import { FindMonthSummaryService } from '@modules/report/features/get-month-summary/get-month-summary.handler';
+import { FindMonthSummaryService } from '@modules/report/features/get-month-summary/get-month-summary.service';
 import { UserModule } from '@modules/user/User.module';
 import { Module } from '@nestjs/common';
 import { CreateRecurringTransactionController } from './features/create-recurring-transaction/create-recurring-transaction.controller';
