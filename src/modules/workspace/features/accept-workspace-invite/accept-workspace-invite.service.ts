@@ -1,46 +1,43 @@
 import { WorkspaceUser } from '@modules/workspace/entities/WorkspaceUser';
+import {
+  ConflictWorkspaceUserError,
+  InviteExpiredError,
+} from '@modules/workspace/errors';
 import { WorkspaceInviteRepository } from '@modules/workspace/repositories/contracts/WorkspaceInviteRepository';
 import { WorkspaceUserRepository } from '@modules/workspace/repositories/contracts/WorkspaceUserRepository';
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { statusCode } from '@shared/core/types/statusCode';
 import { AcceptWorkspaceInviteRequest } from './accept-workspace-invite.dto';
 
 type Request = AcceptWorkspaceInviteRequest & Pick<TokenPayloadSchema, 'sub'>;
 
-type Errors = HttpException;
-
-type Response = WorkspaceUser;
-
 @Injectable()
 export class AcceptWorkspaceInviteService implements Service<
   Request,
-  Errors,
-  Response
+  Error,
+  WorkspaceUser
 > {
   constructor(
     private readonly workspaceInviteRepository: WorkspaceInviteRepository,
     private readonly workspaceUserRepository: WorkspaceUserRepository,
   ) {}
 
-  async execute({ code, sub }: Request): Promise<Either<Errors, Response>> {
+  async execute({ code, sub }: Request): Promise<Either<Error, WorkspaceUser>> {
     const invite = await this.workspaceInviteRepository.findByCode(code);
 
     if (!invite) {
-      return left(new HttpException('Invite not found', statusCode.NOT_FOUND));
+      return left(new InviteExpiredError());
     }
 
     const now = new Date();
     if (invite.expiresAt < now) {
-      return left(new HttpException('Invite expired', statusCode.BAD_REQUEST));
+      return left(new InviteExpiredError());
     }
 
     if (invite.usedAt !== null) {
-      return left(
-        new HttpException('Invite already used', statusCode.BAD_REQUEST),
-      );
+      return left(new InviteExpiredError());
     }
 
     const isAlreadyMember =
@@ -50,12 +47,7 @@ export class AcceptWorkspaceInviteService implements Service<
       );
 
     if (isAlreadyMember) {
-      return left(
-        new HttpException(
-          'User already a member of the workspace',
-          statusCode.CONFLICT,
-        ),
-      );
+      return left(new ConflictWorkspaceUserError());
     }
 
     const workspaceUserOrError = WorkspaceUser.create({
