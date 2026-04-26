@@ -6,8 +6,8 @@ import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
-    ListTransactionsPipe,
-    type ListTransactionsRequest,
+  ListTransactionsPipe,
+  type ListTransactionsRequest,
 } from './list-transaction.dto';
 import { ListTransactionByIdService } from './list-transaction.service';
 
