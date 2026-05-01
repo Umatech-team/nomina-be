@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import { isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from '../src/infra/databases/drizzle/schema';
@@ -8,7 +8,12 @@ import { env } from '../src/infra/env';
 
 config();
 
-const client = postgres(env.DATABASE_URL);
+const shouldUseSSL =
+  env.NODE_ENV === 'production' || env.DATABASE_URL.includes('sslmode=require');
+
+const client = postgres(env.DATABASE_URL, {
+  ssl: shouldUseSSL ? { rejectUnauthorized: false } : false,
+});
 const db = drizzle(client, { schema });
 
 type TransactionType = 'INCOME' | 'EXPENSE';
@@ -126,44 +131,70 @@ const categoriesData: CategorySeed[] = [
 
 async function main(): Promise<void> {
   await db.transaction(async (tx) => {
-    await tx.delete(categories).where(isNull(categories.workspaceId));
-
-    const parentsToInsert: CategoryInsert[] = categoriesData.map((c) => ({
-      name: c.name,
-      type: c.type,
-      workspaceId: null,
-      isSystemCategory: true,
-    }));
-
-    const insertedParents = await tx
-      .insert(categories)
-      .values(parentsToInsert)
-      .returning({
+    const existingSystemCategories = await tx
+      .select({
         id: categories.id,
         name: categories.name,
         type: categories.type,
-      });
+        parentId: categories.parentId,
+      })
+      .from(categories)
+      .where(
+        and(
+          isNull(categories.workspaceId),
+          eq(categories.isSystemCategory, true),
+        ),
+      );
+
+    const parentIdByNameAndType = new Map<string, string>();
+    const existingChildren = new Set<string>();
+
+    for (const row of existingSystemCategories) {
+      if (row.parentId === null) {
+        parentIdByNameAndType.set(`${row.name}::${row.type}`, row.id);
+        continue;
+      }
+
+      existingChildren.add(`${row.parentId}::${row.name}::${row.type}`);
+    }
 
     const childrenToInsert: ChildCategoryInsert[] = [];
 
     for (const parentData of categoriesData) {
+      const parentKey = `${parentData.name}::${parentData.type}`;
+      let parentId = parentIdByNameAndType.get(parentKey);
+
+      if (!parentId) {
+        const [insertedParent] = await tx
+          .insert(categories)
+          .values({
+            name: parentData.name,
+            type: parentData.type,
+            workspaceId: null,
+            isSystemCategory: true,
+          })
+          .returning({ id: categories.id });
+
+        parentId = insertedParent.id;
+        parentIdByNameAndType.set(parentKey, parentId);
+      }
+
       if (parentData.children?.length) {
-        const parentRecord = insertedParents.find(
-          (p) => p.name === parentData.name && p.type === parentData.type,
-        );
-
-        if (!parentRecord) {
-          throw new Error(`Parent category not found: ${parentData.name}`);
-        }
-
         for (const childName of parentData.children) {
+          const childKey = `${parentId}::${childName}::${parentData.type}`;
+          if (existingChildren.has(childKey)) {
+            continue;
+          }
+
           childrenToInsert.push({
             name: childName,
             type: parentData.type,
-            parentId: parentRecord.id,
+            parentId,
             workspaceId: null,
             isSystemCategory: true,
           });
+
+          existingChildren.add(childKey);
         }
       }
     }
@@ -174,12 +205,15 @@ async function main(): Promise<void> {
   });
 }
 
-try {
-  await main();
-} catch (error) {
-  console.error('Fatal error:', error);
-  process.exit(1);
-} finally {
-  await client.end();
-  process.exit(0);
+function runSeed(): void {
+  main()
+    .catch((error) => {
+      console.error('Fatal error:', error);
+      process.exitCode = 1;
+    })
+    .finally(async () => {
+      await client.end();
+    });
 }
+
+runSeed();
