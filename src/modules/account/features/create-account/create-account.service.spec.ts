@@ -1,0 +1,135 @@
+import { AccountType } from '@constants/enums';
+import { CheckingAccount } from '@modules/account/entities/CheckingAccount';
+import { ConflictAccountError } from '@modules/account/errors';
+import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
+import { User } from '@modules/user/entities/User';
+import { UserNotFoundError } from '@modules/user/errors';
+import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
+import { CreateAccountService } from './create-account.service';
+
+type ServiceRequest = Parameters<
+  typeof CreateAccountService.prototype.execute
+>[0];
+
+function makeRequest(
+  overrides: Partial<Record<string, unknown>> = {},
+): ServiceRequest {
+  return {
+    sub: 'user-1',
+    workspaceId: 'ws-1',
+    name: 'My Account',
+    timezone: 'America/Sao_Paulo',
+    type: AccountType.CHECKING,
+    balance: 0,
+    ...overrides,
+  } as ServiceRequest;
+}
+
+function makeUser(): User {
+  const result = User.create(
+    { name: 'John Doe', email: 'j@j.com', passwordHash: 'hash' },
+    'user-1',
+  );
+  if (result.isLeft()) throw result.value;
+  return result.value;
+}
+
+function makeAccount() {
+  const result = CheckingAccount.create({
+    workspaceId: 'ws-1',
+    name: 'My Account',
+    type: AccountType.CHECKING,
+    timezone: 'America/Sao_Paulo',
+  });
+  if (result.isLeft()) throw result.value;
+  return result.value;
+}
+
+describe('CreateAccountService', () => {
+  let service: CreateAccountService;
+  let accountRepository: jest.Mocked<AccountRepository>;
+  let userRepository: jest.Mocked<UserRepository>;
+
+  beforeEach(() => {
+    accountRepository = {
+      findByNameAndWorkspaceId: jest.fn(),
+      create: jest.fn(),
+      findById: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      findManyByWorkspaceId: jest.fn(),
+      findAllByWorkspaceId: jest.fn(),
+      countByWorkspaceId: jest.fn(),
+    } as jest.Mocked<AccountRepository>;
+
+    userRepository = {
+      findUniqueById: jest.fn(),
+      findUniqueByEmail: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    } as jest.Mocked<UserRepository>;
+
+    service = new CreateAccountService(accountRepository, userRepository);
+  });
+
+  afterEach(() => jest.clearAllMocks());
+
+  function arrangeSuccessMocks() {
+    userRepository.findUniqueById.mockResolvedValue(makeUser());
+    accountRepository.findByNameAndWorkspaceId.mockResolvedValue(null);
+    accountRepository.create.mockImplementation(async (a) => a);
+  }
+
+  it('should return left when user is not found', async () => {
+    userRepository.findUniqueById.mockResolvedValue(null);
+
+    const result = await service.execute(makeRequest());
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(UserNotFoundError);
+  });
+
+  it('should return left when account name already exists', async () => {
+    userRepository.findUniqueById.mockResolvedValue(makeUser());
+    accountRepository.findByNameAndWorkspaceId.mockResolvedValue(makeAccount());
+
+    const result = await service.execute(makeRequest());
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(ConflictAccountError);
+  });
+
+  it('should create a CHECKING account successfully', async () => {
+    arrangeSuccessMocks();
+
+    const result = await service.execute(
+      makeRequest({ type: AccountType.CHECKING }),
+    );
+    expect(result.isRight()).toBe(true);
+    expect(accountRepository.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('should create a CASH account successfully', async () => {
+    arrangeSuccessMocks();
+
+    const result = await service.execute(
+      makeRequest({ type: AccountType.CASH }),
+    );
+    expect(result.isRight()).toBe(true);
+    expect(accountRepository.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('should create a CREDIT_CARD account successfully', async () => {
+    arrangeSuccessMocks();
+
+    const result = await service.execute(
+      makeRequest({
+        type: AccountType.CREDIT_CARD,
+        creditLimit: 5000,
+        closingDay: 10,
+        dueDay: 20,
+      }),
+    );
+    expect(result.isRight()).toBe(true);
+    expect(accountRepository.create).toHaveBeenCalledTimes(1);
+  });
+});

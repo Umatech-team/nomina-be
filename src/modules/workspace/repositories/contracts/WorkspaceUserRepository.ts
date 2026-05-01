@@ -1,10 +1,21 @@
 import { WorkspaceUser } from '@modules/workspace/entities/WorkspaceUser';
 
 export abstract class WorkspaceUserRepository {
+  abstract setDefaultWorkspace(
+    userId: string,
+    workspaceId: string,
+  ): Promise<void>;
+
   abstract findDefaultWorkspaceByUserId(userId: string): Promise<{
     user: WorkspaceUser;
     workspaceName: string;
   } | null>;
+
+  abstract findOwnerByWorkspaceId(
+    workspaceId: string,
+  ): Promise<WorkspaceUser | null>;
+
+  abstract countByWorkspaceId(workspaceId: string): Promise<number>;
 
   abstract addUserToWorkspace(
     workspaceUser: WorkspaceUser,

@@ -6,7 +6,7 @@ const updateRecurringTransactionSchema = z.object({
   categoryId: z.string().uuid('ID da categoria inválido').nullable().optional(),
   title: z.string().min(1, 'Título é obrigatório').optional(),
   description: z.string().optional().nullable(),
-  amount: z.coerce.number().positive('Valor deve ser positivo').optional(),
+  amount: z.coerce.bigint().positive('Valor deve ser positivo').optional(),
   frequency: z.nativeEnum(RecurrenceFrequency).optional(),
   interval: z.coerce
     .number()
@@ -15,29 +15,11 @@ const updateRecurringTransactionSchema = z.object({
     .optional(),
   startDate: z
     .string()
-    .refine(
-      (dateString) => {
-        const date = new Date(dateString);
-        return !Number.isNaN(date.getTime());
-      },
-      {
-        message: 'Data de início deve estar em um formato válido',
-      },
-    )
-    .transform((dateString) => new Date(dateString))
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato deve ser YYYY-MM-DD')
     .optional(),
   endDate: z
     .string()
-    .refine(
-      (dateString) => {
-        const date = new Date(dateString);
-        return !Number.isNaN(date.getTime());
-      },
-      {
-        message: 'Data de fim deve estar em um formato válido',
-      },
-    )
-    .transform((dateString) => new Date(dateString))
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato deve ser YYYY-MM-DD')
     .nullable()
     .optional(),
   destinationAccountId: z

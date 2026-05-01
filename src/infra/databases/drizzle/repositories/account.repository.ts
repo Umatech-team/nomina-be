@@ -1,5 +1,5 @@
 import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
-import { Account } from '@modules/account/entities/Account';
+import { AnyAccount } from '@modules/account/entities/types';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { Injectable } from '@nestjs/common';
 import { and, count, eq } from 'drizzle-orm';
@@ -10,7 +10,7 @@ import * as schema from '../schema';
 export class AccountRepositoryImplementation implements AccountRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
-  async create(account: Account): Promise<Account> {
+  async create(account: AnyAccount): Promise<AnyAccount> {
     const [createdAccount] = await this.drizzle.db
       .insert(schema.accounts)
       .values(AccountMapper.toDatabase(account))
@@ -22,7 +22,7 @@ export class AccountRepositoryImplementation implements AccountRepository {
   async findByNameAndWorkspaceId(
     name: string,
     workspaceId: string,
-  ): Promise<Account | null> {
+  ): Promise<AnyAccount | null> {
     const [account] = await this.drizzle.db
       .select()
       .from(schema.accounts)
@@ -39,7 +39,7 @@ export class AccountRepositoryImplementation implements AccountRepository {
     return AccountMapper.toDomain(account);
   }
 
-  async findById(accountId: string): Promise<Account | null> {
+  async findById(accountId: string): Promise<AnyAccount | null> {
     const [account] = await this.drizzle.db
       .select()
       .from(schema.accounts)
@@ -51,7 +51,7 @@ export class AccountRepositoryImplementation implements AccountRepository {
     return AccountMapper.toDomain(account);
   }
 
-  async update(account: Account): Promise<Account> {
+  async update(account: AnyAccount): Promise<AnyAccount> {
     const [updatedAccount] = await this.drizzle.db
       .update(schema.accounts)
       .set(AccountMapper.toDatabase(account))
@@ -71,7 +71,7 @@ export class AccountRepositoryImplementation implements AccountRepository {
     workspaceId: string,
     page: number,
     pageSize: number,
-  ): Promise<{ accounts: Account[]; total: number }> {
+  ): Promise<{ accounts: AnyAccount[]; total: number }> {
     const offset = (page - 1) * pageSize;
 
     const [accounts, [{ totalCount }]] = await Promise.all([
@@ -94,12 +94,21 @@ export class AccountRepositoryImplementation implements AccountRepository {
     };
   }
 
-  async findAllByWorkspaceId(workspaceId: string): Promise<Account[]> {
+  async findAllByWorkspaceId(workspaceId: string): Promise<AnyAccount[]> {
     const accounts = await this.drizzle.db
       .select()
       .from(schema.accounts)
       .where(eq(schema.accounts.workspaceId, workspaceId));
 
     return accounts.map(AccountMapper.toDomain);
+  }
+
+  async countByWorkspaceId(workspaceId: string): Promise<number> {
+    const [{ totalCount }] = await this.drizzle.db
+      .select({ totalCount: count() })
+      .from(schema.accounts)
+      .where(eq(schema.accounts.workspaceId, workspaceId));
+
+    return totalCount;
   }
 }

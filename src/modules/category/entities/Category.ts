@@ -1,8 +1,12 @@
 import { TransactionType } from '@constants/enums';
-import { HttpException } from '@nestjs/common';
 import { Entity } from '@shared/core/Entities/Entity';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { statusCode } from '@shared/core/types/statusCode';
+import {
+  InvalidCategoryNameError,
+  InvalidCategoryTypeError,
+  InvalidParentCategoryError,
+  SystemCategoryModificationError,
+} from '../errors';
 
 export interface CategoryProps {
   workspaceId: string | null;
@@ -13,39 +17,40 @@ export interface CategoryProps {
 }
 
 export class Category extends Entity<CategoryProps> {
-  constructor(props: CategoryProps, id?: string) {
+  private constructor(props: CategoryProps, id?: string) {
     super(props, id);
   }
 
-  static create(
-    props: CategoryProps,
-    id?: string,
-  ): Either<HttpException, Category> {
-    if (!props.name) {
-      return left(
-        new HttpException('Category name is required.', statusCode.BAD_REQUEST),
-      );
+  static create(props: CategoryProps, id?: string): Either<Error, Category> {
+    if (!props.name || props.name.trim() === '') {
+      return left(new InvalidCategoryNameError());
     }
 
     if (!props.type) {
-      return left(
-        new HttpException('Category type is required.', statusCode.BAD_REQUEST),
-      );
+      return left(new InvalidCategoryTypeError());
     }
 
     if (props.parentId === '') {
       return left(
-        new HttpException(
-          'Parent category ID, if provided, cannot be an empty string.',
-          statusCode.BAD_REQUEST,
+        new InvalidParentCategoryError(
+          'O ID da categoria pai não pode ser vazio.',
         ),
       );
     }
 
-    const createdCategory: CategoryProps = {
-      ...props,
-    };
-    return right(new Category(createdCategory, id));
+    if (id && props.parentId === id) {
+      return left(
+        new InvalidParentCategoryError(
+          'Uma categoria não pode pertencer a si mesma.',
+        ),
+      );
+    }
+
+    return right(new Category({ ...props }, id));
+  }
+
+  static reconstitute(props: CategoryProps, id: string): Category {
+    return new Category(props, id);
   }
 
   get workspaceId(): string | null {
@@ -64,23 +69,46 @@ export class Category extends Entity<CategoryProps> {
     return this.props.parentId;
   }
 
-  get isSubcategory(): boolean {
-    return this.props.parentId !== null;
-  }
-
   get isSystemCategory(): boolean {
     return this.props.isSystemCategory;
   }
 
-  set name(value: string) {
-    this.props.name = value;
+  get isSubcategory(): boolean {
+    return this.props.parentId !== null;
   }
 
-  set type(value: TransactionType) {
-    this.props.type = value;
+  public updateName(newName: string): Either<Error, void> {
+    if (this.props.isSystemCategory) {
+      return left(new SystemCategoryModificationError());
+    }
+    if (!newName || newName.trim() === '') {
+      return left(new InvalidCategoryNameError());
+    }
+
+    this.props.name = newName;
+    return right(undefined);
   }
 
-  set parentId(value: string | null) {
-    this.props.parentId = value;
+  public moveToParent(newParentId: string | null): Either<Error, void> {
+    if (this.props.isSystemCategory) {
+      return left(new SystemCategoryModificationError());
+    }
+    if (newParentId === '') {
+      return left(
+        new InvalidParentCategoryError(
+          'O ID da categoria pai não pode ser vazio.',
+        ),
+      );
+    }
+    if (this.id && newParentId === this.id) {
+      return left(
+        new InvalidParentCategoryError(
+          'Uma categoria não pode pertencer a si mesma.',
+        ),
+      );
+    }
+
+    this.props.parentId = newParentId;
+    return right(undefined);
   }
 }

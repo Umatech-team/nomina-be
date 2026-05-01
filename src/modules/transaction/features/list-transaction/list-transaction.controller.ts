@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { TransactionPreviewPresenter } from '@modules/transaction/presenters/TransactionPreview.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -9,12 +9,12 @@ import {
   ListTransactionsPipe,
   type ListTransactionsRequest,
 } from './list-transaction.dto';
-import { ListTransactionByIdHandler } from './list-transaction.handler';
+import { ListTransactionsService } from './list-transaction.service';
 
 @ApiTags('Transaction')
 @Controller('transaction')
 export class ListTransactionController {
-  constructor(private readonly handler: ListTransactionByIdHandler) {}
+  constructor(private readonly service: ListTransactionsService) {}
 
   @Get('list')
   @HttpCode(statusCode.OK)
@@ -33,7 +33,7 @@ export class ListTransactionController {
       status,
     }: ListTransactionsRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       page,
       pageSize,
       startDate,
@@ -52,7 +52,12 @@ export class ListTransactionController {
     }
 
     return {
-      data: data.value.map(TransactionPreviewPresenter.toHTTP),
+      data: {
+        transactions: data.value.transactions.map((transaction) =>
+          TransactionPreviewPresenter.toHTTP(transaction),
+        ),
+        total: data.value.total,
+      },
     };
   }
 }

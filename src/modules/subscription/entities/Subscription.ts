@@ -11,7 +11,7 @@ export interface SubscriptionProps {
 }
 
 export class Subscription extends AggregateRoot<SubscriptionProps> {
-  constructor(props: SubscriptionProps, id?: string) {
+  private constructor(props: SubscriptionProps, id?: string) {
     super(props, id);
   }
 
@@ -23,10 +23,7 @@ export class Subscription extends AggregateRoot<SubscriptionProps> {
       ...props,
       status: props.status ?? SubscriptionStatus.TRIALING,
     };
-
-    const subscription = new Subscription(subscriptionProps, id);
-
-    return right(subscription);
+    return right(new Subscription(subscriptionProps, id));
   }
 
   get userId(): string {
@@ -45,35 +42,35 @@ export class Subscription extends AggregateRoot<SubscriptionProps> {
     return this.props.currentPeriodEnd;
   }
 
-  set planId(value: string) {
-    this.props.planId = value;
+  public changePlan(newPlanId: string): void {
+    this.props.planId = newPlanId;
   }
 
-  set status(value: SubscriptionStatus) {
-    this.props.status = value;
-  }
-
-  set currentPeriodEnd(value: Date) {
-    this.props.currentPeriodEnd = value;
-  }
-
-  cancel(): void {
-    this.props.status = SubscriptionStatus.CANCELED;
-  }
-
-  activate(): void {
+  public renew(newPeriodEnd: Date): void {
+    this.props.currentPeriodEnd = newPeriodEnd;
     this.props.status = SubscriptionStatus.ACTIVE;
   }
 
-  markPastDue(): void {
+  public cancel(): void {
+    this.props.status = SubscriptionStatus.CANCELED;
+  }
+
+  public activate(): void {
+    this.props.status = SubscriptionStatus.ACTIVE;
+  }
+
+  public markPastDue(): void {
     this.props.status = SubscriptionStatus.PAST_DUE;
   }
 
-  isActive(): boolean {
-    return this.props.status === SubscriptionStatus.ACTIVE;
+  public hasAccess(): boolean {
+    return (
+      this.props.status === SubscriptionStatus.ACTIVE ||
+      this.props.status === SubscriptionStatus.TRIALING
+    );
   }
 
-  isExpired(): boolean {
-    return this.props.currentPeriodEnd < new Date();
+  public isExpired(referenceDate: Date): boolean {
+    return this.props.currentPeriodEnd < referenceDate;
   }
 }

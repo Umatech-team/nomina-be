@@ -1,10 +1,9 @@
-import { ServiceError } from '@shared/core/errors/ServiceError';
-import { statusCode } from '@shared/core/types/statusCode';
+import { ForbiddenDomainError } from '@shared/core/errors/DomainError';
 
-export class UnauthorizedError extends Error implements ServiceError {
-  statusCode: number = statusCode.FORBIDDEN;
-
-  constructor() {
-    super('Você não possui permissão para executar essa ação');
+export class UnauthorizedError extends ForbiddenDomainError {
+  constructor(reason?: string) {
+    super(
+      `Você não possui permissão para executar essa ação: ${reason || 'Não autorizado'}`,
+    );
   }
 }

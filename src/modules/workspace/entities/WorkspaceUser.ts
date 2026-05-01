@@ -1,15 +1,13 @@
 import { UserRole } from '@constants/enums';
-import { HttpException } from '@nestjs/common';
 import { Entity } from '@shared/core/Entities/Entity';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { Optional } from '@shared/core/types/Optional';
-import { statusCode } from '@shared/core/types/statusCode';
 
 export interface WorkspaceUserProps {
   workspaceId: string;
-  isDefault: boolean;
   userId: string;
   role: UserRole;
+  isDefault: boolean;
   joinedAt: Date;
 }
 
@@ -21,56 +19,30 @@ export class WorkspaceUser extends Entity<WorkspaceUserProps> {
   static create(
     props: Optional<WorkspaceUserProps, 'joinedAt'>,
     id?: string,
-  ): Either<HttpException, WorkspaceUser> {
-    if (!props.workspaceId) {
-      return left(
-        new HttpException(
-          'ID do workspace é obrigatório',
-          statusCode.BAD_REQUEST,
-        ),
-      );
-    }
-
-    if (!props.userId) {
-      return left(
-        new HttpException(
-          'ID do usuário é obrigatório',
-          statusCode.BAD_REQUEST,
-        ),
-      );
-    }
-
-    if (!props.role) {
-      return left(
-        new HttpException(
-          'Função do usuário é obrigatória',
-          statusCode.BAD_REQUEST,
-        ),
-      );
-    }
+  ): Either<Error, WorkspaceUser> {
+    if (!props.workspaceId)
+      return left(new Error('ID do workspace é obrigatório.'));
+    if (!props.userId) return left(new Error('ID do usuário é obrigatório.'));
+    if (!props.role) return left(new Error('Função (Role) é obrigatória.'));
 
     const workspaceUserProps: WorkspaceUserProps = {
       ...props,
       joinedAt: props.joinedAt ?? new Date(),
     };
 
-    const workspaceUser = new WorkspaceUser(
-      workspaceUserProps,
-      id ?? crypto.randomUUID(),
-    );
-    return right(workspaceUser);
+    return right(new WorkspaceUser(workspaceUserProps, id));
   }
 
   get workspaceId(): string {
     return this.props.workspaceId;
   }
 
-  set workspaceId(value: string) {
-    this.props.workspaceId = value;
-  }
-
   get userId(): string {
     return this.props.userId;
+  }
+
+  get joinedAt(): Date {
+    return this.props.joinedAt;
   }
 
   get role(): UserRole {
@@ -81,15 +53,15 @@ export class WorkspaceUser extends Entity<WorkspaceUserProps> {
     return this.props.isDefault;
   }
 
-  set isDefault(value: boolean) {
-    this.props.isDefault = value;
+  public changeRole(newRole: UserRole): void {
+    this.props.role = newRole;
   }
 
-  get joinedAt(): Date {
-    return this.props.joinedAt;
+  public markAsDefault(): void {
+    this.props.isDefault = true;
   }
 
-  set role(value: UserRole) {
-    this.props.role = value;
+  public removeDefault(): void {
+    this.props.isDefault = false;
   }
 }

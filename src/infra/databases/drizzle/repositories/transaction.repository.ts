@@ -1,9 +1,22 @@
 import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import { Transaction } from '@modules/transaction/entities/Transaction';
-import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
+import {
+  ListTransactionsParams,
+  TransactionRepository,
+} from '@modules/transaction/repositories/contracts/TransactionRepository';
 import { TopExpensesByCategory } from '@modules/transaction/valueObjects/TopExpensesByCategory';
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, gte, isNotNull, like, lte, sum } from 'drizzle-orm';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  isNotNull,
+  lte,
+  sum,
+} from 'drizzle-orm';
 import { TransactionMapper } from '../mappers/transaction.mapper';
 import * as schema from '../schema';
 
@@ -28,39 +41,51 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
   }
 
   async listTransactionsByWorkspaceId(
-    workspaceId: string,
-    page: number,
-    pageSize: number,
-    startDate?: Date,
-    endDate?: Date,
-    type?: string,
-    categoryId?: string,
-    accountId?: string,
-    title?: string,
-    status?: string,
-  ): Promise<Transaction[]> {
-    const transactions = await this.drizzle.db
-      .select()
-      .from(schema.transactions)
-      .where(
-        and(
-          eq(schema.transactions.workspaceId, workspaceId),
-          startDate ? gte(schema.transactions.date, startDate) : undefined,
-          endDate ? lte(schema.transactions.date, endDate) : undefined,
-          type ? eq(schema.transactions.type, type) : undefined,
-          categoryId
-            ? eq(schema.transactions.categoryId, categoryId)
-            : undefined,
-          accountId ? eq(schema.transactions.accountId, accountId) : undefined,
-          title ? like(schema.transactions.title, `%${title}%`) : undefined,
-          status ? eq(schema.transactions.status, status) : undefined,
-        ),
-      )
-      .limit(pageSize)
-      .offset((page - 1) * pageSize)
-      .orderBy(desc(schema.transactions.date));
+    params: ListTransactionsParams,
+  ): Promise<{ transactions: Transaction[]; total: number }> {
+    const whereConditions = and(
+      eq(schema.transactions.workspaceId, params.workspaceId),
+      params.startDate
+        ? gte(schema.transactions.date, params.startDate)
+        : undefined,
+      params.endDate
+        ? lte(schema.transactions.date, params.endDate)
+        : undefined,
+      params.type ? eq(schema.transactions.type, params.type) : undefined,
+      params.categoryId
+        ? eq(schema.transactions.categoryId, params.categoryId)
+        : undefined,
+      params.accountId
+        ? eq(schema.transactions.accountId, params.accountId)
+        : undefined,
+      params.title
+        ? ilike(schema.transactions.title, `%${params.title}%`)
+        : undefined,
+      params.status ? eq(schema.transactions.status, params.status) : undefined,
+    );
 
-    return transactions.map(TransactionMapper.toDomain);
+    const [transactionsRaw, [{ totalCount }]] = await Promise.all([
+      this.drizzle.db
+        .select()
+        .from(schema.transactions)
+        .where(whereConditions)
+        .limit(params.pageSize)
+        .offset((params.page - 1) * params.pageSize)
+        .orderBy(
+          desc(schema.transactions.date),
+          desc(schema.transactions.createdAt),
+        ),
+
+      this.drizzle.db
+        .select({ totalCount: count() })
+        .from(schema.transactions)
+        .where(whereConditions),
+    ]);
+
+    return {
+      transactions: transactionsRaw.map(TransactionMapper.toDomain),
+      total: totalCount,
+    };
   }
 
   async getTopExpensesByCategory(
@@ -153,7 +178,10 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
         .set({ balance: sourceNewBalance })
         .where(eq(schema.accounts.id, transaction.accountId));
 
-      if (transaction.destinationAccountId && destinationNewBalance !== undefined) {
+      if (
+        transaction.destinationAccountId &&
+        destinationNewBalance !== undefined
+      ) {
         await tx
           .update(schema.accounts)
           .set({ balance: destinationNewBalance })
@@ -224,7 +252,10 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
         .set({ balance: sourceNewBalance })
         .where(eq(schema.accounts.id, transaction.accountId));
 
-      if (transaction.destinationAccountId && destinationNewBalance !== undefined) {
+      if (
+        transaction.destinationAccountId &&
+        destinationNewBalance !== undefined
+      ) {
         await tx
           .update(schema.accounts)
           .set({ balance: destinationNewBalance })

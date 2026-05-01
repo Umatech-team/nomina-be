@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { WorkspacePresenter } from '@modules/workspace/presenters/Workspace.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -9,12 +9,12 @@ import {
   ListWorkspacesPipe,
   type ListWorkspacesRequest,
 } from './list-workspaces.dto';
-import { ListWorkspacesHandler } from './list-workspaces.handler';
+import { ListWorkspacesService } from './list-workspaces.service';
 
 @ApiTags('Workspace')
 @Controller('workspace')
 export class ListWorkspacesController {
-  constructor(private readonly handler: ListWorkspacesHandler) {}
+  constructor(private readonly service: ListWorkspacesService) {}
 
   @Get()
   @HttpCode(statusCode.OK)
@@ -22,7 +22,7 @@ export class ListWorkspacesController {
     @CurrentLoggedUser() { sub }: TokenPayloadSchema,
     @Query(ListWorkspacesPipe) query: ListWorkspacesRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...query,
       sub,
     });

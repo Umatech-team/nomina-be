@@ -7,12 +7,12 @@ import {
   CashFlowEvolutionPipe,
   type CashFlowEvolutionRequest,
 } from './cash-flow-evolution.dto';
-import { CashFlowEvolutionHandler } from './cash-flow-evolution.handler';
+import { CashFlowEvolutionService } from './cash-flow-evolution.handler';
 
 @ApiTags('Report')
 @Controller('report')
 export class CashFlowEvolutionController {
-  constructor(private readonly handler: CashFlowEvolutionHandler) {}
+  constructor(private readonly service: CashFlowEvolutionService) {}
 
   @Get('cash-flow-evolution')
   @HttpCode(statusCode.OK)
@@ -20,7 +20,7 @@ export class CashFlowEvolutionController {
     @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
     @Query(CashFlowEvolutionPipe) query: CashFlowEvolutionRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       workspaceId,
       ...query,
     });

@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { WorkspaceUserPresenter } from '@modules/workspace/presenters/WorkspaceUser.presenter';
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -9,12 +9,12 @@ import {
   AcceptWorkspaceInvitePipe,
   type AcceptWorkspaceInviteRequest,
 } from './accept-workspace-invite.dto';
-import { AcceptWorkspaceInviteHandler } from './accept-workspace-invite.handler';
+import { AcceptWorkspaceInviteService } from './accept-workspace-invite.service';
 
 @ApiTags('Workspace Invite')
 @Controller('workspace')
 export class AcceptWorkspaceInviteController {
-  constructor(private readonly handler: AcceptWorkspaceInviteHandler) {}
+  constructor(private readonly service: AcceptWorkspaceInviteService) {}
 
   @Post('/invite/accept')
   @HttpCode(statusCode.OK)
@@ -22,7 +22,7 @@ export class AcceptWorkspaceInviteController {
     @CurrentLoggedUser() { sub }: TokenPayloadSchema,
     @Body(AcceptWorkspaceInvitePipe) body: AcceptWorkspaceInviteRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...body,
       sub,
     });

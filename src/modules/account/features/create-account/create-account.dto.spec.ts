@@ -1,270 +1,102 @@
 import { AccountType } from '@constants/enums';
-import { z } from 'zod';
-
-/**
- * Mirror of the createAccountSchema defined in create-account.dto.ts
- */
-const createAccountSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Nome é obrigatório')
-    .max(100, 'Nome muito longo'),
-  type: z.nativeEnum(AccountType),
-  icon: z.string().trim().optional().nullable(),
-  color: z
-    .string()
-    .trim()
-    .regex(/^#[0-9A-Fa-f]{6}$/, 'Cor inválida (use formato #RRGGBB)')
-    .optional()
-    .nullable(),
-  closingDay: z.number().int().min(1).max(31).optional().nullable(),
-  dueDay: z.number().int().min(1).max(31).optional().nullable(),
-});
-
-const validBase = {
-  name: 'My Account',
-  type: AccountType.CHECKING,
-};
+import { createAccountSchema } from './create-account.dto';
 
 describe('CreateAccountRequest DTO', () => {
-  describe('name field', () => {
-    it('should accept a valid name', () => {
-      const result = createAccountSchema.safeParse(validBase);
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept minimum length name (1 character)', () => {
-      const result = createAccountSchema.safeParse({ ...validBase, name: 'A' });
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept maximum length name (100 characters)', () => {
+  describe('CHECKING account', () => {
+    it('should accept a valid CHECKING payload', () => {
       const result = createAccountSchema.safeParse({
-        ...validBase,
-        name: 'A'.repeat(100),
+        type: AccountType.CHECKING,
+        name: 'Conta',
       });
       expect(result.success).toBe(true);
+    });
+
+    it('should reject missing name', () => {
+      expect(
+        createAccountSchema.safeParse({ type: AccountType.CHECKING }).success,
+      ).toBe(false);
     });
 
     it('should reject empty name', () => {
-      const result = createAccountSchema.safeParse({ ...validBase, name: '' });
-      expect(result.success).toBe(false);
+      expect(
+        createAccountSchema.safeParse({ type: AccountType.CHECKING, name: '' })
+          .success,
+      ).toBe(false);
     });
 
-    it('should reject name longer than 100 characters', () => {
+    it('should default balance to 0 when not provided', () => {
       const result = createAccountSchema.safeParse({
-        ...validBase,
-        name: 'A'.repeat(101),
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should trim whitespace from name', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        name: '  My Account  ',
+        type: AccountType.CHECKING,
+        name: 'C',
       });
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.name).toBe('My Account');
-      }
+      if (result.success && 'balance' in result.data)
+        expect(result.data.balance).toBe(0);
     });
   });
 
-  describe('type field', () => {
-    it.each(Object.values(AccountType))(
-      'should accept AccountType.%s',
-      (type) => {
-        const result = createAccountSchema.safeParse({ ...validBase, type });
-        expect(result.success).toBe(true);
-      },
-    );
-
-    it('should reject invalid type value', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        type: 'SAVINGS',
-      });
-      expect(result.success).toBe(false);
+  describe('CASH account', () => {
+    it('should accept a valid CASH payload', () => {
+      expect(
+        createAccountSchema.safeParse({
+          type: AccountType.CASH,
+          name: 'Carteira',
+        }).success,
+      ).toBe(true);
     });
 
-    it('should reject missing type', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { type: _, ...withoutType } = validBase;
-      const result = createAccountSchema.safeParse(withoutType);
-      expect(result.success).toBe(false);
+    it('should default balance to 0 when not provided', () => {
+      const result = createAccountSchema.safeParse({
+        type: AccountType.CASH,
+        name: 'Carteira',
+      });
+      if (result.success && 'balance' in result.data)
+        expect(result.data.balance).toBe(0);
     });
   });
 
-  describe('icon field (optional)', () => {
-    it('should accept a valid icon string', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        icon: 'bank',
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept null icon', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        icon: null,
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept when icon is omitted', () => {
-      const result = createAccountSchema.safeParse(validBase);
-      expect(result.success).toBe(true);
-    });
-  });
-
-  describe('color field (optional)', () => {
-    it('should accept a valid hex color (#RRGGBB)', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        color: '#1A2B3C',
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept lowercase hex color', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        color: '#aabbcc',
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept null color', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        color: null,
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject color without # prefix', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        color: '1A2B3C',
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject short hex color (3 digits)', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        color: '#ABC',
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject invalid hex characters', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        color: '#GGHHII',
-      });
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('closingDay field (optional)', () => {
-    it('should accept day 1 (minimum boundary)', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        closingDay: 1,
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept day 31 (maximum boundary)', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        closingDay: 31,
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept null closingDay', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        closingDay: null,
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject day 0', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        closingDay: 0,
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject day 32', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        closingDay: 32,
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject non-integer closingDay', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        closingDay: 5.5,
-      });
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('dueDay field (optional)', () => {
-    it('should accept day 15 (valid mid-range)', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        dueDay: 15,
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept null dueDay', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        dueDay: null,
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject day 0', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        dueDay: 0,
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject day 32', () => {
-      const result = createAccountSchema.safeParse({
-        ...validBase,
-        dueDay: 32,
-      });
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('full valid payload', () => {
-    it('should accept a complete valid payload', () => {
-      const result = createAccountSchema.safeParse({
-        name: 'Credit Card',
+  describe('CREDIT_CARD account', () => {
+    function makeCC(overrides: Record<string, unknown> = {}) {
+      return {
         type: AccountType.CREDIT_CARD,
-        icon: 'credit',
-        color: '#FF5733',
-        closingDay: 5,
-        dueDay: 12,
-      });
-      expect(result.success).toBe(true);
+        name: 'Visa',
+        creditLimit: 5000,
+        closingDay: 10,
+        dueDay: 20,
+        ...overrides,
+      };
+    }
+
+    it('should accept a valid CREDIT_CARD payload', () => {
+      expect(createAccountSchema.safeParse(makeCC()).success).toBe(true);
     });
+
+    it.each<[Record<string, unknown>, string]>([
+      [{ creditLimit: -1 }, 'negative creditLimit'],
+      [{ creditLimit: 0 }, 'zero creditLimit'],
+      [{ closingDay: 0 }, 'closingDay 0'],
+      [{ closingDay: 32 }, 'closingDay 32'],
+      [{ dueDay: 0 }, 'dueDay 0'],
+      [{ dueDay: 32 }, 'dueDay 32'],
+    ])('should reject %s', (invalidFields, _label) => {
+      expect(createAccountSchema.safeParse(makeCC(invalidFields)).success).toBe(
+        false,
+      );
+    });
+
+    it('should reject missing creditLimit', () => {
+      const { creditLimit: _, ...rest } = makeCC();
+      expect(createAccountSchema.safeParse(rest).success).toBe(false);
+    });
+  });
+
+  it('should reject unknown account type', () => {
+    expect(
+      createAccountSchema.safeParse({ type: 'SAVINGS', name: 'Test' }).success,
+    ).toBe(false);
+  });
+
+  it('should reject missing type', () => {
+    expect(createAccountSchema.safeParse({ name: 'Test' }).success).toBe(false);
   });
 });

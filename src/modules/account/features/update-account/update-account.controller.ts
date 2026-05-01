@@ -1,5 +1,5 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { AccountPresenter } from '@modules/account/presenters/Account.presenter';
 import {
   Body,
@@ -19,14 +19,14 @@ import {
   UpdateAccountPipe,
   type UpdateAccountRequest,
 } from './update-account.dto';
-import { UpdateAccountHandler } from './update-account.handler';
+import { UpdateAccountService } from './update-account.service';
 
 @ApiTags('Account')
 @Controller('account')
 @UseGuards(RolesGuard)
 @Roles(UserRole.OWNER, UserRole.ADMIN)
 export class UpdateAccountController {
-  constructor(private readonly handler: UpdateAccountHandler) {}
+  constructor(private readonly service: UpdateAccountService) {}
 
   @Put(':accountId')
   @HttpCode(statusCode.OK)
@@ -35,7 +35,7 @@ export class UpdateAccountController {
     @Param('accountId') accountId: string,
     @Body(UpdateAccountPipe) body: Omit<UpdateAccountRequest, 'accountId'>,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...body,
       accountId,
       workspaceId,

@@ -1,181 +1,162 @@
 import { AccountType } from '@constants/enums';
-import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
+import { CheckingAccount } from '@modules/account/entities/CheckingAccount';
+import { CreditCard } from '@modules/account/entities/CreditCardAccount';
 import {
-    createMockAccount,
-    createMockAccountRepository,
-} from '@modules/account/test-helpers/mock-factories';
+  AccountNotFoundError,
+  AccountTypeError,
+} from '@modules/account/errors';
+import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import {
-    createMockTransaction,
-    createMockTransactionRepository,
-} from '@modules/transaction/test-helpers/mock-factories';
-import { HttpStatus } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GetCreditCardInvoiceRequest } from './get-credit-card-invoice.dto';
-import { GetCreditCardInvoiceHandler } from './get-credit-card-invoice.handler';
+  DateProvider,
+  InvoiceCycle,
+} from '@providers/date/contracts/DateProvider';
+import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
+import { GetCreditCardInvoiceService } from './get-credit-card-invoice.handler';
 
-const WORKSPACE_ID = 'workspace-id-abc';
-const ACCOUNT_ID = 'account-id-cc';
-const USER_ID = 'user-id-abc';
+type ServiceRequest = Parameters<
+  typeof GetCreditCardInvoiceService.prototype.execute
+>[0];
 
-const makeRequest = (
-  overrides: Partial<
-    GetCreditCardInvoiceRequest & {
-      workspaceId: string;
-      sub: string;
-      accountId: string;
-    }
-  > = {},
-): GetCreditCardInvoiceRequest & {
-  workspaceId: string;
-  sub: string;
-  accountId: string;
-} => ({
-  month: 3,
-  year: 2026,
-  workspaceId: WORKSPACE_ID,
-  sub: USER_ID,
-  accountId: ACCOUNT_ID,
-  ...overrides,
-});
+function makeRequest(
+  overrides: Partial<Record<string, unknown>> = {},
+): ServiceRequest {
+  return {
+    accountId: 'acc-1',
+    sub: 'user-1',
+    workspaceId: 'ws-1',
+    ...overrides,
+  } as ServiceRequest;
+}
 
-const makeCreditCardAccount = () =>
-  createMockAccount({
-    id: ACCOUNT_ID,
-    workspaceId: WORKSPACE_ID,
-    type: AccountType.CREDIT_CARD,
-    closingDay: 15,
-    dueDay: 10,
-    creditLimit: 500000n,
-    balance: -150000n,
-  });
+function makeCreditCard(workspaceId = 'ws-1'): CreditCard {
+  const r = CreditCard.create(
+    {
+      workspaceId,
+      name: 'My Card',
+      timezone: 'America/Sao_Paulo',
+      creditLimit: 500000n,
+      closingDay: 5,
+      dueDay: 15,
+    },
+    'acc-1',
+  );
+  if (r.isLeft()) throw r.value;
+  return r.value;
+}
 
-describe('GetCreditCardInvoiceHandler', () => {
-  let handler: GetCreditCardInvoiceHandler;
+function makeCheckingAccount(): CheckingAccount {
+  const r = CheckingAccount.create(
+    {
+      workspaceId: 'ws-1',
+      name: 'Checking',
+      timezone: 'UTC',
+      type: AccountType.CHECKING,
+      balance: 100000n,
+    },
+    'acc-2',
+  );
+  if (r.isLeft()) throw r.value;
+  return r.value;
+}
+
+describe('GetCreditCardInvoiceService', () => {
+  let service: GetCreditCardInvoiceService;
   let accountRepository: jest.Mocked<AccountRepository>;
   let transactionRepository: jest.Mocked<TransactionRepository>;
+  let dateProvider: jest.Mocked<DateProvider>;
 
-  beforeEach(async () => {
-    accountRepository = createMockAccountRepository();
-    transactionRepository = createMockTransactionRepository();
+  const invoiceCycle: InvoiceCycle = {
+    periodStart: new Date('2024-01-06'),
+    periodEnd: new Date('2024-02-05'),
+    dueDate: new Date('2024-02-15'),
+  };
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        GetCreditCardInvoiceHandler,
-        { provide: AccountRepository, useValue: accountRepository },
-        { provide: TransactionRepository, useValue: transactionRepository },
-      ],
-    }).compile();
+  beforeEach(() => {
+    accountRepository = {
+      findByNameAndWorkspaceId: jest.fn(),
+      create: jest.fn(),
+      findById: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      findManyByWorkspaceId: jest.fn(),
+      findAllByWorkspaceId: jest.fn(),
+      countByWorkspaceId: jest.fn(),
+    } as jest.Mocked<AccountRepository>;
 
-    handler = module.get<GetCreditCardInvoiceHandler>(
-      GetCreditCardInvoiceHandler,
+    transactionRepository = {
+      create: jest.fn(),
+      findUniqueById: jest.fn(),
+      listTransactionsByWorkspaceId: jest.fn(),
+      getTopExpensesByCategory: jest.fn(),
+      sumTransactionsByDateRange: jest.fn(),
+      createWithBalanceUpdate: jest.fn(),
+      updateWithBalanceUpdate: jest.fn(),
+      deleteWithBalanceReversion: jest.fn(),
+      toggleStatusWithBalanceUpdate: jest.fn(),
+      findByAccountAndDateRange: jest.fn(),
+    } as jest.Mocked<TransactionRepository>;
+
+    dateProvider = {
+      now: jest.fn().mockReturnValue(new Date('2024-01-15')),
+      add: jest.fn(),
+      format: jest.fn(),
+      toTimezone: jest.fn(),
+      calculateInvoiceCycle: jest.fn().mockReturnValue(invoiceCycle),
+      addDaysInCurrentDate: jest.fn(),
+      parse: jest.fn(),
+      startOfDay: jest.fn(),
+      endOfDay: jest.fn(),
+      startOfMonth: jest.fn(),
+    } as unknown as jest.Mocked<DateProvider>;
+
+    service = new GetCreditCardInvoiceService(
+      accountRepository,
+      transactionRepository,
+      dateProvider,
     );
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  afterEach(() => jest.clearAllMocks());
+
+  it('should return left(AccountNotFoundError) when account not found', async () => {
+    accountRepository.findById.mockResolvedValue(null);
+
+    const result = await service.execute(makeRequest());
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(AccountNotFoundError);
   });
 
-  describe('execute – Success Cases', () => {
-    it('should return invoice with correct period (closingDay=15, month=3)', async () => {
-      const account = makeCreditCardAccount();
-      const transactions = [
-        createMockTransaction({ amount: 10000n, accountId: ACCOUNT_ID }),
-        createMockTransaction({ amount: 5000n, accountId: ACCOUNT_ID }),
-      ];
-      accountRepository.findById.mockResolvedValue(account);
-      transactionRepository.findByAccountAndDateRange.mockResolvedValue(
-        transactions,
-      );
+  it('should return left(UnauthorizedError) when account belongs to different workspace', async () => {
+    accountRepository.findById.mockResolvedValue(makeCreditCard('ws-other'));
 
-      const result = await handler.execute(makeRequest());
-
-      expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        // closingDay=15, month=3 → periodStart = Feb 16, periodEnd = Mar 15
-        expect(result.value.periodStart.getMonth()).toBe(1); // Feb (0-indexed)
-        expect(result.value.periodStart.getDate()).toBe(16);
-        expect(result.value.periodEnd.getMonth()).toBe(2); // Mar (0-indexed)
-        expect(result.value.periodEnd.getDate()).toBe(15);
-        // dueDate = April 10 (month after closing)
-        expect(result.value.dueDate.getMonth()).toBe(3); // Apr (0-indexed)
-        expect(result.value.dueDate.getDate()).toBe(10);
-        expect(result.value.totalAmount).toBe(15000);
-        expect(result.value.availableLimit).toBe(485000); // 500000 - 15000
-        expect(result.value.transactions).toHaveLength(2);
-      }
-    });
-
-    it('should default to current month/year when not provided', async () => {
-      const account = makeCreditCardAccount();
-      accountRepository.findById.mockResolvedValue(account);
-      transactionRepository.findByAccountAndDateRange.mockResolvedValue([]);
-
-      const result = await handler.execute(
-        makeRequest({ month: undefined, year: undefined }),
-      );
-
-      expect(result.isRight()).toBe(true);
-      expect(
-        transactionRepository.findByAccountAndDateRange,
-      ).toHaveBeenCalledTimes(1);
-    });
+    const result = await service.execute(makeRequest());
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(UnauthorizedError);
   });
 
-  describe('execute – Error Cases', () => {
-    it('should return Left(404) when account not found', async () => {
-      accountRepository.findById.mockResolvedValue(null);
+  it('should return left(AccountTypeError) when account is not a credit card', async () => {
+    accountRepository.findById.mockResolvedValue(makeCheckingAccount());
 
-      const result = await handler.execute(makeRequest());
+    const result = await service.execute(makeRequest());
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(AccountTypeError);
+  });
 
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value.getStatus()).toBe(HttpStatus.NOT_FOUND);
-      }
-    });
+  it('should return invoice data on success', async () => {
+    accountRepository.findById.mockResolvedValue(makeCreditCard());
+    transactionRepository.findByAccountAndDateRange.mockResolvedValue([]);
 
-    it('should return Left(403) when account belongs to another workspace', async () => {
-      const account = createMockAccount({
-        id: ACCOUNT_ID,
-        workspaceId: 'other-workspace',
-        type: AccountType.CREDIT_CARD,
-        closingDay: 15,
-        dueDay: 10,
-      });
-      accountRepository.findById.mockResolvedValue(account);
-
-      const result = await handler.execute(makeRequest());
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value.getStatus()).toBe(HttpStatus.FORBIDDEN);
-      }
-    });
-
-    it('should return Left(400) when account is not a credit card', async () => {
-      const account = createMockAccount({
-        id: ACCOUNT_ID,
-        workspaceId: WORKSPACE_ID,
-        type: AccountType.CHECKING,
-      });
-      accountRepository.findById.mockResolvedValue(account);
-
-      const result = await handler.execute(makeRequest());
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value.getStatus()).toBe(HttpStatus.BAD_REQUEST);
-      }
-    });
-
-    it('should not query transactions when account validation fails', async () => {
-      accountRepository.findById.mockResolvedValue(null);
-
-      await handler.execute(makeRequest());
-
-      expect(
-        transactionRepository.findByAccountAndDateRange,
-      ).not.toHaveBeenCalled();
-    });
+    const result = await service.execute(makeRequest());
+    expect(result.isRight()).toBe(true);
+    if (result.isRight()) {
+      expect(result.value.account).toBeInstanceOf(CreditCard);
+      expect(result.value.transactions).toEqual([]);
+      expect(result.value.totalAmount).toBe(0);
+      expect(result.value.dueDate).toBe(invoiceCycle.dueDate);
+    }
+    expect(dateProvider.calculateInvoiceCycle).toHaveBeenCalledWith(
+      expect.objectContaining({ closingDay: 5, dueDay: 15 }),
+    );
   });
 });

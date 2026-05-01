@@ -1,135 +1,71 @@
+import { AccountType } from '@constants/enums';
+import { CheckingAccount } from '@modules/account/entities/CheckingAccount';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
-import {
-  createMockAccount,
-  createMockAccountRepository,
-} from '@modules/account/test-helpers/mock-factories';
-import { HttpStatus } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { DeleteAccountHandler } from './delete-account.handler';
+import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
+import { DeleteAccountService } from './delete-account.handler';
 
-const WORKSPACE_ID = 'workspace-id-abc';
-const ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174000';
+function makeRequest(overrides = {}) {
+  return { accountId: 'acc-1', workspaceId: 'ws-1', ...overrides };
+}
 
-const makeRequest = (
-  overrides: { accountId?: string; workspaceId?: string } = {},
-) => ({
-  accountId: overrides.accountId ?? ACCOUNT_ID,
-  workspaceId: overrides.workspaceId ?? WORKSPACE_ID,
-});
+function makeAccount(workspaceId = 'ws-1') {
+  const result = CheckingAccount.create(
+    {
+      workspaceId,
+      name: 'Test Account',
+      type: AccountType.CHECKING,
+      timezone: 'America/Sao_Paulo',
+    },
+    'acc-1',
+  );
+  if (result.isLeft()) throw result.value;
+  return result.value;
+}
 
-describe('DeleteAccountHandler', () => {
-  let handler: DeleteAccountHandler;
+describe('DeleteAccountService', () => {
+  let service: DeleteAccountService;
   let accountRepository: jest.Mocked<AccountRepository>;
 
-  beforeEach(async () => {
-    accountRepository = createMockAccountRepository();
+  beforeEach(() => {
+    accountRepository = {
+      findById: jest.fn(),
+      delete: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      findByNameAndWorkspaceId: jest.fn(),
+      findManyByWorkspaceId: jest.fn(),
+      findAllByWorkspaceId: jest.fn(),
+      countByWorkspaceId: jest.fn(),
+    } as jest.Mocked<AccountRepository>;
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        DeleteAccountHandler,
-        { provide: AccountRepository, useValue: accountRepository },
-      ],
-    }).compile();
-
-    handler = module.get<DeleteAccountHandler>(DeleteAccountHandler);
+    service = new DeleteAccountService(accountRepository);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  afterEach(() => jest.clearAllMocks());
+
+  it('should return left(UnauthorizedError) when account belongs to a different workspace', async () => {
+    accountRepository.findById.mockResolvedValue(makeAccount('other-ws'));
+
+    const result = await service.execute(makeRequest());
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(UnauthorizedError);
+    expect(accountRepository.delete).not.toHaveBeenCalled();
   });
 
-  describe('execute – Success Cases', () => {
-    it('should delete account and return Right(null)', async () => {
-      const account = createMockAccount({
-        id: ACCOUNT_ID,
-        workspaceId: WORKSPACE_ID,
-      });
-      accountRepository.findById.mockResolvedValue(account);
-      accountRepository.delete.mockResolvedValue(undefined);
+  it('should return left(UnauthorizedError) when account is not found', async () => {
+    accountRepository.findById.mockResolvedValue(null);
 
-      const result = await handler.execute(makeRequest());
-
-      expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        expect(result.value).toBeNull();
-      }
-    });
-
-    it('should call accountRepository.delete with correct accountId', async () => {
-      const account = createMockAccount({
-        id: ACCOUNT_ID,
-        workspaceId: WORKSPACE_ID,
-      });
-      accountRepository.findById.mockResolvedValue(account);
-      accountRepository.delete.mockResolvedValue(undefined);
-
-      await handler.execute(makeRequest());
-
-      expect(accountRepository.delete).toHaveBeenCalledWith(ACCOUNT_ID);
-      expect(accountRepository.delete).toHaveBeenCalledTimes(1);
-    });
-
-    it('should look up account by accountId before deleting', async () => {
-      const account = createMockAccount({
-        id: ACCOUNT_ID,
-        workspaceId: WORKSPACE_ID,
-      });
-      accountRepository.findById.mockResolvedValue(account);
-      accountRepository.delete.mockResolvedValue(undefined);
-
-      await handler.execute(makeRequest());
-
-      expect(accountRepository.findById).toHaveBeenCalledWith(ACCOUNT_ID);
-    });
+    const result = await service.execute(makeRequest());
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(UnauthorizedError);
   });
 
-  describe('execute – Account Not Found', () => {
-    it('should return Left(403) when account does not exist', async () => {
-      accountRepository.findById.mockResolvedValue(null);
+  it('should delete the account and return right when authorized', async () => {
+    accountRepository.findById.mockResolvedValue(makeAccount('ws-1'));
+    accountRepository.delete.mockResolvedValue();
 
-      const result = await handler.execute(makeRequest());
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value.getStatus()).toBe(HttpStatus.FORBIDDEN);
-      }
-    });
-
-    it('should not call delete when account is not found', async () => {
-      accountRepository.findById.mockResolvedValue(null);
-
-      await handler.execute(makeRequest());
-
-      expect(accountRepository.delete).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('execute – Workspace Ownership', () => {
-    it('should return Left(403) when account belongs to a different workspace', async () => {
-      const account = createMockAccount({
-        id: ACCOUNT_ID,
-        workspaceId: 'other-workspace-id',
-      });
-      accountRepository.findById.mockResolvedValue(account);
-
-      const result = await handler.execute(makeRequest());
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value.getStatus()).toBe(HttpStatus.FORBIDDEN);
-      }
-    });
-
-    it('should not call delete when workspace does not match', async () => {
-      const account = createMockAccount({
-        id: ACCOUNT_ID,
-        workspaceId: 'other-workspace-id',
-      });
-      accountRepository.findById.mockResolvedValue(account);
-
-      await handler.execute(makeRequest());
-
-      expect(accountRepository.delete).not.toHaveBeenCalled();
-    });
+    const result = await service.execute(makeRequest());
+    expect(result.isRight()).toBe(true);
+    expect(accountRepository.delete).toHaveBeenCalledWith('acc-1');
   });
 });

@@ -1,4 +1,4 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { TransactionPresenter } from '@modules/transaction/presenters/Transaction.presenter';
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -9,12 +9,12 @@ import {
   CreateTransactionPipe,
   type CreateTransactionRequest,
 } from './create-transaction.dto';
-import { CreateTransactionHandler } from './create-transaction.handle';
+import { CreateTransactionService } from './create-transaction.service';
 
 @ApiTags('Transaction')
 @Controller('transaction')
 export class CreateTransactionController {
-  constructor(private readonly handler: CreateTransactionHandler) {}
+  constructor(private readonly service: CreateTransactionService) {}
 
   @Post()
   @HttpCode(statusCode.CREATED)
@@ -22,7 +22,7 @@ export class CreateTransactionController {
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Body(CreateTransactionPipe) body: CreateTransactionRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...body,
       sub,
       workspaceId,

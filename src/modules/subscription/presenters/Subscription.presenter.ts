@@ -8,8 +8,8 @@ export class SubscriptionPresenter {
       planId: subscription.planId,
       status: subscription.status,
       currentPeriodEnd: subscription.currentPeriodEnd,
-      isActive: subscription.isActive(),
-      isExpired: subscription.isExpired(),
+      hasAccess: subscription.hasAccess(),
+      isExpired: subscription.isExpired(new Date()),
     };
   }
 }

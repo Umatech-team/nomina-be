@@ -1,16 +1,16 @@
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { TransactionPresenter } from '@modules/transaction/presenters/Transaction.presenter';
 import { Controller, HttpCode, Param, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
-import { ToggleTransactionStatusHandler } from './toggle-transaction-status.handler';
+import { ToggleTransactionStatusService } from './toggle-transaction-status.service';
 
 @ApiTags('Transaction')
 @Controller('transaction')
 export class ToggleTransactionStatusController {
-  constructor(private readonly handler: ToggleTransactionStatusHandler) {}
+  constructor(private readonly service: ToggleTransactionStatusService) {}
 
   @Patch('recurring/:id/status')
   @HttpCode(statusCode.OK)
@@ -18,7 +18,7 @@ export class ToggleTransactionStatusController {
     @Param('id') transactionId: string,
     @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       transactionId,
       workspaceId,
     });

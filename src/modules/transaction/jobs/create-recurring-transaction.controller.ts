@@ -8,13 +8,13 @@ import { ApiTags } from '@nestjs/swagger';
 import { ApiKey } from '@providers/auth/decorators/ApiKey.decorator';
 import { Public } from '@providers/auth/decorators/IsPublic.decorator';
 import { statusCode } from '@shared/core/types/statusCode';
-import { GenerateRecurringTransactionsJobHandler } from './create-recurring-transaction.handler';
+import { GenerateRecurringTransactionsJobService } from './create-recurring-transaction.service';
 
 @ApiTags('Recurring Transaction')
 @Controller('internal')
 export class GenerateRecurringTransactionJobController {
   constructor(
-    private readonly createService: GenerateRecurringTransactionsJobHandler,
+    private readonly createService: GenerateRecurringTransactionsJobService,
   ) {}
 
   @Public()

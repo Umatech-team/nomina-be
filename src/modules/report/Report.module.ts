@@ -1,16 +1,17 @@
 import { DatabaseModule } from '@infra/databases/Database.module';
 import { Module } from '@nestjs/common';
+import { DateModule } from '@providers/date/Date.module';
 import { BalanceEvolutionController } from './features/get-balance-evolution/get-balance-evolution.controller';
-import { BalanceEvolutionHandler } from './features/get-balance-evolution/get-balance-evolution.handler';
+import { BalanceEvolutionService } from './features/get-balance-evolution/get-balance-evolution.handler';
 import { CashFlowEvolutionController } from './features/get-cash-flow-evolution/cash-flow-evolution.controller';
-import { CashFlowEvolutionHandler } from './features/get-cash-flow-evolution/cash-flow-evolution.handler';
+import { CashFlowEvolutionService } from './features/get-cash-flow-evolution/cash-flow-evolution.handler';
 import { GetExpensesByCategoryController } from './features/get-expenses-by-category/get-expenses-by-category.controller';
-import { GetExpensesByCategoryHandler } from './features/get-expenses-by-category/get-expenses-by-category.handler';
-import { FindMonthSummaryHandler } from './features/get-month-summary/get-month-summary.handler';
+import { GetExpensesByCategoryService } from './features/get-expenses-by-category/get-expenses-by-category.handler';
 import { FindMonthSummaryController } from './features/get-month-summary/get-month-summary.controller';
+import { FindMonthSummaryService } from './features/get-month-summary/get-month-summary.service';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, DateModule],
   controllers: [
     CashFlowEvolutionController,
     GetExpensesByCategoryController,
@@ -18,10 +19,10 @@ import { FindMonthSummaryController } from './features/get-month-summary/get-mon
     FindMonthSummaryController,
   ],
   providers: [
-    CashFlowEvolutionHandler,
-    GetExpensesByCategoryHandler,
-    BalanceEvolutionHandler,
-    FindMonthSummaryHandler,
+    CashFlowEvolutionService,
+    GetExpensesByCategoryService,
+    BalanceEvolutionService,
+    FindMonthSummaryService,
   ],
 })
 export class ReportModule {}

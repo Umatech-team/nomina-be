@@ -1,19 +1,14 @@
 import { Module } from '@nestjs/common';
-import { DateAddition } from './contracts/DateAddition';
-import { DateVerification } from './contracts/DateVerification';
-import { DayJs } from './implementations/Dayjs';
+import { DateProvider } from './contracts/DateProvider';
+import { DayJsDateProvider } from './implementations/Dayjs';
 
 @Module({
   providers: [
     {
-      provide: DateAddition,
-      useClass: DayJs,
-    },
-    {
-      provide: DateVerification,
-      useClass: DayJs,
+      provide: DateProvider,
+      useClass: DayJsDateProvider,
     },
   ],
-  exports: [DateAddition, DateVerification],
+  exports: [DateProvider],
 })
 export class DateModule {}

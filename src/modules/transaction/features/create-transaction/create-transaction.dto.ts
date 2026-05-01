@@ -8,34 +8,19 @@ const createTransactionSchema = z
     categoryId: z.string().uuid('ID da categoria inválido').nullish(),
     title: z.string().min(1, 'Título é obrigatório'),
     description: z.string().optional().nullable(),
-    amount: z.coerce.number().positive('Valor deve ser positivo'),
+    amount: z.coerce.bigint().positive('Valor deve ser positivo'),
     date: z
       .string()
-      .refine(
-        (dateString) => {
-          const date = new Date(dateString);
-          return !Number.isNaN(date.getTime());
-        },
-        {
-          message: 'Data deve estar em um formato válido',
-        },
-      )
-      .transform((dateString) => new Date(dateString)),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD'),
     type: z.nativeEnum(TransactionType),
     status: z.nativeEnum(TransactionStatus).optional(),
-    destinationAccountId: z
-      .string()
-      .uuid('ID da conta destino inválido')
-      .optional()
-      .nullable(),
+    destinationAccountId: z.string().uuid().optional().nullable(),
   })
   .refine(
-    (data) => {
-      if (data.type === TransactionType.TRANSFER) {
-        return !!data.destinationAccountId;
-      }
-      return true;
-    },
+    (data) =>
+      data.type === TransactionType.TRANSFER
+        ? !!data.destinationAccountId
+        : true,
     {
       message: 'Conta destino é obrigatória para transferências',
       path: ['destinationAccountId'],
@@ -43,7 +28,6 @@ const createTransactionSchema = z
   );
 
 export type CreateTransactionRequest = z.infer<typeof createTransactionSchema>;
-
 export const CreateTransactionPipe = new ZodValidationPipe(
   createTransactionSchema,
 );

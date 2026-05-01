@@ -1,11 +1,11 @@
-import { Account } from '@modules/account/entities/Account';
 import { AccountPresenter } from '@modules/account/presenters/Account.presenter';
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionPresenter } from '@modules/transaction/presenters/Transaction.presenter';
 import { MoneyUtils } from '@utils/MoneyUtils';
+import { CreditCard } from '../entities/CreditCardAccount';
 
 interface CreditCardInvoiceData {
-  account: Account;
+  account: CreditCard;
   transactions: Transaction[];
   totalAmount: number;
   availableLimit: number | null;

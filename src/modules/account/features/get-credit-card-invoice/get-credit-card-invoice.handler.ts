@@ -1,20 +1,23 @@
-import { AccountType } from '@constants/enums';
-import { Account } from '@modules/account/entities/Account';
+import { CreditCard } from '@modules/account/entities/CreditCardAccount';
+import {
+  AccountNotFoundError,
+  AccountTypeError,
+} from '@modules/account/errors';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
+import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
-import { statusCode } from '@shared/core/types/statusCode';
+import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { GetCreditCardInvoiceRequest } from './get-credit-card-invoice.dto';
 
 type Request = GetCreditCardInvoiceRequest &
   TokenPayloadBase & { accountId: string };
-type Errors = HttpException;
 type Response = {
-  account: Account;
+  account: CreditCard;
   transactions: Transaction[];
   totalAmount: number;
   availableLimit: number | null;
@@ -24,52 +27,41 @@ type Response = {
 };
 
 @Injectable()
-export class GetCreditCardInvoiceHandler implements Service<
+export class GetCreditCardInvoiceService implements Service<
   Request,
-  Errors,
+  Error,
   Response
 > {
   constructor(
     private readonly accountRepository: AccountRepository,
     private readonly transactionRepository: TransactionRepository,
+    private readonly dateProvider: DateProvider,
   ) {}
 
-  async execute(props: Request): Promise<Either<Errors, Response>> {
+  async execute(props: Request): Promise<Either<Error, Response>> {
     const account = await this.accountRepository.findById(props.accountId);
 
-    if (!account) {
-      return left(new HttpException('Account not found', statusCode.NOT_FOUND));
-    }
+    if (!account) return left(new AccountNotFoundError());
 
-    if (account.workspaceId !== props.workspaceId) {
-      return left(
-        new HttpException(
-          'You have no permission to access this account',
-          statusCode.FORBIDDEN,
-        ),
-      );
-    }
+    if (account.workspaceId !== props.workspaceId)
+      return left(new UnauthorizedError());
 
-    if (account.type !== AccountType.CREDIT_CARD) {
-      return left(
-        new HttpException(
-          'Account is not a credit card',
-          statusCode.BAD_REQUEST,
-        ),
-      );
-    }
+    if (!(account instanceof CreditCard)) return left(new AccountTypeError());
 
-    const now = new Date();
-    const month = props.month ?? now.getMonth() + 1;
-    const year = props.year ?? now.getFullYear();
+    const institutionTimezone = account.timezone ?? 'America/Sao_Paulo';
 
-    const closingDay = account.closingDay!;
-    const dueDay = account.dueDay!;
+    const referenceDate =
+      props.month && props.year
+        ? new Date(Date.UTC(props.year, props.month - 1, 1))
+        : this.dateProvider.now();
 
-    const periodEnd = new Date(year, month - 1, closingDay, 23, 59, 59, 999);
-    const periodStart = new Date(year, month - 2, closingDay + 1, 0, 0, 0, 0);
-
-    const dueDate = new Date(year, month, dueDay);
+    const { periodStart, periodEnd, dueDate } =
+      this.dateProvider.calculateInvoiceCycle({
+        referenceDate,
+        closingDay: account.closingDay,
+        dueDay: account.dueDay,
+        timezone: institutionTimezone,
+      });
 
     const transactions =
       await this.transactionRepository.findByAccountAndDateRange(

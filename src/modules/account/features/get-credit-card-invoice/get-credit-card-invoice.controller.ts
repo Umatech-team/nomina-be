@@ -1,5 +1,5 @@
 import { UserRole } from '@constants/enums';
-import { ErrorPresenter } from '@infra/presenters/Error.presenter';
+import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { CreditCardInvoicePresenter } from '@modules/account/presenters/CreditCardInvoice.presenter';
 import {
   Controller,
@@ -19,14 +19,14 @@ import {
   GetCreditCardInvoicePipe,
   type GetCreditCardInvoiceRequest,
 } from './get-credit-card-invoice.dto';
-import { GetCreditCardInvoiceHandler } from './get-credit-card-invoice.handler';
+import { GetCreditCardInvoiceService } from './get-credit-card-invoice.handler';
 
 @ApiTags('Account')
 @Controller('account')
 @UseGuards(RolesGuard)
 @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.USER, UserRole.VIEWER)
 export class GetCreditCardInvoiceController {
-  constructor(private readonly handler: GetCreditCardInvoiceHandler) {}
+  constructor(private readonly service: GetCreditCardInvoiceService) {}
 
   @Get(':id/invoice')
   @HttpCode(statusCode.OK)
@@ -35,7 +35,7 @@ export class GetCreditCardInvoiceController {
     @Param('id') accountId: string,
     @Query(GetCreditCardInvoicePipe) query: GetCreditCardInvoiceRequest,
   ) {
-    const data = await this.handler.execute({
+    const data = await this.service.execute({
       ...query,
       accountId,
       workspaceId,

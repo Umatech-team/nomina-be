@@ -6,7 +6,7 @@ type RefreshTokenDrizzleInsert = typeof schema.refreshTokens.$inferInsert;
 
 export class RefreshTokenMapper {
   static toDomain(raw: RefreshTokenDrizzle): RefreshToken {
-    const result = RefreshToken.create(
+    return RefreshToken.restore(
       {
         userId: raw.userId,
         token: raw.token,
@@ -14,8 +14,6 @@ export class RefreshTokenMapper {
       },
       raw.id,
     );
-
-    return result;
   }
 
   static toDatabase(entity: RefreshToken): RefreshTokenDrizzleInsert {
