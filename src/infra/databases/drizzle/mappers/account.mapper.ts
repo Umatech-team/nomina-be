@@ -57,8 +57,16 @@ export class AccountMapper {
         );
 
       default:
-        throw new Error(
-          `Tipo de conta desconhecido no banco de dados: ${raw.type}`,
+        console.warn(
+          `Tipo de conta não suportado encontrado no banco: ${raw.type} (id: ${raw.id}). Tratando como conta corrente.`,
+        );
+        return CheckingAccount.reconstitute(
+          {
+            ...baseProps,
+            type: AccountType.CHECKING,
+            timezone: raw.timezone,
+          },
+          raw.id,
         );
     }
   }
