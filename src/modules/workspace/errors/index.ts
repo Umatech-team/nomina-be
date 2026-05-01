@@ -38,3 +38,11 @@ export class InvalidWorkspaceInviteError extends ConflictDomainError {
     super('Convite inválido');
   }
 }
+
+export class CannotDeleteDefaultWorkspaceError extends ConflictDomainError {
+  constructor() {
+    super(
+      'Não é possível excluir o workspace padrão. Defina outro workspace como padrão antes.',
+    );
+  }
+}
