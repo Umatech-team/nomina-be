@@ -29,22 +29,28 @@ export class CreateWorkspaceService implements Service<
     isDefault,
     sub,
   }: Request): Promise<Either<Error, Response>> {
-    const workspaceOrError = Workspace.create({
-      name,
-      currency,
-    });
+    const workspaceOrError = Workspace.create(
+      {
+        name,
+        currency,
+      },
+      crypto.randomUUID(),
+    );
     if (workspaceOrError.isLeft()) {
       return left(workspaceOrError.value);
     }
 
     const workspace = workspaceOrError.value;
 
-    const workspaceUserOrError = WorkspaceUser.create({
-      userId: sub,
-      workspaceId: workspace.id,
-      role: UserRole.OWNER,
-      isDefault: !!isDefault,
-    });
+    const workspaceUserOrError = WorkspaceUser.create(
+      {
+        userId: sub,
+        workspaceId: workspace.id,
+        role: UserRole.OWNER,
+        isDefault: !!isDefault,
+      },
+      crypto.randomUUID(),
+    );
     if (workspaceUserOrError.isLeft()) {
       return left(workspaceUserOrError.value);
     }
