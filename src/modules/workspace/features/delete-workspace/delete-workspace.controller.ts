@@ -4,6 +4,8 @@ import { Controller, Delete, HttpCode, Param, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Roles } from '@providers/auth/decorators/Roles.decorator';
 import { RolesGuard } from '@providers/auth/guards/Roles.guard';
+import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
+import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import { type DeleteWorkspaceRequest } from './delete-workspace.dto';
 import { DeleteWorkspaceService } from './delete-workspace.service';
@@ -17,9 +19,13 @@ export class DeleteWorkspaceController {
 
   @Delete(':workspaceId')
   @HttpCode(statusCode.NO_CONTENT)
-  async handle(@Param() { workspaceId }: DeleteWorkspaceRequest) {
+  async handle(
+    @Param() { workspaceId }: DeleteWorkspaceRequest,
+    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
+  ) {
     const result = await this.service.execute({
       workspaceId,
+      sub,
     });
 
     if (result.isLeft()) {
