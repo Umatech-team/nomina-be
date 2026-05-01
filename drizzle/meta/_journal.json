@@ -64,6 +64,13 @@
       "when": 1777223290963,
       "tag": "0008_charming_silhouette",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1746130000000,
+      "tag": "0009_make_recurring_category_id_nullable",
+      "breakpoints": true
     }
   ]
 }
