@@ -11,6 +11,33 @@ import * as schema from '../schema';
 export class WorkspaceUserRepositoryImplementation implements WorkspaceUserRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
+  async setDefaultWorkspace(
+    userId: string,
+    workspaceId: string,
+  ): Promise<void> {
+    await this.drizzle.db.transaction(async (tx) => {
+      await tx
+        .update(schema.workspaceUsers)
+        .set({ isDefault: false })
+        .where(
+          and(
+            eq(schema.workspaceUsers.userId, userId),
+            eq(schema.workspaceUsers.isDefault, true),
+          ),
+        );
+
+      await tx
+        .update(schema.workspaceUsers)
+        .set({ isDefault: true })
+        .where(
+          and(
+            eq(schema.workspaceUsers.userId, userId),
+            eq(schema.workspaceUsers.workspaceId, workspaceId),
+          ),
+        );
+    });
+  }
+
   async findOwnerByWorkspaceId(
     workspaceId: string,
   ): Promise<WorkspaceUser | null> {
