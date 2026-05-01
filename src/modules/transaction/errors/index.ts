@@ -64,3 +64,11 @@ export class CannotPayInvoiceWithCreditCardError extends BusinessRuleDomainError
     super('Não é possível pagar uma fatura usando outro cartão de crédito.');
   }
 }
+
+export class CannotRemoveDestinationAccountError extends BusinessRuleDomainError {
+  constructor() {
+    super(
+      'Não é possível remover a conta destino de uma transferência diretamente. Converta a transação para receita ou despesa primeiro.',
+    );
+  }
+}
