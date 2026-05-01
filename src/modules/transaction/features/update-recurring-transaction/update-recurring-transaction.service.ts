@@ -5,6 +5,7 @@ import { CategoryNotFoundError } from '@modules/category/errors';
 import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
 import { RecurringTransaction } from '@modules/transaction/entities/RecurringTransaction';
 import {
+  CannotRemoveDestinationAccountError,
   RecurringTransactionNotFoundError,
   StartDateCannotBeTodayOrPastError,
 } from '@modules/transaction/errors';
@@ -89,7 +90,7 @@ export class UpdateRecurringTransactionService implements Service<
       const destAccount = await this.accountRepository.findById(
         request.destinationAccountId,
       );
-      if (!destAccount || destAccount.workspaceId !== request.workspaceId) {
+      if (destAccount?.workspaceId !== request.workspaceId) {
         return left(
           new UnauthorizedError(
             'Conta destino inválida ou não pertence ao workspace.',
@@ -205,11 +206,10 @@ export class UpdateRecurringTransactionService implements Service<
     if (destinationAccountId === undefined) return right(undefined);
 
     if (destinationAccountId === null) {
-      return left(
-        new Error(
-          'Remover a conta destino não é permitido. Converta a transação para receita ou despesa para isso.',
-        ),
-      );
+      if (recurring.type === 'TRANSFER') {
+        return left(new CannotRemoveDestinationAccountError());
+      }
+      return right(undefined);
     }
 
     recurring.convertToTransfer(destinationAccountId);
