@@ -22,6 +22,8 @@ import { ListWorkspacesController } from './features/list-workspaces/list-worksp
 import { ListWorkspacesService } from './features/list-workspaces/list-workspaces.service';
 import { RemoveUserFromWorkspaceController } from './features/remove-user-from-workspace/remove-user-from-workspace.controller';
 import { RemoveUserFromWorkspaceService } from './features/remove-user-from-workspace/remove-user-from-workspace.service';
+import { SetDefaultWorkspaceController } from './features/set-default-workspace/set-default-workspace.controller';
+import { SetDefaultWorkspaceService } from './features/set-default-workspace/set-default-workspace.service';
 import { SwitchWorkspaceController } from './features/switch-workspace/switch-workspace.controller';
 import { SwitchWorkspaceService } from './features/switch-workspace/switch-workspace.service';
 import { UpdateWorkspaceUserController } from './features/update-workspace-user/update-workspace-user.controller';
@@ -50,6 +52,7 @@ import { UpdateWorkspaceService } from './features/update-workspace/update-works
     SwitchWorkspaceController,
     CreateWorkspaceInviteController,
     AcceptWorkspaceInviteController,
+    SetDefaultWorkspaceController,
   ],
   providers: [
     CreateWorkspaceService,
@@ -64,6 +67,7 @@ import { UpdateWorkspaceService } from './features/update-workspace/update-works
     SwitchWorkspaceService,
     CreateWorkspaceInviteService,
     AcceptWorkspaceInviteService,
+    SetDefaultWorkspaceService,
   ],
   exports: [FindWorkspaceByIdService, ListWorkspacesService],
 })
