@@ -14,8 +14,12 @@ const baseAccountSchema = z.object({
 export const createAccountSchema = z.discriminatedUnion('type', [
   baseAccountSchema.extend({
     type: z.literal(AccountType.CREDIT_CARD),
-    creditLimit: z.coerce.number().positive('Limite deve ser positivo'),
-    closingDay: z.number().int().min(1).max(31),
+    creditLimit: z.coerce
+      .number()
+      .positive('Limite deve ser positivo')
+      .optional()
+      .nullable(),
+    closingDay: z.number().int().min(1).max(31).optional().nullable(),
     dueDay: z.number().int().min(1).max(31),
   }),
   baseAccountSchema.extend({
