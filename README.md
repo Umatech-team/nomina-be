@@ -2,7 +2,7 @@
 
 > **O peso real do seu patrimônio.**
 
-Backend de gestão patrimonial pessoal. NestJS + PostgreSQL + Redis, arquitetura DDD com Clean Architecture.
+API de gestão patrimonial pessoal. NestJS + PostgreSQL + Redis, arquitetura DDD com Clean Architecture.
 
 **Versão atual:** `0.11.0` — ver [CHANGELOG](./CHANGELOG.md)
 
