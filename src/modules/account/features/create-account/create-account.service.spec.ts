@@ -132,4 +132,34 @@ describe('CreateAccountService', () => {
     expect(result.isRight()).toBe(true);
     expect(accountRepository.create).toHaveBeenCalledTimes(1);
   });
+
+  it('should create a CREDIT_CARD without creditLimit (unlimited)', async () => {
+    arrangeSuccessMocks();
+
+    const result = await service.execute(
+      makeRequest({
+        type: AccountType.CREDIT_CARD,
+        creditLimit: undefined,
+        closingDay: 10,
+        dueDay: 20,
+      }),
+    );
+    expect(result.isRight()).toBe(true);
+    expect(accountRepository.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('should create a CREDIT_CARD without closingDay', async () => {
+    arrangeSuccessMocks();
+
+    const result = await service.execute(
+      makeRequest({
+        type: AccountType.CREDIT_CARD,
+        creditLimit: 5000,
+        closingDay: undefined,
+        dueDay: 20,
+      }),
+    );
+    expect(result.isRight()).toBe(true);
+    expect(accountRepository.create).toHaveBeenCalledTimes(1);
+  });
 });
