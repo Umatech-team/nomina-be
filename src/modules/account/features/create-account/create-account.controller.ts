@@ -5,7 +5,7 @@ import { CheckLimit } from '@modules/subscription/decorators/CheckLimit.decorato
 import { SubscriptionLimitsGuard } from '@modules/subscription/guards/SubscriptionLimits.guard';
 import { ResourceType } from '@modules/subscription/services/CheckSubscriptionLimits.service';
 import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { Roles } from '@providers/auth/decorators/Roles.decorator';
 import { RolesGuard } from '@providers/auth/guards/Roles.guard';
@@ -28,6 +28,32 @@ export class CreateAccountController {
 
   @Post('create')
   @HttpCode(statusCode.CREATED)
+  @ApiBody({
+    description: 'Criar uma conta. O campo `type` define os campos aceitos.',
+    examples: {
+      checking: {
+        summary: 'Conta corrente',
+        value: {
+          type: 'CHECKING',
+          name: 'Nubank',
+          balance: 0,
+          timezone: 'America/Sao_Paulo',
+        },
+      },
+      credit_card: {
+        summary: 'Cartão de crédito',
+        value: {
+          type: 'CREDIT_CARD',
+          name: 'Itaú Visa',
+          creditLimit: 500000,
+          closingDay: 10,
+          dueDay: 20,
+          timezone: 'America/Sao_Paulo',
+        },
+        description: '`closingDay` padrão: 1. `creditLimit` opcional.',
+      },
+    },
+  })
   async handle(
     @CurrentLoggedUser() { workspaceId, sub }: TokenPayloadSchema,
     @Body(CreateAccountPipe) body: CreateAccountRequest,
