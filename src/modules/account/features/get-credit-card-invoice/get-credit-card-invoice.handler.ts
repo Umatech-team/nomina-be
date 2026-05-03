@@ -58,7 +58,7 @@ export class GetCreditCardInvoiceService implements Service<
     const { periodStart, periodEnd, dueDate } =
       this.dateProvider.calculateInvoiceCycle({
         referenceDate,
-        closingDay: account.closingDay,
+        closingDay: account.closingDay ?? 1,
         dueDay: account.dueDay,
         timezone: institutionTimezone,
       });
