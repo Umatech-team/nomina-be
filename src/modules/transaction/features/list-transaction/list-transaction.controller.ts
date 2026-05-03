@@ -1,7 +1,7 @@
 import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { TransactionPreviewPresenter } from '@modules/transaction/presenters/TransactionPreview.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
@@ -18,6 +18,31 @@ export class ListTransactionController {
 
   @Get('list')
   @HttpCode(statusCode.OK)
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'pageSize', required: false, type: Number, example: 20 })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    type: String,
+    example: '2026-01-01',
+    description: 'Formato YYYY-MM-DD',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    example: '2026-01-31',
+    description: 'Formato YYYY-MM-DD',
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: ['INCOME', 'EXPENSE', 'TRANSFER'],
+  })
+  @ApiQuery({ name: 'status', required: false, enum: ['PENDING', 'COMPLETED'] })
+  @ApiQuery({ name: 'categoryId', required: false, type: String })
+  @ApiQuery({ name: 'accountId', required: false, type: String })
+  @ApiQuery({ name: 'title', required: false, type: String })
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Query(ListTransactionsPipe)
