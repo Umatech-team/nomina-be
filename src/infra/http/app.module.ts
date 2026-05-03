@@ -8,6 +8,7 @@ import { WorkspaceModule } from '@modules/workspace/Workspace.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from '@providers/auth/Auth.module';
 import { JwtAuthGuard } from '@providers/auth/guards/jwtAuth.guard';
 import { RolesGuard } from '@providers/auth/guards/Roles.guard';
@@ -22,6 +23,18 @@ import { LoggingInterceptor } from './interceptors/Logging.interceptor';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60_000,
+        limit: 120,
+      },
+      {
+        name: 'auth',
+        ttl: 60_000,
+        limit: 10,
+      },
+    ]),
     DatabaseModule,
     RedisModule,
     AuthModule,
@@ -39,6 +52,10 @@ import { LoggingInterceptor } from './interceptors/Logging.interceptor';
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
     {
       provide: APP_GUARD,
