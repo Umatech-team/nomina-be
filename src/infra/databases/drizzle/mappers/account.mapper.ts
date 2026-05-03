@@ -17,19 +17,16 @@ export class AccountMapper {
 
     switch (raw.type) {
       case AccountType.CREDIT_CARD:
-        if (
-          raw.creditLimit === null ||
-          raw.closingDay === null ||
-          raw.dueDay === null
-        ) {
+        if (raw.dueDay === null) {
           throw new Error(
-            `Dados corrompidos no banco: Cartão ${raw.id} sem limite/datas.`,
+            `Dados corrompidos no banco: Cartão ${raw.id} sem dia de vencimento.`,
           );
         }
         return CreditCard.reconstitute(
           {
             ...baseProps,
-            creditLimit: BigInt(raw.creditLimit),
+            creditLimit:
+              raw.creditLimit === null ? null : BigInt(raw.creditLimit),
             closingDay: raw.closingDay,
             dueDay: raw.dueDay,
             timezone: raw.timezone,
@@ -80,7 +77,11 @@ export class AccountMapper {
       name: entity.name,
       type: entity.type,
       balance: Number(entity.balance),
-      creditLimit: isCreditCard ? Number(entity.creditLimit) : null,
+      creditLimit: isCreditCard
+        ? entity.creditLimit === null
+          ? null
+          : Number(entity.creditLimit)
+        : null,
       closingDay: isCreditCard ? entity.closingDay : null,
       dueDay: isCreditCard ? entity.dueDay : null,
     };

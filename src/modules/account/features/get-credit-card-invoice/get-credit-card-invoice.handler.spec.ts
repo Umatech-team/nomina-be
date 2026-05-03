@@ -159,4 +159,28 @@ describe('GetCreditCardInvoiceService', () => {
       expect.objectContaining({ closingDay: 5, dueDay: 15 }),
     );
   });
+
+  it('should use closingDay=1 as fallback when account has no closingDay', async () => {
+    const cardWithoutClosingDay = CreditCard.create(
+      {
+        workspaceId: 'ws-1',
+        name: 'No Closing Day Card',
+        timezone: 'America/Sao_Paulo',
+        creditLimit: 500000n,
+        closingDay: null,
+        dueDay: 15,
+      },
+      'acc-1',
+    );
+    if (cardWithoutClosingDay.isLeft()) throw cardWithoutClosingDay.value;
+
+    accountRepository.findById.mockResolvedValue(cardWithoutClosingDay.value);
+    transactionRepository.findByAccountAndDateRange.mockResolvedValue([]);
+
+    const result = await service.execute(makeRequest());
+    expect(result.isRight()).toBe(true);
+    expect(dateProvider.calculateInvoiceCycle).toHaveBeenCalledWith(
+      expect.objectContaining({ closingDay: 1 }),
+    );
+  });
 });

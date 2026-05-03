@@ -71,6 +71,16 @@ describe('CreateAccountRequest DTO', () => {
       expect(createAccountSchema.safeParse(makeCC()).success).toBe(true);
     });
 
+    it('should accept CREDIT_CARD without creditLimit', () => {
+      const { creditLimit: _, ...rest } = makeCC();
+      expect(createAccountSchema.safeParse(rest).success).toBe(true);
+    });
+
+    it('should accept CREDIT_CARD without closingDay', () => {
+      const { closingDay: _, ...rest } = makeCC();
+      expect(createAccountSchema.safeParse(rest).success).toBe(true);
+    });
+
     it.each<[Record<string, unknown>, string]>([
       [{ creditLimit: -1 }, 'negative creditLimit'],
       [{ creditLimit: 0 }, 'zero creditLimit'],
@@ -82,11 +92,6 @@ describe('CreateAccountRequest DTO', () => {
       expect(createAccountSchema.safeParse(makeCC(invalidFields)).success).toBe(
         false,
       );
-    });
-
-    it('should reject missing creditLimit', () => {
-      const { creditLimit: _, ...rest } = makeCC();
-      expect(createAccountSchema.safeParse(rest).success).toBe(false);
     });
   });
 

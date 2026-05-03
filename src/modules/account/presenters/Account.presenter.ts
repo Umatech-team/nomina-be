@@ -19,10 +19,14 @@ export class AccountPresenter {
         ...basePayload,
         closingDay: account.closingDay,
         dueDay: account.dueDay,
-        creditLimit: MoneyUtils.centsToDecimal(Number(account.creditLimit)),
-        availableLimit: MoneyUtils.centsToDecimal(
-          Number(account.availableLimit),
-        ),
+        creditLimit:
+          account.creditLimit === null
+            ? null
+            : MoneyUtils.centsToDecimal(Number(account.creditLimit)),
+        availableLimit:
+          account.availableLimit === null
+            ? null
+            : MoneyUtils.centsToDecimal(Number(account.availableLimit)),
       };
     }
 

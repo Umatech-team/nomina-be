@@ -50,13 +50,14 @@ export class CreateAccountService implements Service<
 
     switch (request.type) {
       case AccountType.CREDIT_CARD: {
-        const creditLimit = BigInt(request.creditLimit ?? 0);
+        const creditLimit =
+          request.creditLimit == null ? null : BigInt(request.creditLimit);
 
         accountOrError = CreditCard.create({
           workspaceId,
           name: request.name,
           creditLimit,
-          closingDay: request.closingDay,
+          closingDay: request.closingDay ?? null,
           dueDay: request.dueDay,
           timezone,
         });

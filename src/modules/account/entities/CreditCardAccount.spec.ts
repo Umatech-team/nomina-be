@@ -27,6 +27,18 @@ describe('CreditCard entity', () => {
       expect(CreditCard.create(makeProps()).isRight()).toBe(true);
     });
 
+    it('should create a credit card without creditLimit (unlimited)', () => {
+      expect(
+        CreditCard.create(makeProps({ creditLimit: null })).isRight(),
+      ).toBe(true);
+    });
+
+    it('should create a credit card without closingDay', () => {
+      expect(CreditCard.create(makeProps({ closingDay: null })).isRight()).toBe(
+        true,
+      );
+    });
+
     it.each<[Partial<Parameters<typeof CreditCard.create>[0]>, string]>([
       [{ creditLimit: 0n }, 'zero credit limit'],
       [{ creditLimit: -100n }, 'negative credit limit'],
@@ -34,7 +46,7 @@ describe('CreditCard entity', () => {
       [{ closingDay: 32 }, 'closingDay 32'],
       [{ dueDay: 0 }, 'dueDay 0'],
       [{ dueDay: 32 }, 'dueDay 32'],
-    ])('should reject %s', (props, _label) => {
+    ])('should reject %s', (props) => {
       expect(CreditCard.create(makeProps(props)).isLeft()).toBe(true);
     });
 
@@ -58,6 +70,11 @@ describe('CreditCard entity', () => {
     it('should reject charge exceeding available limit', () => {
       const card = makeCard({ creditLimit: 1000n });
       expect(card.registerCharge(1500n).isLeft()).toBe(true);
+    });
+
+    it('should allow any charge when creditLimit is null (unlimited)', () => {
+      const card = makeCard({ creditLimit: null });
+      expect(card.registerCharge(999999999n).isRight()).toBe(true);
     });
   });
 

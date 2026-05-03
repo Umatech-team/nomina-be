@@ -4,8 +4,8 @@ import { BaseAccount, BaseAccountProps } from './BaseAccount';
 
 export interface CreditCardProps extends BaseAccountProps {
   balance: bigint;
-  creditLimit: bigint;
-  closingDay: number;
+  creditLimit: bigint | null;
+  closingDay: number | null;
   dueDay: number;
 }
 
@@ -18,10 +18,18 @@ export class CreditCard extends BaseAccount<CreditCardProps> {
     props: Omit<CreditCardProps, 'balance'> & { balance?: bigint },
     id?: string,
   ): Either<Error, CreditCard> {
-    if (props.creditLimit <= 0n) {
+    if (
+      props.creditLimit !== null &&
+      props.creditLimit !== undefined &&
+      props.creditLimit <= 0n
+    ) {
       return left(new Error('O limite de crédito deve ser superior a zero.'));
     }
-    if (props.closingDay < 1 || props.closingDay > 31) {
+    if (
+      props.closingDay !== null &&
+      props.closingDay !== undefined &&
+      (props.closingDay < 1 || props.closingDay > 31)
+    ) {
       return left(new Error('Dia de fechamento inválido.'));
     }
     if (props.dueDay < 1 || props.dueDay > 31) {
@@ -32,6 +40,8 @@ export class CreditCard extends BaseAccount<CreditCardProps> {
       new CreditCard(
         {
           ...props,
+          creditLimit: props.creditLimit ?? null,
+          closingDay: props.closingDay ?? null,
           balance: props.balance ?? 0n,
         },
         id,
@@ -47,11 +57,11 @@ export class CreditCard extends BaseAccount<CreditCardProps> {
     return this.props.balance;
   }
 
-  get creditLimit(): bigint {
+  get creditLimit(): bigint | null {
     return this.props.creditLimit;
   }
 
-  get closingDay(): number {
+  get closingDay(): number | null {
     return this.props.closingDay;
   }
 
@@ -63,7 +73,8 @@ export class CreditCard extends BaseAccount<CreditCardProps> {
     return AccountType.CREDIT_CARD;
   }
 
-  get availableLimit(): bigint {
+  get availableLimit(): bigint | null {
+    if (this.props.creditLimit === null) return null;
     return this.props.creditLimit - this.props.balance;
   }
 
@@ -75,7 +86,7 @@ export class CreditCard extends BaseAccount<CreditCardProps> {
     if (amount <= 0n) {
       return left(new Error('O valor da cobrança deve ser maior que zero.'));
     }
-    if (amount > this.availableLimit) {
+    if (this.props.creditLimit !== null && amount > this.availableLimit!) {
       return left(new Error('Limite de crédito insuficiente.'));
     }
 
@@ -99,21 +110,22 @@ export class CreditCard extends BaseAccount<CreditCardProps> {
   }
 
   public updateInvoiceDates(
-    closingDay: number,
+    closingDay: number | null,
     dueDay: number,
   ): Either<Error, void> {
-    if (closingDay < 1 || closingDay > 31 || dueDay < 1 || dueDay > 31) {
-      return left(
-        new Error('Dias de fechamento e vencimento devem ser válidos.'),
-      );
+    if (closingDay !== null && (closingDay < 1 || closingDay > 31)) {
+      return left(new Error('Dia de fechamento inválido.'));
+    }
+    if (dueDay < 1 || dueDay > 31) {
+      return left(new Error('Dia de vencimento inválido.'));
     }
     this.props.closingDay = closingDay;
     this.props.dueDay = dueDay;
     return right(undefined);
   }
 
-  public adjustLimit(newLimit: bigint): Either<Error, void> {
-    if (newLimit <= 0n) {
+  public adjustLimit(newLimit: bigint | null): Either<Error, void> {
+    if (newLimit !== null && newLimit <= 0n) {
       return left(new Error('O limite de crédito deve ser superior a zero.'));
     }
     this.props.creditLimit = newLimit;

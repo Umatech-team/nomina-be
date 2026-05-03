@@ -24,7 +24,7 @@ export class UpdateAccountService implements Service<
 
   private validateCreditCardFields(
     account: CreditCard,
-    closingDay?: number,
+    closingDay?: number | null,
     dueDay?: number,
     creditLimit?: number,
   ): Either<Error, void> {
