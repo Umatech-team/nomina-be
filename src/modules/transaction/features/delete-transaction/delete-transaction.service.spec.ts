@@ -95,6 +95,7 @@ describe('DeleteTransactionService', () => {
     service = new DeleteTransactionService(
       transactionRepository,
       accountRepository,
+      { delByPattern: jest.fn().mockResolvedValue(0) } as any,
     );
   });
 
