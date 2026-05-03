@@ -1,7 +1,7 @@
 import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { WorkspacePresenter } from '@modules/workspace/presenters/Workspace.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
@@ -18,6 +18,8 @@ export class ListWorkspacesController {
 
   @Get()
   @HttpCode(statusCode.OK)
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'pageSize', required: false, type: Number, example: 20 })
   async handle(
     @CurrentLoggedUser() { sub }: TokenPayloadSchema,
     @Query(ListWorkspacesPipe) query: ListWorkspacesRequest,
