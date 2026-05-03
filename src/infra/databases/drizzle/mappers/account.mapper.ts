@@ -25,7 +25,8 @@ export class AccountMapper {
         return CreditCard.reconstitute(
           {
             ...baseProps,
-            creditLimit: raw.creditLimit !== null ? BigInt(raw.creditLimit) : null,
+            creditLimit:
+              raw.creditLimit === null ? null : BigInt(raw.creditLimit),
             closingDay: raw.closingDay,
             dueDay: raw.dueDay,
             timezone: raw.timezone,
@@ -77,9 +78,9 @@ export class AccountMapper {
       type: entity.type,
       balance: Number(entity.balance),
       creditLimit: isCreditCard
-        ? entity.creditLimit !== null
-          ? Number(entity.creditLimit)
-          : null
+        ? entity.creditLimit === null
+          ? null
+          : Number(entity.creditLimit)
         : null,
       closingDay: isCreditCard ? entity.closingDay : null,
       dueDay: isCreditCard ? entity.dueDay : null,
