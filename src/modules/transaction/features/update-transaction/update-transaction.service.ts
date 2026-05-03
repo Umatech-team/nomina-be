@@ -1,4 +1,5 @@
 import { TransactionStatus } from '@constants/enums';
+import { RedisService } from '@infra/cache/redis/RedisService';
 import { CreditCard } from '@modules/account/entities/CreditCardAccount';
 import { AnyAccount } from '@modules/account/entities/types';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
@@ -32,6 +33,7 @@ export class UpdateTransactionService implements Service<
     private readonly categoryRepository: CategoryRepository,
     private readonly transactionRepository: TransactionRepository,
     private readonly dateProvider: DateProvider,
+    private readonly redisService: RedisService,
   ) {}
 
   async execute(request: Request): Promise<Either<Error, Transaction>> {
@@ -92,6 +94,8 @@ export class UpdateTransactionService implements Service<
     if (applyResult.isLeft()) return left(applyResult.value);
 
     await this.persistChanges(currentTx, newTx, accountsMap);
+
+    await this.redisService.delByPattern(`report:*:${request.workspaceId}:*`);
 
     return right(newTx);
   }
