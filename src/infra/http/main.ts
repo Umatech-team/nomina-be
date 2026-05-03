@@ -48,7 +48,7 @@ async function bootstrap() {
     const config = new DocumentBuilder()
       .setTitle('Nomina API')
       .setDescription('O peso real do seu patrimônio')
-      .setVersion('1.0')
+      .setVersion('0.11.0')
       .addBearerAuth()
       .build();
     const document = SwaggerModule.createDocument(app, config);
