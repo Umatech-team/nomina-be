@@ -8,6 +8,7 @@ interface CreditCardInvoiceData {
   account: CreditCard;
   transactions: Transaction[];
   totalAmount: number;
+  pendingAmount: number;
   availableLimit: number | null;
   dueDate: Date;
   periodStart: Date;
@@ -20,6 +21,7 @@ export class CreditCardInvoicePresenter {
       account: AccountPresenter.toHTTP(data.account),
       transactions: data.transactions.map(TransactionPresenter.toHTTP),
       totalAmount: MoneyUtils.centsToDecimal(data.totalAmount),
+      pendingAmount: MoneyUtils.centsToDecimal(data.pendingAmount),
       availableLimit:
         data.availableLimit === null
           ? null

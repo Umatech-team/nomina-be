@@ -1,253 +1,194 @@
-# Nomina
+# Nomina — API
 
 > **O peso real do seu patrimônio.**
 
-## 🏛️ Conceito
+API de gestão patrimonial pessoal. NestJS + PostgreSQL + Redis, arquitetura DDD com Clean Architecture.
 
-**Nomina** — Em economia, "nomina" é a garantia de valor de uma moeda (ex: nomina em ouro). Significa ter substância, ter base real. Não é apenas ter números na tela, mas ter patrimônio real.
+**Versão atual:** `0.11.0` — ver [CHANGELOG](./CHANGELOG.md)
 
-Este é um backend de gestão patrimonial pessoal construído para aqueles que não estão brincando com planilhas, mas construindo garantias reais para o futuro.
+---
 
-### Identidade
+## Stack
 
-- **Vibe**: Institucional, Séria, "Old Money" com Tech
-- **Proposta**: Gerenciamento patrimonial com substância e credibilidade
-- **Diferencial**: Foco em patrimônio real, não apenas finanças pessoais
+| Camada | Tecnologia |
+|---|---|
+| Framework | NestJS |
+| Banco de dados | PostgreSQL + Drizzle ORM |
+| Cache | Redis (opcional) |
+| Autenticação | JWT RS256 (access + refresh token) |
+| Validação | Zod |
+| Testes | Jest |
+| Documentação | Swagger (disponível em `dev`) |
 
-## 🚀 Stack Tecnológica
+---
 
-- **Framework**: NestJS
-- **Database**: PostgreSQL + Drizzle ORM
-- **Cache**: Redis (opcional)
-- **Autenticação**: JWT (RS256)
-- **Arquitetura**: Domain-Driven Design (DDD) + Clean Architecture
+## Rodando localmente
 
-## 📋 Pré-requisitos
+### Pré-requisitos
 
-- Node.js 18+ ou Bun
-- PostgreSQL 15+
-- Redis (opcional)
-- Docker & Docker Compose (recomendado)
+- Node.js 18+
+- Docker & Docker Compose
 
-## 🛠️ Instalação
-
-### 1. Clone o repositório
+### Setup
 
 ```bash
-git clone <repository-url>
-cd nomina-be
-```
-
-### 2. Instale as dependências
-
-```bash
+# 1. Dependências
 npm install
-# ou
-bun install
-```
 
-### 3. Configure as variáveis de ambiente
-
-```bash
+# 2. Variáveis de ambiente
 cp .env.example .env
 ```
 
-Edite o arquivo `.env` com suas configurações:
+`.env` mínimo:
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/nomina"
-JWT_PRIVATE_KEY_BASE64="<sua-chave-privada-base64>"
-JWT_PUBLIC_KEY_BASE64="<sua-chave-publica-base64>"
-NODE_ENV="development"
+JWT_PRIVATE_KEY_BASE64="<chave-privada-base64>"
+JWT_PUBLIC_KEY_BASE64="<chave-publica-base64>"
+NODE_ENV="dev"
 PORT=8080
+REDIS_ENABLED=false
 ```
 
-### 4. Inicie a infraestrutura com Docker
-
 ```bash
+# 3. Infraestrutura (PostgreSQL + Redis)
 docker-compose up -d
-```
 
-Isso iniciará:
+# 4. Migrations
+npm run db:migrate
 
-- PostgreSQL na porta `5432` (container: `nomina_postgres`)
-- Redis na porta `6379` (container: `nomina_redis`)
-
-### 5. Execute as migrations
-
-```bash
-npx drizzle-kit migrate
-```
-
-### 6. Inicie o servidor
-
-```bash
+# 5. Servidor em watch mode
 npm run dev
-# ou
-bun run dev
 ```
 
-O servidor estará rodando em `http://localhost:8080`
+API disponível em `http://localhost:8080`
+Swagger em `http://localhost:8080/api/docs` (apenas `NODE_ENV=dev`)
 
-## 📚 Documentação
+---
 
-### Swagger (Desenvolvimento)
+## Scripts
 
-Quando `NODE_ENV=dev`, a documentação interativa está disponível em:
+```bash
+npm run dev           # Desenvolvimento (watch mode)
+npm run build         # Build para produção
+npm run start:prod    # Iniciar produção
+npm test              # Testes unitários
+npm run test:cov      # Coverage
+npm run lint          # ESLint
 
-```
-http://localhost:8080/api
-```
-
-### Documentação da API
-
-- [Rotas da API](./docs/API_ROUTES.md) - Documentação completa de todos os endpoints
-- [Testes de API](./API_TESTS.md) - Exemplos de comandos `curl` para testar
-- [Sistema de Roles](./ROLE_GUARDS.md) - Controle de acesso baseado em roles
-
-## 🏗️ Arquitetura
-
-### Padrão DDD + Clean Architecture
-
-Cada módulo segue uma estrutura em camadas:
-
-```
-src/modules/<module-name>/
-├── controllers/     # Endpoints HTTP (camada de apresentação)
-├── services/        # Lógica de negócio
-├── repositories/    # Contratos de acesso a dados
-│   └── contracts/   # Interfaces abstratas
-├── entities/        # Modelos de domínio
-├── gateways/        # Validação de entrada (Zod)
-├── presenters/      # Formatação de saída
-├── dto/            # Data Transfer Objects
-└── errors/         # Erros de domínio
+npm run db:migrate    # Aplicar migrations pendentes
+npm run db:generate   # Gerar nova migration a partir do schema
+npm run db:status     # Ver status das migrations
+npm run db:rollback   # Reverter última migration
+npm run seed          # Popular banco com dados iniciais
 ```
 
-### Módulos Principais
+---
 
-- **User**: Autenticação e gerenciamento de usuários
-- **Workspace**: Workspaces multi-tenant
-- **Account**: Contas financeiras (corrente, investimentos, cartões)
-- **Category**: Categorias de receitas/despesas
-- **Transaction**: Transações financeiras
-- **Subscription**: Planos e limites de assinatura
-- **Report**: Análises e relatórios patrimoniais
+## Banco de dados (Migrations)
 
-### Princípios Críticos
+> **Regra:** sempre execute `npm run db:migrate` antes de subir o servidor em produção.
 
-#### 1. Pattern Either para Erros
+Para criar uma nova migration após alterar o schema em `src/infra/databases/schema/`:
 
-Todos os services retornam `Either<Error, Success>`:
+```bash
+npm run db:generate -- --name descricao-da-mudanca
+# revise o SQL gerado em drizzle/
+npm run db:migrate
+```
+
+Nunca edite arquivos `.sql` gerados manualmente — sempre via `db:generate`.
+
+---
+
+## Arquitetura
+
+### Estrutura de módulo
+
+Cada feature segue o padrão:
+
+```
+src/modules/<module>/
+├── features/
+│   └── <feature-name>/
+│       ├── <feature>.controller.ts   # Endpoint HTTP
+│       ├── <feature>.service.ts      # Lógica de negócio
+│       └── <feature>.dto.ts          # Validação Zod
+├── entities/                         # Modelos de domínio
+├── repositories/                     # Contratos de acesso a dados
+│   └── <repo>.repository.ts
+├── presenters/                       # Formatação da resposta HTTP
+└── errors/                           # Erros de domínio tipados
+```
+
+### Módulos
+
+| Módulo | Responsabilidade |
+|---|---|
+| `user` | Criação de conta, login, refresh token, perfil |
+| `workspace` | Multi-tenancy — criação, convites, roles, switch |
+| `account` | Contas correntes, cartões de crédito, investimentos |
+| `category` | Categorias de receita/despesa por workspace |
+| `transaction` | Transações avulsas e recorrentes, fatura de cartão |
+| `report` | Resumo mensal, evolução de saldo, fluxo de caixa, despesas por categoria |
+| `subscription` | Planos e limites de recursos por workspace |
+
+### Padrão Either para erros
+
+Todos os services retornam `Either<DomainError, Result>`. Nenhum service lança exceção:
 
 ```typescript
 const result = await service.execute(request);
 if (result.isLeft()) {
-  return ErrorPresenter.toHTTP(result.value); // Erro
+  return ErrorPresenter.toHTTP(result.value); // erro tipado → HTTP status correto
 }
-const { data } = result.value; // Sucesso
+return { data: result.value };
 ```
 
-#### 2. Valores Monetários em Centavos
+### Contratos críticos
 
-**CRÍTICO**: Todos os valores são armazenados como `BigInt` em centavos:
+**Dinheiro em centavos inteiros** — sem floats em nenhuma camada:
 
-```typescript
-// R$ 100,50 → 10050 centavos
-MoneyUtils.decimalToCents(100.5); // → 10050
+```
+DB: bigint  →  JSON: number  →  ex: 10050 = R$ 100,50
 ```
 
-#### 3. Multi-tenancy por Workspace
+**Datas no formato `YYYY-MM-DD`** — sem timezone em campos de data.
 
-Todos os recursos pertencem a um `workspaceId`. Sempre:
+**Multi-tenancy via JWT** — `workspaceId` sempre vem do token, nunca do body ou de URL params.
 
-1. Extrair `workspaceId` do token JWT
-2. Validar ownership verificando `workspaceId`
-3. Filtrar queries por `workspaceId`
+---
 
-## 🧪 Testes
+## Autenticação
 
-```bash
-# Testes unitários
-npm test
+- Access token: 15 minutos (RS256)
+- Refresh token: 7 dias (RS256)
 
-# Testes E2E
-npm run test:e2e
+### Roles
 
-# Coverage
-npm run test:cov
-```
+| Role | Permissões |
+|---|---|
+| `OWNER` | Acesso total ao workspace |
+| `ADMIN` | Criar e editar recursos |
+| `USER` | Criar transações, visualizar |
+| `VIEWER` | Somente leitura |
 
-## 🔐 Autenticação
+### Rate limiting
 
-Sistema baseado em JWT com dois tokens:
+Endpoints públicos de auth têm limite de **10 requisições por minuto** por IP (login, register, refresh).
+Demais endpoints autenticados: **120 requisições por minuto**.
 
-- **Access Token**: 15 minutos (RS256)
-- **Refresh Token**: 7 dias (RS256)
+---
 
-### Roles de Acesso
-
-- `OWNER`: Proprietário do workspace (acesso total)
-- `ADMIN`: Administrador (criar/editar recursos)
-- `USER`: Usuário comum (transações e visualização)
-- `VIEWER`: Apenas leitura
-
-## 🗄️ Database
-
-### Comandos Drizzle Kit
-
-```bash
-# Gerar migration
-npx drizzle-kit generate --name <migration-name>
-
-# Aplicar migrations
-npx drizzle-kit migrate
-
-# Abrir Drizzle Studio (GUI)
-npx drizzle-kit studio
-```
-
-### Gerenciar Containers Docker
-
-```bash
-# Iniciar infraestrutura
-docker-compose up -d
-
-# Parar containers
-docker-compose down
-
-# Ver logs
-docker-compose logs -f postgres
-docker-compose logs -f redis
-
-# Resetar database (CUIDADO!)
-docker-compose down -v
-docker-compose up -d
-npx drizzle-kit migrate
-```
-
-## 📦 Scripts Disponíveis
-
-```bash
-npm run dev          # Desenvolvimento (watch mode)
-npm run build        # Build para produção
-npm run start:prod   # Rodar produção
-npm run lint         # ESLint
-npm test             # Testes unitários
-npm run test:e2e     # Testes E2E
-npm run test:cov     # Coverage
-```
-
-## 🚢 Deploy
-
-### Build de Produção
+## Deploy
 
 ```bash
 npm run build
+npm run db:migrate   # sempre antes de iniciar
 npm run start:prod
 ```
 
-### Variáveis de Ambiente (Produção)
+### Variáveis de ambiente (produção)
 
 ```env
 DATABASE_URL="postgresql://user:pass@host:5432/nomina"
@@ -258,20 +199,12 @@ PORT=8080
 REDIS_ENABLED=true
 REDIS_HOST="..."
 REDIS_PORT=6379
+PROD_URL="https://seu-dominio.com"
+DEV_URL="http://localhost:3000"
 ```
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📄 Licença
-
-UNLICENSED - Proprietary Software
 
 ---
 
-**Nomina** — Construindo garantias reais para o futuro.
+## Licença
+
+UNLICENSED — Software proprietário.

@@ -12,7 +12,7 @@ import { ToggleTransactionStatusService } from './toggle-transaction-status.serv
 export class ToggleTransactionStatusController {
   constructor(private readonly service: ToggleTransactionStatusService) {}
 
-  @Patch('recurring/:id/status')
+  @Patch(':id/status')
   @HttpCode(statusCode.OK)
   async handle(
     @Param('id') transactionId: string,

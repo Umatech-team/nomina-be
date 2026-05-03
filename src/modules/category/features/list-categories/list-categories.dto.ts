@@ -3,12 +3,17 @@ import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
 const listCategoriesSchema = z.object({
-  page: z.coerce.number().int().positive('Página deve ser um número positivo'),
+  page: z.coerce
+    .number()
+    .int()
+    .positive('Página deve ser um número positivo')
+    .default(1),
   pageSize: z.coerce
     .number()
     .int()
     .positive('Tamanho da página deve ser um número positivo')
-    .max(100, 'Tamanho da página muito grande'),
+    .max(100, 'Tamanho da página muito grande')
+    .default(20),
   type: z.nativeEnum(TransactionType).optional(),
 });
 

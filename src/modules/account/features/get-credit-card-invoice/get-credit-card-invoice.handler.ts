@@ -6,6 +6,7 @@ import {
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
+import { TransactionStatus } from '@constants/enums';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { DateProvider } from '@providers/date/contracts/DateProvider';
@@ -20,6 +21,7 @@ type Response = {
   account: CreditCard;
   transactions: Transaction[];
   totalAmount: number;
+  pendingAmount: number;
   availableLimit: number | null;
   dueDate: Date;
   periodStart: Date;
@@ -71,20 +73,24 @@ export class GetCreditCardInvoiceService implements Service<
         periodEnd,
       );
 
-    const totalAmount = transactions.reduce(
-      (sum, t) => sum + Number(t.amount),
-      0,
-    );
+    const totalAmount = transactions
+      .filter((t) => t.status === TransactionStatus.COMPLETED)
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+
+    const pendingAmount = transactions
+      .filter((t) => t.status === TransactionStatus.PENDING)
+      .reduce((sum, t) => sum + Number(t.amount), 0);
 
     const availableLimit =
       account.creditLimit === null
         ? null
-        : Number(account.creditLimit) - totalAmount;
+        : Number(account.creditLimit) - totalAmount - pendingAmount;
 
     return right({
       account,
       transactions,
       totalAmount,
+      pendingAmount,
       availableLimit,
       dueDate,
       periodStart,

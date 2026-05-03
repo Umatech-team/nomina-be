@@ -1,6 +1,6 @@
 {
   "name": "nomina-be",
-  "version": "0.0.1",
+  "version": "0.11.0",
   "description": "Personal wealth management backend - Nomina: O peso real do seu patrimônio",
   "author": "",
   "private": true,
@@ -32,6 +32,7 @@
     "@nestjs/passport": "^11.0.0",
     "@nestjs/platform-express": "^11.1.15",
     "@nestjs/swagger": "^11.2.6",
+    "@nestjs/throttler": "^6.5.0",
     "bcryptjs": "^2.4.3",
     "class-validator": "^0.14.1",
     "date-fns": "^4.1.0",

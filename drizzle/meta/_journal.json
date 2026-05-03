@@ -71,6 +71,13 @@
       "when": 1746130000000,
       "tag": "0009_make_recurring_category_id_nullable",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1777811926636,
+      "tag": "0010_youthful_galactus",
+      "breakpoints": true
     }
   ]
 }

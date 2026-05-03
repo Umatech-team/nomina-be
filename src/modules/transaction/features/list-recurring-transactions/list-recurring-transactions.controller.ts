@@ -1,7 +1,7 @@
 import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { RecurringTransactionPresenter } from '@modules/transaction/presenters/RecurringTransaction.presenter';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
@@ -18,6 +18,14 @@ export class ListRecurringTransactionsController {
 
   @Get('recurring')
   @HttpCode(statusCode.OK)
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'pageSize', required: false, type: Number, example: 20 })
+  @ApiQuery({
+    name: 'activeOnly',
+    required: false,
+    type: Boolean,
+    example: false,
+  })
   async handle(
     @CurrentLoggedUser() { sub, workspaceId }: TokenPayloadSchema,
     @Query(ListRecurringTransactionsPipe)

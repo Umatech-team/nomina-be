@@ -2,7 +2,7 @@ import { UserRole } from '@constants/enums';
 import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { AccountPresenter } from '@modules/account/presenters/Account.presenter';
 import { Controller, Get, HttpCode, Query, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
 import { Roles } from '@providers/auth/decorators/Roles.decorator';
 import { RolesGuard } from '@providers/auth/guards/Roles.guard';
@@ -23,6 +23,8 @@ export class ListAccountsController {
 
   @Get()
   @HttpCode(statusCode.OK)
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'pageSize', required: false, type: Number, example: 20 })
   async handle(
     @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
     @Query(ListAccountsPipe) query: ListAccountsRequest,
