@@ -1,4 +1,5 @@
 import { TransactionStatus } from '@constants/enums';
+import { RedisService } from '@infra/cache/redis/RedisService';
 import { CreditCard } from '@modules/account/entities/CreditCardAccount';
 import { AnyAccount } from '@modules/account/entities/types';
 import { AccountNotFoundError } from '@modules/account/errors';
@@ -25,6 +26,7 @@ export class ToggleTransactionStatusService implements Service<
   constructor(
     private readonly transactionRepository: TransactionRepository,
     private readonly accountRepository: AccountRepository,
+    private readonly redisService: RedisService,
   ) {}
 
   async execute(request: Request): Promise<Either<Error, Transaction>> {
@@ -79,6 +81,8 @@ export class ToggleTransactionStatusService implements Service<
       Number(account.balance),
       destinationAccount ? Number(destinationAccount.balance) : undefined,
     );
+
+    await this.redisService.delByPattern(`report:*:${request.workspaceId}:*`);
 
     return right(transaction);
   }
