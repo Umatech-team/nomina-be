@@ -19,14 +19,14 @@ async function bootstrap() {
     defaultVersion: '1',
   });
 
-  const allowedOrigins = [env.PROD_URL, env.DEV_URL];
+  const allowedOrigins = new Set([env.PROD_URL, env.DEV_URL]);
 
   const corsOptions: CorsOptions = {
     origin: (
       origin: string | undefined,
       callback: (err: Error | null, allow?: boolean) => void,
     ) => {
-      if (allowedOrigins.includes(origin!) || !origin) {
+      if (allowedOrigins.has(origin!) || !origin) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
