@@ -104,6 +104,7 @@ describe('CreateTransactionService', () => {
       categoryRepository,
       transactionRepository,
       dateProvider,
+      { delByPattern: jest.fn().mockResolvedValue(0) } as any,
     );
   });
 
