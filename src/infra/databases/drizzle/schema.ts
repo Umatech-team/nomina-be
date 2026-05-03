@@ -32,19 +32,23 @@ export const users = pgTable('users', {
   }).$onUpdate(() => new Date()),
 });
 
-export const refreshTokens = pgTable('refresh_tokens', {
-  id: text('id')
-    .primaryKey()
-    .$default(() => crypto.randomUUID()),
-  token: text('token').notNull(),
-  expiresIn: timestamp('expires_in', {
-    withTimezone: true,
-    mode: 'date',
-  }).notNull(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-});
+export const refreshTokens = pgTable(
+  'refresh_tokens',
+  {
+    id: text('id')
+      .primaryKey()
+      .$default(() => crypto.randomUUID()),
+    token: text('token').notNull(),
+    expiresIn: timestamp('expires_in', {
+      withTimezone: true,
+      mode: 'date',
+    }).notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+  },
+  (table) => [index('idx_refresh_token_user_id').on(table.userId)],
+);
 
 // --------------------------------------------------------
 // WORKSPACE & COLABORAÇÃO
@@ -83,6 +87,7 @@ export const workspaceUsers = pgTable(
   },
   (table) => [
     uniqueIndex('unq_workspace_user').on(table.workspaceId, table.userId),
+    index('idx_wu_user_default').on(table.userId, table.isDefault),
   ],
 );
 
