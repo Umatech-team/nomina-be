@@ -40,7 +40,7 @@ export class UpdateTransactionService implements Service<
     const currentTx = await this.transactionRepository.findUniqueById(
       request.transactionId,
     );
-    if (!currentTx || currentTx.workspaceId !== request.workspaceId) {
+    if (currentTx?.workspaceId !== request.workspaceId) {
       return left(new TransactionNotFoundError());
     }
 
@@ -113,7 +113,7 @@ export class UpdateTransactionService implements Service<
 
     for (const id of accountIds) {
       const account = await this.accountRepository.findById(id);
-      if (!account || account.workspaceId !== request.workspaceId) {
+      if (account?.workspaceId !== request.workspaceId) {
         return left(new UnauthorizedError(`Conta inválida ou acesso negado.`));
       }
       accountsMap.set(id, account);
