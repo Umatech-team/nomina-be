@@ -1,4 +1,5 @@
 import { AccountType, TransactionType } from '@constants/enums';
+import { RedisService } from '@infra/cache/redis/RedisService';
 import { CheckingAccount } from '@modules/account/entities/CheckingAccount';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
@@ -104,7 +105,19 @@ describe('CreateTransactionService', () => {
       categoryRepository,
       transactionRepository,
       dateProvider,
-      { delByPattern: jest.fn().mockResolvedValue(0) } as any,
+      {
+        onModuleDestroy: jest.fn(),
+        ping: jest.fn().mockResolvedValue(false),
+        get: jest.fn().mockResolvedValue(null),
+        set: jest.fn().mockResolvedValue(true),
+        del: jest.fn().mockResolvedValue(true),
+        exists: jest.fn().mockResolvedValue(false),
+        acquireLock: jest.fn().mockResolvedValue(true),
+        releaseLock: jest.fn().mockResolvedValue(true),
+        delByPattern: jest.fn().mockResolvedValue(0),
+        getClient: jest.fn().mockReturnValue(null),
+        isAvailable: jest.fn().mockReturnValue(false),
+      } as unknown as jest.Mocked<RedisService>,
     );
   });
 
