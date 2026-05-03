@@ -23,18 +23,18 @@ import { LoggingInterceptor } from './interceptors/Logging.interceptor';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([
-      {
-        name: 'default',
-        ttl: 60_000,
-        limit: 120,
-      },
-      {
-        name: 'auth',
-        ttl: 60_000,
-        limit: 10,
-      },
-    ]),
+    ThrottlerModule.forRoot(
+      // Rate limiting only in production — no artificial limits during local dev
+      process.env.NODE_ENV === 'production'
+        ? [
+            { name: 'default', ttl: 60_000, limit: 600 },
+            { name: 'auth', ttl: 60_000, limit: 20 },
+          ]
+        : [
+            { name: 'default', ttl: 60_000, limit: Number.MAX_SAFE_INTEGER },
+            { name: 'auth', ttl: 60_000, limit: Number.MAX_SAFE_INTEGER },
+          ],
+    ),
     DatabaseModule,
     RedisModule,
     AuthModule,
