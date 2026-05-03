@@ -50,7 +50,6 @@ export class LoginUserService implements Service<Request, Error, Response> {
 
     const expiresInDays = Number(env.USER_REFRESH_EXPIRES_IN);
 
-    // Parallelize: workspace lookup + refresh JWT generation + old token cleanup
     const [defaultWorkspaceUser, _refreshToken] = await Promise.all([
       this.workspaceUserRepository.findDefaultWorkspaceByUserId(user.id),
       this.encrypter.encrypt(
