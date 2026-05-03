@@ -48,33 +48,34 @@ export class LoginUserService implements Service<Request, Error, Response> {
       return left(new WrongCredentialsError());
     }
 
-    const defaultWorkspaceUser =
-      await this.workspaceUserRepository.findDefaultWorkspaceByUserId(user.id);
+    const expiresInDays = Number(env.USER_REFRESH_EXPIRES_IN);
+
+    const [defaultWorkspaceUser, _refreshToken] = await Promise.all([
+      this.workspaceUserRepository.findDefaultWorkspaceByUserId(user.id),
+      this.encrypter.encrypt(
+        { sub: user.id },
+        { expiresIn: env.JWT_USER_REFRESH_EXPIRES_IN },
+      ),
+      this.refreshTokensRepository.deleteManyByUserId(user.id),
+    ]);
+
     if (!defaultWorkspaceUser) {
       return left(new UnauthorizedError());
     }
 
-    const accessToken = await this.encrypter.encrypt(
-      {
-        sub: user.id,
-        name: user.name,
-        workspaceId: defaultWorkspaceUser.user.workspaceId,
-        workspaceName: defaultWorkspaceUser.workspaceName,
-        role: defaultWorkspaceUser.user.role,
-      },
-      {
-        expiresIn: env.JWT_USER_ACCESS_EXPIRES_IN,
-      },
-    );
-
-    const _refreshToken = await this.encrypter.encrypt(
-      { sub: user.id },
-      { expiresIn: env.JWT_USER_REFRESH_EXPIRES_IN },
-    );
-
-    const expiresInDays = Number(env.USER_REFRESH_EXPIRES_IN);
-    const expirationDate =
-      this.dateProvider.addDaysInCurrentDate(expiresInDays);
+    const [accessToken, expirationDate] = await Promise.all([
+      this.encrypter.encrypt(
+        {
+          sub: user.id,
+          name: user.name,
+          workspaceId: defaultWorkspaceUser.user.workspaceId,
+          workspaceName: defaultWorkspaceUser.workspaceName,
+          role: defaultWorkspaceUser.user.role,
+        },
+        { expiresIn: env.JWT_USER_ACCESS_EXPIRES_IN },
+      ),
+      Promise.resolve(this.dateProvider.addDaysInCurrentDate(expiresInDays)),
+    ]);
 
     const refreshTokenOrError = RefreshToken.create({
       userId: user.id,
@@ -87,7 +88,6 @@ export class LoginUserService implements Service<Request, Error, Response> {
     }
     const refreshToken = refreshTokenOrError.value;
 
-    await this.refreshTokensRepository.deleteManyByUserId(user.id);
     await this.refreshTokensRepository.create(refreshToken);
 
     return right({

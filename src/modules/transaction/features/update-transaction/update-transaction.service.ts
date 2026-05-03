@@ -1,4 +1,5 @@
 import { TransactionStatus } from '@constants/enums';
+import { RedisService } from '@infra/cache/redis/RedisService';
 import { CreditCard } from '@modules/account/entities/CreditCardAccount';
 import { AnyAccount } from '@modules/account/entities/types';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
@@ -32,13 +33,14 @@ export class UpdateTransactionService implements Service<
     private readonly categoryRepository: CategoryRepository,
     private readonly transactionRepository: TransactionRepository,
     private readonly dateProvider: DateProvider,
+    private readonly redisService: RedisService,
   ) {}
 
   async execute(request: Request): Promise<Either<Error, Transaction>> {
     const currentTx = await this.transactionRepository.findUniqueById(
       request.transactionId,
     );
-    if (!currentTx || currentTx.workspaceId !== request.workspaceId) {
+    if (currentTx?.workspaceId !== request.workspaceId) {
       return left(new TransactionNotFoundError());
     }
 
@@ -93,6 +95,8 @@ export class UpdateTransactionService implements Service<
 
     await this.persistChanges(currentTx, newTx, accountsMap);
 
+    await this.redisService.delByPattern(`report:*:${request.workspaceId}:*`);
+
     return right(newTx);
   }
 
@@ -109,7 +113,7 @@ export class UpdateTransactionService implements Service<
 
     for (const id of accountIds) {
       const account = await this.accountRepository.findById(id);
-      if (!account || account.workspaceId !== request.workspaceId) {
+      if (account?.workspaceId !== request.workspaceId) {
         return left(new UnauthorizedError(`Conta inválida ou acesso negado.`));
       }
       accountsMap.set(id, account);

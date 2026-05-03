@@ -1,4 +1,5 @@
 import { TransactionStatus, TransactionType } from '@constants/enums';
+import { RedisService } from '@infra/cache/redis/RedisService';
 import { AnyAccount } from '@modules/account/entities/types';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { CategoryRepository } from '@modules/category/repositories/contracts/CategoryRepository';
@@ -29,6 +30,7 @@ export class CreateTransactionService implements Service<
     private readonly categoryRepository: CategoryRepository,
     private readonly transactionRepository: TransactionRepository,
     private readonly dateProvider: DateProvider,
+    private readonly redisService: RedisService,
   ) {}
 
   async execute(request: Request): Promise<Either<Error, Transaction>> {
@@ -80,6 +82,8 @@ export class CreateTransactionService implements Service<
       destinationAccount,
       request.type,
     );
+
+    await this.redisService.delByPattern(`report:*:${request.workspaceId}:*`);
 
     return right(transaction);
   }

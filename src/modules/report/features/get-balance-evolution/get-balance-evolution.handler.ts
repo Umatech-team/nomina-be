@@ -1,10 +1,10 @@
 import { AccountType } from '@constants/enums';
+import { RedisService } from '@infra/cache/redis/RedisService';
 import { DrizzleService } from '@infra/databases/drizzle/drizzle.service';
 import * as schema from '@infra/databases/drizzle/schema';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
-import { Either, left, right } from '@shared/core/errors/Either';
-import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
+import { Either, right } from '@shared/core/errors/Either';
 import { MoneyUtils } from '@utils/MoneyUtils';
 import { and, eq, gte, lt, lte, ne, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
@@ -18,30 +18,22 @@ type Response = Array<{
   balance: number;
 }>;
 
+const CACHE_TTL = 5 * 60;
+
 @Injectable()
 export class BalanceEvolutionService {
-  constructor(private readonly drizzle: DrizzleService) {}
+  constructor(
+    private readonly drizzle: DrizzleService,
+    private readonly redisService: RedisService,
+  ) {}
 
   async execute({
     workspaceId,
-    sub,
     period,
   }: Request): Promise<Either<Error, Response>> {
-    const userIsMemberOfWorkspace = await this.drizzle.db
-      .select({
-        workspaceId: schema.workspaceUsers.workspaceId,
-      })
-      .from(schema.workspaceUsers)
-      .where(
-        and(
-          eq(schema.workspaceUsers.workspaceId, workspaceId),
-          eq(schema.workspaceUsers.userId, sub),
-        ),
-      );
-
-    if (userIsMemberOfWorkspace.length === 0) {
-      return left(new UnauthorizedError('Usuário não pertence ao workspace.'));
-    }
+    const cacheKey = `report:balance-evolution:${workspaceId}:${period}`;
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) return right(JSON.parse(cached) as Response);
 
     const endDate = new Date();
     const startDate = new Date();
@@ -138,7 +130,7 @@ export class BalanceEvolutionService {
     for (const res of openingBalanceResult) {
       const effectiveType = resolveType(res.type, res.destType);
       if (effectiveType === 'INCOME') accumulatedBalance += res.amount;
-      if (effectiveType === 'EXPENSE') accumulatedBalance -= res.amount;
+      else if (effectiveType === 'EXPENSE') accumulatedBalance -= res.amount;
     }
 
     const dailySummaryMap = new Map<
@@ -178,6 +170,12 @@ export class BalanceEvolutionService {
         balance: MoneyUtils.centsToDecimal(accumulatedBalance),
       });
     }
+
+    await this.redisService.set(
+      cacheKey,
+      JSON.stringify(summaryResult),
+      CACHE_TTL,
+    );
 
     return right(summaryResult);
   }

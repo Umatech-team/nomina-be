@@ -162,4 +162,49 @@ describe('LoginUserService', () => {
       expect(result.value.refreshToken).toBeDefined();
     }
   });
+
+  it('should delete old tokens before creating the new one', async () => {
+    arrangeSuccessMocks();
+    const order: string[] = [];
+    refreshTokensRepository.deleteManyByUserId.mockImplementation(async () => {
+      order.push('delete');
+    });
+    refreshTokensRepository.create.mockImplementation(async () => {
+      order.push('create');
+    });
+
+    await service.execute(makeRequest());
+
+    expect(order).toEqual(['delete', 'create']);
+  });
+
+  it('should not create a refresh token when default workspace is not found', async () => {
+    userRepository.findUniqueByEmail.mockResolvedValue(makeUser());
+    hashComparer.compare.mockResolvedValue(true);
+    workspaceUserRepository.findDefaultWorkspaceByUserId.mockResolvedValue(null);
+    refreshTokensRepository.deleteManyByUserId.mockResolvedValue();
+
+    await service.execute(makeRequest());
+
+    expect(refreshTokensRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('should encrypt access token with workspace payload', async () => {
+    arrangeSuccessMocks();
+    encrypter.encrypt
+      .mockResolvedValueOnce('refresh-token-value')
+      .mockResolvedValueOnce('access-token-value');
+
+    await service.execute(makeRequest());
+
+    const accessTokenCall = encrypter.encrypt.mock.calls.find(
+      ([payload]) => 'workspaceId' in payload,
+    );
+    expect(accessTokenCall).toBeDefined();
+    expect(accessTokenCall![0]).toMatchObject({
+      sub: 'user-1',
+      workspaceId: 'ws-1',
+      role: UserRole.OWNER,
+    });
+  });
 });

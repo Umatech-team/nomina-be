@@ -5,6 +5,7 @@ import { AccountRepository } from '@modules/account/repositories/contracts/Accou
 import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionNotFoundError } from '@modules/transaction/errors';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
+import { RedisService } from '@infra/cache/redis/RedisService';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { DeleteTransactionService } from './delete-transaction.service';
 
@@ -95,6 +96,19 @@ describe('DeleteTransactionService', () => {
     service = new DeleteTransactionService(
       transactionRepository,
       accountRepository,
+      {
+        onModuleDestroy: jest.fn(),
+        ping: jest.fn().mockResolvedValue(false),
+        get: jest.fn().mockResolvedValue(null),
+        set: jest.fn().mockResolvedValue(true),
+        del: jest.fn().mockResolvedValue(true),
+        exists: jest.fn().mockResolvedValue(false),
+        acquireLock: jest.fn().mockResolvedValue(true),
+        releaseLock: jest.fn().mockResolvedValue(true),
+        delByPattern: jest.fn().mockResolvedValue(0),
+        getClient: jest.fn().mockReturnValue(null),
+        isAvailable: jest.fn().mockReturnValue(false),
+      } as unknown as jest.Mocked<RedisService>,
     );
   });
 
