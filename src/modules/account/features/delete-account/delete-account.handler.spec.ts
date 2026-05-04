@@ -1,4 +1,5 @@
 import { AccountType } from '@constants/enums';
+import { RedisService } from '@infra/cache/redis/RedisService';
 import { CheckingAccount } from '@modules/account/entities/CheckingAccount';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
@@ -25,6 +26,7 @@ function makeAccount(workspaceId = 'ws-1') {
 describe('DeleteAccountService', () => {
   let service: DeleteAccountService;
   let accountRepository: jest.Mocked<AccountRepository>;
+  let redisService: jest.Mocked<Pick<RedisService, 'delByPattern'>>;
 
   beforeEach(() => {
     accountRepository = {
@@ -38,7 +40,14 @@ describe('DeleteAccountService', () => {
       countByWorkspaceId: jest.fn(),
     } as jest.Mocked<AccountRepository>;
 
-    service = new DeleteAccountService(accountRepository);
+    redisService = {
+      delByPattern: jest.fn().mockResolvedValue(0),
+    };
+
+    service = new DeleteAccountService(
+      accountRepository,
+      redisService as unknown as RedisService,
+    );
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -50,6 +59,7 @@ describe('DeleteAccountService', () => {
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(UnauthorizedError);
     expect(accountRepository.delete).not.toHaveBeenCalled();
+    expect(redisService.delByPattern).not.toHaveBeenCalled();
   });
 
   it('should return left(UnauthorizedError) when account is not found', async () => {
@@ -58,6 +68,7 @@ describe('DeleteAccountService', () => {
     const result = await service.execute(makeRequest());
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(UnauthorizedError);
+    expect(redisService.delByPattern).not.toHaveBeenCalled();
   });
 
   it('should delete the account and return right when authorized', async () => {
@@ -67,5 +78,14 @@ describe('DeleteAccountService', () => {
     const result = await service.execute(makeRequest());
     expect(result.isRight()).toBe(true);
     expect(accountRepository.delete).toHaveBeenCalledWith('acc-1');
+  });
+
+  it('should invalidate the report cache for the workspace after deleting', async () => {
+    accountRepository.findById.mockResolvedValue(makeAccount('ws-1'));
+    accountRepository.delete.mockResolvedValue();
+
+    await service.execute(makeRequest());
+
+    expect(redisService.delByPattern).toHaveBeenCalledWith('report:*:ws-1:*');
   });
 });

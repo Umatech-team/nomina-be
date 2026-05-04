@@ -39,18 +39,30 @@ export class DayJsDateProvider implements DateProvider {
   }
 
   startOfDay(date: string | Date, tz: string = 'America/Sao_Paulo'): Date {
+    if (typeof date === 'string') {
+      return dayjs.tz(date, tz).startOf('day').toDate();
+    }
     return dayjs(date).tz(tz).startOf('day').toDate();
   }
 
   startOfMonth(date: string | Date, tz: string = 'America/Sao_Paulo'): Date {
+    if (typeof date === 'string') {
+      return dayjs.tz(date, tz).startOf('month').toDate();
+    }
     return dayjs(date).tz(tz).startOf('month').toDate();
   }
 
   endOfMonth(date: string | Date, tz: string = 'America/Sao_Paulo'): Date {
+    if (typeof date === 'string') {
+      return dayjs.tz(date, tz).endOf('month').toDate();
+    }
     return dayjs(date).tz(tz).endOf('month').toDate();
   }
 
   endOfDay(date: string | Date, tz: string = 'America/Sao_Paulo'): Date {
+    if (typeof date === 'string') {
+      return dayjs.tz(date, tz).endOf('day').toDate();
+    }
     return dayjs(date).tz(tz).endOf('day').toDate();
   }
 

@@ -142,6 +142,7 @@ export class TransactionRepositoryImplementation implements TransactionRepositor
       .where(
         and(
           eq(schema.transactions.workspaceId, workspaceId),
+          eq(schema.transactions.status, 'COMPLETED'),
           gte(schema.transactions.date, startDate),
           lte(schema.transactions.date, endDate),
         ),
