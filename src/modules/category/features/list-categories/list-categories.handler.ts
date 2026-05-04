@@ -6,7 +6,7 @@ import { Service } from '@shared/core/contracts/Service';
 import { Either, right } from '@shared/core/errors/Either';
 import { ListCategoriesRequest } from './list-categories.dto';
 
-type Request = ListCategoriesRequest & Pick<TokenPayloadSchema, 'sub'>;
+type Request = ListCategoriesRequest & Pick<TokenPayloadSchema, 'workspaceId'>;
 type Response = {
   categories: Category[];
   total: number;
@@ -21,14 +21,14 @@ export class ListCategoriesService implements Service<
   constructor(private readonly categoryRepository: CategoryRepository) {}
 
   async execute({
-    sub,
+    workspaceId,
     page,
     pageSize,
     type,
   }: Request): Promise<Either<Error, Response>> {
     const { categories, total } =
       await this.categoryRepository.findManyByWorkspaceId(
-        sub,
+        workspaceId,
         { type },
         page,
         pageSize,

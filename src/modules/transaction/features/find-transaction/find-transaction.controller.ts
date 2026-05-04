@@ -1,8 +1,11 @@
+import { UserRole } from '@constants/enums';
 import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
 import { TransactionPresenter } from '@modules/transaction/presenters/Transaction.presenter';
-import { Controller, Get, HttpCode, Param } from '@nestjs/common';
+import { Controller, Get, HttpCode, Param, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
+import { Roles } from '@providers/auth/decorators/Roles.decorator';
+import { RolesGuard } from '@providers/auth/guards/Roles.guard';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
@@ -11,6 +14,8 @@ import {
 } from './find-transaction.dto';
 import { FindTransactionByIdService } from './find-transaction.handle';
 
+@UseGuards(RolesGuard)
+@Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.USER)
 @ApiTags('Transaction')
 @Controller('transaction')
 export class FindTransactionController {
@@ -19,11 +24,11 @@ export class FindTransactionController {
   @Get(':transactionId')
   @HttpCode(statusCode.OK)
   async handle(
-    @CurrentLoggedUser() { sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
     @Param(FindTransactionPipe) { transactionId }: FindTransactionRequest,
   ) {
     const data = await this.service.execute({
-      sub,
+      workspaceId,
       transactionId,
     });
 

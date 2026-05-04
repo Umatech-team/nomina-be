@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
@@ -14,6 +15,8 @@ export const RESOURCE_TYPE_KEY = 'resourceType';
 
 @Injectable()
 export class SubscriptionLimitsGuard implements CanActivate {
+  private readonly logger = new Logger(SubscriptionLimitsGuard.name);
+
   constructor(
     private readonly checkLimitsService: CheckSubscriptionLimitsService,
     private readonly reflector: Reflector,
@@ -25,29 +28,15 @@ export class SubscriptionLimitsGuard implements CanActivate {
       context.getHandler(),
     );
 
-    console.log('[SubscriptionLimitsGuard] Checking limits', {
-      resourceType,
-      hasResourceType: !!resourceType,
-    });
-
     if (!resourceType) {
-      console.log(
-        '[SubscriptionLimitsGuard] No resource type, allowing access',
-      );
       return true;
     }
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    console.log('[SubscriptionLimitsGuard] User info', {
-      hasUser: !!user,
-      userId: user?.sub,
-      workspaceId: user?.workspaceId,
-    });
-
     if (!user) {
-      console.log('[SubscriptionLimitsGuard] ERROR: User not authenticated');
+      this.logger.warn('SubscriptionLimitsGuard: user not authenticated');
       throw new ForbiddenException('User not authenticated');
     }
 
@@ -59,13 +48,11 @@ export class SubscriptionLimitsGuard implements CanActivate {
 
     if (result.isLeft()) {
       const error = result.value;
-      console.log('[SubscriptionLimitsGuard] ERROR: Limit check failed', {
-        error: error.message,
-      });
+      this.logger.warn(
+        `SubscriptionLimitsGuard: limit check failed — ${error.message}`,
+      );
       throw new ForbiddenException(error.message);
     }
-
-    console.log('[SubscriptionLimitsGuard] Limit check passed');
 
     return true;
   }

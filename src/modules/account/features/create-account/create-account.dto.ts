@@ -19,8 +19,8 @@ export const createAccountSchema = z.discriminatedUnion('type', [
       .positive('Limite deve ser positivo')
       .optional()
       .nullable(),
-    closingDay: z.number().int().min(1).max(31).optional().nullable(),
-    dueDay: z.number().int().min(1).max(31),
+    closingDay: z.number().int().min(1).max(28).optional().nullable(),
+    dueDay: z.number().int().min(1).max(28),
   }),
   baseAccountSchema.extend({
     type: z.literal(AccountType.CHECKING),

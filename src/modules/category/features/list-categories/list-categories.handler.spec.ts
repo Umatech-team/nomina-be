@@ -4,7 +4,7 @@ import { CategoryRepository } from '@modules/category/repositories/contracts/Cat
 import { ListCategoriesService } from './list-categories.handler';
 
 function makeRequest(overrides = {}) {
-  return { sub: 'user-1', page: 1, pageSize: 10, ...overrides };
+  return { workspaceId: 'ws-1', page: 1, pageSize: 10, ...overrides };
 }
 
 function makeCategory(): Category {
@@ -57,7 +57,7 @@ describe('ListCategoriesService', () => {
       expect(result.value.total).toBe(2);
     }
     expect(categoryRepository.findManyByWorkspaceId).toHaveBeenCalledWith(
-      'user-1',
+      'ws-1',
       { type: undefined },
       1,
       10,

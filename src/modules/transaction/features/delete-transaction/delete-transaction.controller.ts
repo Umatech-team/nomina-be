@@ -1,7 +1,10 @@
+import { UserRole } from '@constants/enums';
 import { ErrorPresenter } from '@infra/presenters/ErrorPresenter';
-import { Controller, Delete, HttpCode, Param } from '@nestjs/common';
+import { Controller, Delete, HttpCode, Param, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentLoggedUser } from '@providers/auth/decorators/CurrentLoggedUser.decorator';
+import { Roles } from '@providers/auth/decorators/Roles.decorator';
+import { RolesGuard } from '@providers/auth/guards/Roles.guard';
 import { type TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { statusCode } from '@shared/core/types/statusCode';
 import {
@@ -10,6 +13,8 @@ import {
 } from './delete-transaction.dto';
 import { DeleteTransactionService } from './delete-transaction.service';
 
+@UseGuards(RolesGuard)
+@Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.USER)
 @ApiTags('Transaction')
 @Controller('transaction')
 export class DeleteTransactionController {

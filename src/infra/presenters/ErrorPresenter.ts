@@ -2,6 +2,7 @@ import {
   ConflictException,
   HttpException,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -12,6 +13,8 @@ import {
 } from '@shared/core/errors/DomainError';
 
 export class ErrorPresenter {
+  private static readonly logger = new Logger(ErrorPresenter.name);
+
   static toHTTP(error: Error): never {
     if (error instanceof NotFoundDomainError) {
       throw new NotFoundException(error.message);
@@ -29,7 +32,7 @@ export class ErrorPresenter {
       throw error;
     }
 
-    console.error('Erro de Servidor/Domínio não tratado:', error);
+    ErrorPresenter.logger.error('Erro de Servidor/Domínio não tratado:', error);
     throw new InternalServerErrorException('Erro interno do servidor');
   }
 }
