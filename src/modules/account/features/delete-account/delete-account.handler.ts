@@ -1,4 +1,5 @@
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
+import { RedisService } from '@infra/cache/redis/RedisService';
 import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
@@ -10,7 +11,10 @@ type Request = DeleteAccountRequest & Pick<TokenPayloadSchema, 'workspaceId'>;
 
 @Injectable()
 export class DeleteAccountService implements Service<Request, Error, void> {
-  constructor(private readonly accountRepository: AccountRepository) {}
+  constructor(
+    private readonly accountRepository: AccountRepository,
+    private readonly redisService: RedisService,
+  ) {}
 
   async execute({
     accountId,
@@ -23,6 +27,7 @@ export class DeleteAccountService implements Service<Request, Error, void> {
     }
 
     await this.accountRepository.delete(accountId);
+    await this.redisService.delByPattern(`report:*:${workspaceId}:*`);
 
     return right(undefined);
   }
