@@ -31,12 +31,12 @@ export class ListCategoriesController {
     enum: ['INCOME', 'EXPENSE', 'TRANSFER'],
   })
   async handle(
-    @CurrentLoggedUser() { workspaceId, sub }: TokenPayloadSchema,
+    @CurrentLoggedUser() { workspaceId }: TokenPayloadSchema,
     @Query(ListCategoriesPipe) query: ListCategoriesRequest,
   ) {
     const data = await this.service.execute({
       ...query,
-      sub: workspaceId || sub,
+      workspaceId,
     });
 
     if (data.isLeft()) {

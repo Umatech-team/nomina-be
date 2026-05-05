@@ -1,3 +1,4 @@
+import { UserRole } from '@constants/enums';
 import {
   CannotDeleteDefaultWorkspaceError,
   WorkspaceNotFoundError,
@@ -9,6 +10,7 @@ import { Injectable } from '@nestjs/common';
 import { TokenPayloadSchema } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
+import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
 import { DeleteWorkspaceRequest } from './delete-workspace.dto';
 
 type Request = DeleteWorkspaceRequest & Pick<TokenPayloadSchema, 'sub'>;
@@ -35,6 +37,14 @@ export class DeleteWorkspaceService implements Service<Request, Error, void> {
 
     if (!membership) {
       return left(new WorkspaceUserNotFoundError());
+    }
+
+    if (membership.role !== UserRole.OWNER) {
+      return left(
+        new UnauthorizedError(
+          'Apenas o proprietário pode excluir o workspace.',
+        ),
+      );
     }
 
     if (membership.isDefault) {

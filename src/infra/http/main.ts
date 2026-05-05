@@ -37,7 +37,6 @@ async function bootstrap() {
     allowedHeaders: [
       'Content-Type',
       'Authorization',
-      'refresh_token',
       'x-api-key',
     ],
   };

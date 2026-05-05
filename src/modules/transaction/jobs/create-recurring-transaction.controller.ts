@@ -1,6 +1,7 @@
 import {
   Controller,
   HttpCode,
+  Logger,
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -13,6 +14,10 @@ import { GenerateRecurringTransactionsJobService } from './create-recurring-tran
 @ApiTags('Recurring Transaction')
 @Controller('internal')
 export class GenerateRecurringTransactionJobController {
+  private readonly logger = new Logger(
+    GenerateRecurringTransactionJobController.name,
+  );
+
   constructor(
     private readonly createService: GenerateRecurringTransactionsJobService,
   ) {}
@@ -27,7 +32,7 @@ export class GenerateRecurringTransactionJobController {
     const data = await this.createService.execute();
 
     if (data.isLeft()) {
-      console.error(
+      this.logger.error(
         'Error executing GenerateRecurringTransactionsJobService:',
         data.value,
       );
@@ -36,7 +41,7 @@ export class GenerateRecurringTransactionJobController {
 
     const { generatedCount } = data.value;
 
-    console.log(
+    this.logger.log(
       `GenerateRecurringTransactionsJobService completed. Generated ${generatedCount} transactions.`,
     );
   }

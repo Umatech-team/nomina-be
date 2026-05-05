@@ -1,6 +1,6 @@
 import { TransactionStatus } from '@constants/enums';
 import { RedisService } from '@infra/cache/redis/RedisService';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { Either, right } from '@shared/core/errors/Either';
 import { RecurringTransaction } from '../entities/RecurringTransaction';
@@ -20,6 +20,10 @@ interface Response {
 
 @Injectable()
 export class GenerateRecurringTransactionsJobService {
+  private readonly logger = new Logger(
+    GenerateRecurringTransactionsJobService.name,
+  );
+
   constructor(
     private readonly recurringRepository: RecurringTransactionRepository,
     private readonly calculateNextDateService: CalculateNextGenerationDateService,
@@ -39,7 +43,7 @@ export class GenerateRecurringTransactionsJobService {
 
     const hasAlreadyProcessed = await this.redis.exists(cacheKey);
     if (hasAlreadyProcessed) {
-      console.log(`[Job] Já processado hoje (${todayStr}), ignorando.`);
+      this.logger.log(`Job: já processado hoje (${todayStr}), ignorando.`);
       return right({ generatedCount: 0 });
     }
 
@@ -48,7 +52,7 @@ export class GenerateRecurringTransactionsJobService {
       LOCK_TTL_SECONDS,
     );
     if (!lockAcquired) {
-      console.log(`[Job] Lock não adquirido. Outra instância já está rodando.`);
+      this.logger.log(`Job: lock não adquirido — outra instância já está rodando.`);
       return right({ generatedCount: 0 });
     }
 
@@ -56,8 +60,8 @@ export class GenerateRecurringTransactionsJobService {
       let generatedCount = 0;
       let batch: RecurringTransaction[];
 
-      console.log(
-        `[Job] Iniciando geração. Data limite: ${lookAheadDate.toISOString()}`,
+      this.logger.log(
+        `Job: iniciando geração. Data limite: ${lookAheadDate.toISOString()}`,
       );
 
       do {
@@ -80,7 +84,7 @@ export class GenerateRecurringTransactionsJobService {
 
       return right({ generatedCount });
     } catch (error) {
-      console.error('[Job] Erro crítico durante a execução:', error);
+      this.logger.error('Job: erro crítico durante a execução:', error);
       throw error;
     } finally {
       await this.redis.releaseLock(lockKey);
@@ -101,8 +105,8 @@ export class GenerateRecurringTransactionsJobService {
 
     while (targetDate <= thresholdDate) {
       if (generationCount >= MAX_GENERATIONS_PER_RECURRING) {
-        console.warn(
-          `[Job] Limite de segurança atingido para recorrência ${recurring.id}.`,
+        this.logger.warn(
+          `Job: limite de segurança atingido para recorrência ${recurring.id}.`,
         );
         break;
       }
@@ -126,8 +130,8 @@ export class GenerateRecurringTransactionsJobService {
       });
 
       if (transactionOrError.isLeft()) {
-        console.error(
-          `[Job] Erro ao criar transação derivada da recorrência ${recurring.id}:`,
+        this.logger.error(
+          `Job: erro ao criar transação derivada da recorrência ${recurring.id}:`,
           transactionOrError.value,
         );
         targetDate = this.calculateNextDateService.execute(recurring, TIMEZONE);

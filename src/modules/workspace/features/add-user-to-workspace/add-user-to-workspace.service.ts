@@ -1,3 +1,4 @@
+import { UserRole } from '@constants/enums';
 import { UserNotFoundError } from '@modules/user/errors';
 import { UserRepository } from '@modules/user/repositories/contracts/user.repository';
 import { WorkspaceUser } from '@modules/workspace/entities/WorkspaceUser';
@@ -37,6 +38,18 @@ export class AddUserToWorkspaceService implements Service<
     if (!currentUserWorkspace) {
       return left(
         new UnauthorizedError('Usuário atual não é membro do workspace.'),
+      );
+    }
+
+    const canAdd =
+      currentUserWorkspace.role === UserRole.OWNER ||
+      currentUserWorkspace.role === UserRole.ADMIN;
+
+    if (!canAdd) {
+      return left(
+        new UnauthorizedError(
+          'Apenas proprietários e administradores podem adicionar membros.',
+        ),
       );
     }
 
