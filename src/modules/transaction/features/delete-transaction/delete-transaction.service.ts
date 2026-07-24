@@ -1,6 +1,5 @@
 import { TransactionStatus } from '@constants/enums';
 import { RedisService } from '@infra/cache/redis/RedisService';
-import { CreditCard } from '@modules/account/entities/CreditCardAccount';
 import { AnyAccount } from '@modules/account/entities/types';
 import { AccountNotFoundError } from '@modules/account/errors';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
@@ -101,27 +100,18 @@ export class DeleteTransactionService implements Service<Request, Error, void> {
     const { type, amount } = transaction;
 
     if (type === 'EXPENSE') {
-      return account instanceof CreditCard
-        ? account.payInvoice(amount)
-        : account.credit(amount);
+      return account.applyIncomeEffect(amount);
     }
 
     if (type === 'INCOME') {
-      return account instanceof CreditCard
-        ? account.registerCharge(amount)
-        : account.debit(amount);
+      return account.applyExpenseEffect(amount);
     }
 
     if (type === 'TRANSFER' && destinationAccount) {
-      const creditSourceResult =
-        account instanceof CreditCard
-          ? account.payInvoice(amount)
-          : account.credit(amount);
+      const creditSourceResult = account.applyIncomeEffect(amount);
       if (creditSourceResult.isLeft()) return creditSourceResult;
 
-      return destinationAccount instanceof CreditCard
-        ? destinationAccount.registerCharge(amount)
-        : destinationAccount.debit(amount);
+      return destinationAccount.applyExpenseEffect(amount);
     }
 
     return right(undefined);

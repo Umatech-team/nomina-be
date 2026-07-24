@@ -71,4 +71,28 @@ describe('InvestmentAccount entity', () => {
       expect(makeAccount(100n).debit(200n).isLeft()).toBe(true);
     });
   });
+
+  describe('applyExpenseEffect()', () => {
+    it('should behave like debit()', () => {
+      const account = makeAccount(500n);
+      account.applyExpenseEffect(200n);
+      expect(account.balance).toBe(300n);
+    });
+
+    it('should reject expense exceeding balance', () => {
+      expect(makeAccount(100n).applyExpenseEffect(200n).isLeft()).toBe(true);
+    });
+  });
+
+  describe('applyIncomeEffect()', () => {
+    it('should behave like credit()', () => {
+      const account = makeAccount(500n);
+      account.applyIncomeEffect(200n);
+      expect(account.balance).toBe(700n);
+    });
+
+    it('should reject zero amount', () => {
+      expect(makeAccount().applyIncomeEffect(0n).isLeft()).toBe(true);
+    });
+  });
 });

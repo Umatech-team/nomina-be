@@ -53,10 +53,6 @@ export class CreditCard extends BaseAccount<CreditCardProps> {
     return new CreditCard(props, id);
   }
 
-  get balance(): bigint {
-    return this.props.balance;
-  }
-
   get creditLimit(): bigint | null {
     return this.props.creditLimit;
   }
@@ -107,6 +103,14 @@ export class CreditCard extends BaseAccount<CreditCardProps> {
 
     this.props.balance -= amount;
     return right(undefined);
+  }
+
+  public applyExpenseEffect(amount: bigint): Either<Error, void> {
+    return this.registerCharge(amount);
+  }
+
+  public applyIncomeEffect(amount: bigint): Either<Error, void> {
+    return this.payInvoice(amount);
   }
 
   public updateInvoiceDates(

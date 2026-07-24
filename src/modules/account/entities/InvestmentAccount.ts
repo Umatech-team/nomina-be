@@ -31,10 +31,6 @@ export class InvestmentAccount extends BaseAccount<InvestmentAccountProps> {
     return new InvestmentAccount(props, id);
   }
 
-  get balance(): bigint {
-    return this.props.balance;
-  }
-
   get type(): string {
     return AccountType.INVESTMENT;
   }
@@ -43,20 +39,11 @@ export class InvestmentAccount extends BaseAccount<InvestmentAccountProps> {
     return this.balance;
   }
 
-  public credit(amount: bigint): Either<Error, void> {
-    if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
-    this.props.balance += amount;
-    return right(undefined);
+  public applyExpenseEffect(amount: bigint): Either<Error, void> {
+    return this.debit(amount);
   }
 
-  public debit(amount: bigint): Either<Error, void> {
-    if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
-    if (this.props.balance - amount < 0n) {
-      return left(
-        new Error('Saldo insuficiente na carteira. Operação bloqueada.'),
-      );
-    }
-    this.props.balance -= amount;
-    return right(undefined);
+  public applyIncomeEffect(amount: bigint): Either<Error, void> {
+    return this.credit(amount);
   }
 }

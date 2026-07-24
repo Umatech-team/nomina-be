@@ -58,7 +58,7 @@ describe('CreateTransactionRequest DTO', () => {
     [{ date: '15-01-2024' }, 'wrong date format'],
     [{ date: '2024/01/15' }, 'date with slashes'],
     [{ type: 'INVALID' }, 'invalid type'],
-  ])('should reject %s', (invalidFields, _label) => {
+  ])('should reject %s', (invalidFields) => {
     expect(
       createTransactionSchema.safeParse(makeValid(invalidFields)).success,
     ).toBe(false);

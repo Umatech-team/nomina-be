@@ -36,10 +36,6 @@ export class CheckingAccount extends BaseAccount<CheckingAccountProps> {
     return new CheckingAccount(props, id);
   }
 
-  get balance(): bigint {
-    return this.props.balance;
-  }
-
   get type(): string {
     return this.props.type;
   }
@@ -48,15 +44,17 @@ export class CheckingAccount extends BaseAccount<CheckingAccountProps> {
     return this.balance;
   }
 
-  public credit(amount: bigint): Either<Error, void> {
-    if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
-    this.props.balance += amount;
-    return right(undefined);
-  }
-
   public debit(amount: bigint): Either<Error, void> {
     if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
     this.props.balance -= amount;
     return right(undefined);
+  }
+
+  public applyExpenseEffect(amount: bigint): Either<Error, void> {
+    return this.debit(amount);
+  }
+
+  public applyIncomeEffect(amount: bigint): Either<Error, void> {
+    return this.credit(amount);
   }
 }
