@@ -48,44 +48,17 @@ export class CreateRecurringTransactionService implements Service<
       return left(new UnauthorizedError());
     }
 
-    if (destinationAccountId) {
-      const destAccount =
-        await this.accountRepository.findById(destinationAccountId);
-      if (destAccount?.workspaceId !== workspaceId) {
-        return left(new UnauthorizedError());
-      }
-    }
+    const destinationError = await this.validateDestinationAccount(
+      destinationAccountId,
+      workspaceId,
+    );
+    if (destinationError) return left(destinationError);
 
-    if (categoryId) {
-      const category = await this.categoryRepository.findById(categoryId);
-      if (!category) return left(new RecurringTransactionNotFoundError());
-
-      const isGlobalCategory = !category.workspaceId;
-      const belongsToWorkspace = category.workspaceId === workspaceId;
-
-      if (!isGlobalCategory && !belongsToWorkspace) {
-        return left(
-          new UnauthorizedError('Você não tem acesso a esta categoria.'),
-        );
-      }
-    }
+    const categoryError = await this.validateCategory(categoryId, workspaceId);
+    if (categoryError) return left(categoryError);
 
     const accountTz = account.timezone;
-
     const start = this.dateProvider.startOfDay(startDate, accountTz);
-    const isTotalAmountMode = request.amount === undefined;
-    const end = isTotalAmountMode
-      ? this.calculateInstallmentEndDate(
-          start,
-          request.frequency as RecurrenceFrequency,
-          request.interval,
-          request.installments!,
-          accountTz,
-        )
-      : endDate
-        ? this.dateProvider.startOfDay(endDate, accountTz)
-        : null;
-
     const today = this.dateProvider.startOfDay(
       this.dateProvider.now(),
       accountTz,
@@ -95,12 +68,12 @@ export class CreateRecurringTransactionService implements Service<
       return left(new StartDateCannotBeTodayOrPastError());
     }
 
-    const amount = isTotalAmountMode
-      ? MoneyUtils.splitIntoInstallments(
-          request.totalAmount!,
-          request.installments!,
-        )
-      : request.amount!;
+    const { amount, end } = this.resolveAmountAndEndDate(
+      request,
+      start,
+      endDate,
+      accountTz,
+    );
 
     const recurringOrError = RecurringTransaction.create({
       workspaceId,
@@ -126,6 +99,77 @@ export class CreateRecurringTransactionService implements Service<
       recurringOrError.value,
     );
     return right(created);
+  }
+
+  private async validateDestinationAccount(
+    destinationAccountId: string | null | undefined,
+    workspaceId: string,
+  ): Promise<Error | null> {
+    if (!destinationAccountId) return null;
+
+    const destAccount =
+      await this.accountRepository.findById(destinationAccountId);
+    if (destAccount?.workspaceId !== workspaceId) {
+      return new UnauthorizedError();
+    }
+
+    return null;
+  }
+
+  private async validateCategory(
+    categoryId: string | null | undefined,
+    workspaceId: string,
+  ): Promise<Error | null> {
+    if (!categoryId) return null;
+
+    const category = await this.categoryRepository.findById(categoryId);
+    if (!category) return new RecurringTransactionNotFoundError();
+
+    const isGlobalCategory = !category.workspaceId;
+    const belongsToWorkspace = category.workspaceId === workspaceId;
+
+    if (!isGlobalCategory && !belongsToWorkspace) {
+      return new UnauthorizedError('Você não tem acesso a esta categoria.');
+    }
+
+    return null;
+  }
+
+  private resolveAmountAndEndDate(
+    request: Request,
+    start: Date,
+    endDate: string | null | undefined,
+    timezone: string,
+  ): { amount: bigint; end: Date | null } {
+    const isTotalAmountMode = request.amount === undefined;
+
+    if (isTotalAmountMode) {
+      const amount = MoneyUtils.splitIntoInstallments(
+        request.totalAmount!,
+        request.installments!,
+      );
+      const end = this.calculateInstallmentEndDate(
+        start,
+        request.frequency as RecurrenceFrequency,
+        request.interval,
+        request.installments!,
+        timezone,
+      );
+      return { amount, end };
+    }
+
+    return {
+      amount: request.amount!,
+      end: this.resolveManualEndDate(endDate, timezone),
+    };
+  }
+
+  private resolveManualEndDate(
+    endDate: string | null | undefined,
+    timezone: string,
+  ): Date | null {
+    if (!endDate) return null;
+    return this.dateProvider.startOfDay(endDate, timezone);
   }
 
   private calculateInstallmentEndDate(
