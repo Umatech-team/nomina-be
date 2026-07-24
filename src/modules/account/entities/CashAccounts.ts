@@ -34,14 +34,6 @@ export class CashAccount extends BaseAccount<CashAccountProps> {
     return this.balance;
   }
 
-  public credit(amount: bigint): Either<Error, void> {
-    return this.creditBalance(amount);
-  }
-
-  public debit(amount: bigint): Either<Error, void> {
-    return this.debitBalanceWithFloor(amount);
-  }
-
   public applyExpenseEffect(amount: bigint): Either<Error, void> {
     return this.debit(amount);
   }

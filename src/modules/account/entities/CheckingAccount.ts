@@ -44,10 +44,6 @@ export class CheckingAccount extends BaseAccount<CheckingAccountProps> {
     return this.balance;
   }
 
-  public credit(amount: bigint): Either<Error, void> {
-    return this.creditBalance(amount);
-  }
-
   public debit(amount: bigint): Either<Error, void> {
     if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
     this.props.balance -= amount;

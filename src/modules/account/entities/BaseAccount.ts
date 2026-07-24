@@ -32,10 +32,11 @@ export abstract class BaseAccount<
   }
 
   /**
-   * Soma o valor ao saldo. Compartilhado pelas contas cujo crédito não tem
-   * regra própria (carteira, investimento, conta corrente).
+   * Soma o valor ao saldo. Comportamento padrão de crédito para as contas
+   * que não têm regra própria (carteira, investimento, conta corrente).
+   * Sobrescreva quando a conta precisar de uma regra diferente.
    */
-  protected creditBalance(amount: bigint): Either<Error, void> {
+  public credit(amount: bigint): Either<Error, void> {
     if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
     this.props.balance += amount;
     return right(undefined);
@@ -43,9 +44,10 @@ export abstract class BaseAccount<
 
   /**
    * Subtrai o valor do saldo, bloqueando a operação se o resultado ficar
-   * negativo. Compartilhado pelas contas que não permitem saldo negativo.
+   * negativo. Comportamento padrão de débito; sobrescreva quando a conta
+   * permitir saldo negativo (ex.: conta corrente) ou tiver outra regra.
    */
-  protected debitBalanceWithFloor(amount: bigint): Either<Error, void> {
+  public debit(amount: bigint): Either<Error, void> {
     if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
     if (this.props.balance - amount < 0n) {
       return left(
