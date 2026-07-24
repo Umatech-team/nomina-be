@@ -36,7 +36,7 @@ describe('CreateWorkspaceRequest DTO', () => {
     [{ currency: 'US' }, 'currency with 2 chars'],
     [{ currency: 'USDD' }, 'currency with 4 chars'],
     [{ currency: '' }, 'empty currency'],
-  ])('should reject when %s', (invalidFields, _label) => {
+  ])('should reject when %s', (invalidFields) => {
     expect(
       createWorkspaceSchema.safeParse(makeValid(invalidFields)).success,
     ).toBe(false);
