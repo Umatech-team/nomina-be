@@ -133,4 +133,22 @@ export class MoneyUtils {
 
     return enriched;
   }
+
+  /**
+   * Divide um valor total em parcelas de valor igual, arredondando para baixo.
+   * Divisões não exatas resultam em imprecisão de centavos (aceitável).
+   */
+  static splitIntoInstallments(
+    totalAmountCents: bigint,
+    installments: number,
+  ): bigint {
+    if (installments <= 0) {
+      throw new Error('O número de parcelas deve ser maior que zero');
+    }
+    if (totalAmountCents <= 0n) {
+      throw new Error('O valor total deve ser maior que zero');
+    }
+
+    return totalAmountCents / BigInt(installments);
+  }
 }

@@ -13,6 +13,7 @@ import { DateProvider } from '@providers/date/contracts/DateProvider';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { UnauthorizedError } from '@shared/errors/UnauthorizedError';
+import { MoneyUtils } from '@utils/MoneyUtils';
 import { CreateRecurringTransactionRequest } from './create-recurring-transaction.dto';
 
 type Request = CreateRecurringTransactionRequest & TokenPayloadBase;
@@ -72,9 +73,18 @@ export class CreateRecurringTransactionService implements Service<
     const accountTz = account.timezone;
 
     const start = this.dateProvider.startOfDay(startDate, accountTz);
-    const end = endDate
-      ? this.dateProvider.startOfDay(endDate, accountTz)
-      : null;
+    const isTotalAmountMode = request.amount === undefined;
+    const end = isTotalAmountMode
+      ? this.calculateInstallmentEndDate(
+          start,
+          request.frequency as RecurrenceFrequency,
+          request.interval,
+          request.installments!,
+          accountTz,
+        )
+      : endDate
+        ? this.dateProvider.startOfDay(endDate, accountTz)
+        : null;
 
     const today = this.dateProvider.startOfDay(
       this.dateProvider.now(),
@@ -85,6 +95,13 @@ export class CreateRecurringTransactionService implements Service<
       return left(new StartDateCannotBeTodayOrPastError());
     }
 
+    const amount = isTotalAmountMode
+      ? MoneyUtils.splitIntoInstallments(
+          request.totalAmount!,
+          request.installments!,
+        )
+      : request.amount!;
+
     const recurringOrError = RecurringTransaction.create({
       workspaceId,
       accountId,
@@ -92,7 +109,7 @@ export class CreateRecurringTransactionService implements Service<
       title: request.title,
       description: request.description ?? null,
       categoryId: categoryId ?? null,
-      amount: request.amount,
+      amount,
       frequency: request.frequency as RecurrenceFrequency,
       interval: request.interval,
       type: request.type,
@@ -109,5 +126,41 @@ export class CreateRecurringTransactionService implements Service<
       recurringOrError.value,
     );
     return right(created);
+  }
+
+  private calculateInstallmentEndDate(
+    start: Date,
+    frequency: RecurrenceFrequency,
+    interval: number,
+    installments: number,
+    timezone: string,
+  ): Date {
+    const remainingOccurrences = installments - 1;
+
+    switch (frequency) {
+      case RecurrenceFrequency.WEEKLY:
+        return this.dateProvider.add(
+          start,
+          interval * 7 * remainingOccurrences,
+          'day',
+          timezone,
+        );
+      case RecurrenceFrequency.MONTHLY:
+        return this.dateProvider.add(
+          start,
+          interval * remainingOccurrences,
+          'month',
+          timezone,
+        );
+      case RecurrenceFrequency.YEARLY:
+        return this.dateProvider.add(
+          start,
+          interval * remainingOccurrences,
+          'year',
+          timezone,
+        );
+      default:
+        throw new Error(`Unknown frequency: ${frequency}`);
+    }
   }
 }
