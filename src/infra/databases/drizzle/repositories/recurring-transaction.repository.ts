@@ -144,7 +144,10 @@ export class RecurringTransactionRepositoryImplementation implements RecurringTr
 
       await tx
         .update(schema.recurringTransactions)
-        .set({ lastGenerated: updatedRecurring.lastGenerated })
+        .set({
+          lastGenerated: updatedRecurring.lastGenerated,
+          active: updatedRecurring.active,
+        })
         .where(eq(schema.recurringTransactions.id, updatedRecurring.id));
     });
   }
