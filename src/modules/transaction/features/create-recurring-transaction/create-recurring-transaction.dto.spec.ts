@@ -1,5 +1,4 @@
 import { RecurrenceFrequency, TransactionType } from '@constants/enums';
-import { ZodValidationPipe } from '@shared/pipes/ZodValidation';
 import { z } from 'zod';
 
 const createRecurringTransactionSchema = z
@@ -81,9 +80,52 @@ const createRecurringTransactionSchema = z
     },
   );
 
-export type CreateRecurringTransactionRequest = z.infer<
-  typeof createRecurringTransactionSchema
->;
-export const CreateRecurringTransactionPipe = new ZodValidationPipe(
-  createRecurringTransactionSchema,
-);
+describe('CreateRecurringTransactionRequest DTO', () => {
+  function makeValid(overrides: Record<string, unknown> = {}) {
+    return {
+      accountId: '123e4567-e89b-12d3-a456-426614174000',
+      title: 'Aluguel',
+      amount: 150000,
+      frequency: RecurrenceFrequency.MONTHLY,
+      type: TransactionType.EXPENSE,
+      interval: 1,
+      startDate: '2024-01-01',
+      ...overrides,
+    };
+  }
+
+  it('should accept the classic single-amount payload', () => {
+    expect(
+      createRecurringTransactionSchema.safeParse(makeValid()).success,
+    ).toBe(true);
+  });
+
+  it('should accept a totalAmount + installments payload without amount', () => {
+    const result = createRecurringTransactionSchema.safeParse(
+      makeValid({ amount: undefined, totalAmount: 300000, installments: 3 }),
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it.each<[Record<string, unknown>, string]>([
+    [{ amount: undefined }, 'neither amount nor totalAmount/installments'],
+    [
+      { totalAmount: 300000, installments: undefined },
+      'totalAmount without installments',
+    ],
+    [
+      { amount: undefined, installments: 3 },
+      'installments without totalAmount',
+    ],
+    [
+      { totalAmount: 300000, installments: 3 },
+      'amount together with totalAmount + installments',
+    ],
+    [{ totalAmount: 0, installments: 3 }, 'zero totalAmount'],
+    [{ totalAmount: 300000, installments: 0 }, 'zero installments'],
+  ])('should reject %s', (overrides) => {
+    expect(
+      createRecurringTransactionSchema.safeParse(makeValid(overrides)).success,
+    ).toBe(false);
+  });
+});
