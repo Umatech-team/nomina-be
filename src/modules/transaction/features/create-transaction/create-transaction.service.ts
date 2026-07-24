@@ -10,7 +10,6 @@ import { TokenPayloadBase } from '@providers/auth/strategys/jwtStrategy';
 import { Service } from '@shared/core/contracts/Service';
 import { Either, left, right } from '@shared/core/errors/Either';
 
-import { CreditCard } from '@modules/account/entities/CreditCardAccount';
 import { CategoryNotFoundError } from '@modules/category/errors';
 import { DestinationAccountRequiredForTransferError } from '@modules/transaction/errors';
 import { DateProvider } from '@providers/date/contracts/DateProvider';
@@ -164,27 +163,18 @@ export class CreateTransactionService implements Service<
     amount: bigint,
   ): Either<Error, void> {
     if (type === 'EXPENSE') {
-      return account instanceof CreditCard
-        ? account.registerCharge(amount)
-        : account.debit(amount);
+      return account.applyExpenseEffect(amount);
     }
 
     if (type === 'INCOME') {
-      return account instanceof CreditCard
-        ? account.payInvoice(amount)
-        : account.credit(amount);
+      return account.applyIncomeEffect(amount);
     }
 
     if (type === 'TRANSFER' && destinationAccount) {
-      const debitResult =
-        account instanceof CreditCard
-          ? account.registerCharge(amount)
-          : account.debit(amount);
+      const debitResult = account.applyExpenseEffect(amount);
       if (debitResult.isLeft()) return debitResult;
 
-      return destinationAccount instanceof CreditCard
-        ? destinationAccount.payInvoice(amount)
-        : destinationAccount.credit(amount);
+      return destinationAccount.applyIncomeEffect(amount);
     }
 
     return right(undefined);

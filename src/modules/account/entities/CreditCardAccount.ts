@@ -109,6 +109,14 @@ export class CreditCard extends BaseAccount<CreditCardProps> {
     return right(undefined);
   }
 
+  public applyExpenseEffect(amount: bigint): Either<Error, void> {
+    return this.registerCharge(amount);
+  }
+
+  public applyIncomeEffect(amount: bigint): Either<Error, void> {
+    return this.payInvoice(amount);
+  }
+
   public updateInvoiceDates(
     closingDay: number | null,
     dueDay: number,

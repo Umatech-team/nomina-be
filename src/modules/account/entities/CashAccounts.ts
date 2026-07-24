@@ -54,4 +54,12 @@ export class CashAccount extends BaseAccount<CashAccountProps> {
     this.props.balance -= amount;
     return right(undefined);
   }
+
+  public applyExpenseEffect(amount: bigint): Either<Error, void> {
+    return this.debit(amount);
+  }
+
+  public applyIncomeEffect(amount: bigint): Either<Error, void> {
+    return this.credit(amount);
+  }
 }

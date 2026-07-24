@@ -74,4 +74,28 @@ describe('CheckingAccount entity', () => {
       expect(account.debit(-10n).isLeft()).toBe(true);
     });
   });
+
+  describe('applyExpenseEffect()', () => {
+    it('should behave like debit()', () => {
+      const account = makeAccount();
+      account.applyExpenseEffect(200n);
+      expect(account.balance).toBe(300n);
+    });
+
+    it('should reject zero amount', () => {
+      expect(makeAccount().applyExpenseEffect(0n).isLeft()).toBe(true);
+    });
+  });
+
+  describe('applyIncomeEffect()', () => {
+    it('should behave like credit()', () => {
+      const account = makeAccount();
+      account.applyIncomeEffect(200n);
+      expect(account.balance).toBe(700n);
+    });
+
+    it('should reject negative amount', () => {
+      expect(makeAccount().applyIncomeEffect(-50n).isLeft()).toBe(true);
+    });
+  });
 });

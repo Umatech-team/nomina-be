@@ -1,6 +1,5 @@
 import { TransactionStatus } from '@constants/enums';
 import { RedisService } from '@infra/cache/redis/RedisService';
-import { CreditCard } from '@modules/account/entities/CreditCardAccount';
 import { AnyAccount } from '@modules/account/entities/types';
 import { AccountNotFoundError } from '@modules/account/errors';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
@@ -92,24 +91,13 @@ export class ToggleTransactionStatusService implements Service<
     acc: AnyAccount,
     dest: AnyAccount | null,
   ): Either<Error, void> {
-    if (t.type === 'EXPENSE')
-      return acc instanceof CreditCard
-        ? acc.registerCharge(t.amount)
-        : acc.debit(t.amount);
-    if (t.type === 'INCOME')
-      return acc instanceof CreditCard
-        ? acc.payInvoice(t.amount)
-        : acc.credit(t.amount);
+    if (t.type === 'EXPENSE') return acc.applyExpenseEffect(t.amount);
+    if (t.type === 'INCOME') return acc.applyIncomeEffect(t.amount);
 
     if (t.type === 'TRANSFER' && dest) {
-      const debitResult =
-        acc instanceof CreditCard
-          ? acc.registerCharge(t.amount)
-          : acc.debit(t.amount);
+      const debitResult = acc.applyExpenseEffect(t.amount);
       if (debitResult.isLeft()) return debitResult;
-      return dest instanceof CreditCard
-        ? dest.payInvoice(t.amount)
-        : dest.credit(t.amount);
+      return dest.applyIncomeEffect(t.amount);
     }
     return right(undefined);
   }
@@ -119,24 +107,13 @@ export class ToggleTransactionStatusService implements Service<
     acc: AnyAccount,
     dest: AnyAccount | null,
   ): Either<Error, void> {
-    if (t.type === 'EXPENSE')
-      return acc instanceof CreditCard
-        ? acc.payInvoice(t.amount)
-        : acc.credit(t.amount);
-    if (t.type === 'INCOME')
-      return acc instanceof CreditCard
-        ? acc.registerCharge(t.amount)
-        : acc.debit(t.amount);
+    if (t.type === 'EXPENSE') return acc.applyIncomeEffect(t.amount);
+    if (t.type === 'INCOME') return acc.applyExpenseEffect(t.amount);
 
     if (t.type === 'TRANSFER' && dest) {
-      const creditResult =
-        acc instanceof CreditCard
-          ? acc.payInvoice(t.amount)
-          : acc.credit(t.amount);
+      const creditResult = acc.applyIncomeEffect(t.amount);
       if (creditResult.isLeft()) return creditResult;
-      return dest instanceof CreditCard
-        ? dest.registerCharge(t.amount)
-        : dest.debit(t.amount);
+      return dest.applyExpenseEffect(t.amount);
     }
     return right(undefined);
   }

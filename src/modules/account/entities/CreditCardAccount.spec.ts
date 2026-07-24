@@ -97,6 +97,34 @@ describe('CreditCard entity', () => {
     });
   });
 
+  describe('applyExpenseEffect()', () => {
+    it('should behave like registerCharge() (increase balance)', () => {
+      const card = makeCard();
+      card.applyExpenseEffect(1000n);
+      expect(card.balance).toBe(1000n);
+    });
+
+    it('should reject expense exceeding available limit', () => {
+      const card = makeCard({ creditLimit: 1000n });
+      expect(card.applyExpenseEffect(1500n).isLeft()).toBe(true);
+    });
+  });
+
+  describe('applyIncomeEffect()', () => {
+    it('should behave like payInvoice() (decrease balance)', () => {
+      const card = makeCard();
+      card.registerCharge(500n);
+      card.applyIncomeEffect(500n);
+      expect(card.balance).toBe(0n);
+    });
+
+    it('should reject income exceeding current balance', () => {
+      const card = makeCard();
+      card.registerCharge(200n);
+      expect(card.applyIncomeEffect(500n).isLeft()).toBe(true);
+    });
+  });
+
   describe('adjustLimit()', () => {
     it('should update credit limit', () => {
       const card = makeCard();
