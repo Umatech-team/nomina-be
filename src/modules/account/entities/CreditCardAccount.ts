@@ -53,10 +53,6 @@ export class CreditCard extends BaseAccount<CreditCardProps> {
     return new CreditCard(props, id);
   }
 
-  get balance(): bigint {
-    return this.props.balance;
-  }
-
   get creditLimit(): bigint | null {
     return this.props.creditLimit;
   }

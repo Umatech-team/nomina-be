@@ -1,10 +1,11 @@
+import { Either, left, right } from '@shared/core/errors/Either';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
-import { Either } from '@shared/core/errors/Either';
 
 export interface BaseAccountProps {
   workspaceId: string;
   name: string;
   timezone: string;
+  balance: bigint;
 }
 
 export abstract class BaseAccount<
@@ -24,6 +25,35 @@ export abstract class BaseAccount<
 
   get timezone(): string {
     return this.props.timezone;
+  }
+
+  get balance(): bigint {
+    return this.props.balance;
+  }
+
+  /**
+   * Soma o valor ao saldo. Compartilhado pelas contas cujo crédito não tem
+   * regra própria (carteira, investimento, conta corrente).
+   */
+  protected creditBalance(amount: bigint): Either<Error, void> {
+    if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
+    this.props.balance += amount;
+    return right(undefined);
+  }
+
+  /**
+   * Subtrai o valor do saldo, bloqueando a operação se o resultado ficar
+   * negativo. Compartilhado pelas contas que não permitem saldo negativo.
+   */
+  protected debitBalanceWithFloor(amount: bigint): Either<Error, void> {
+    if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
+    if (this.props.balance - amount < 0n) {
+      return left(
+        new Error('Saldo insuficiente na carteira. Operação bloqueada.'),
+      );
+    }
+    this.props.balance -= amount;
+    return right(undefined);
   }
 
   public updateName(name: string) {
