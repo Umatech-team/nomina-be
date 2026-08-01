@@ -5,6 +5,24 @@ Segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [Semantic Ve
 
 ---
 
+## [Unreleased]
+
+### Alterado
+- Pivô de cartão de crédito: abandonada a ideia de reproduzir parcelamento com cálculo próprio na entidade de cartão. Compra parcelada agora é uma recorrência comum com `totalAmount`/modo de valor total, que gera as parcelas mês a mês e se autodesativa ao passar do `endDate` (`RecurringTransaction`, `GenerateRecurringTransactionsJobService`)
+- `BaseAccount`: lógica de crédito/débito de saldo unificada e reaproveitada por `CashAccounts`, `CheckingAccount`, `InvestmentAccount` e `CreditCardAccount` (antes duplicada em cada entidade)
+
+### Adicionado
+- Suporte a modo de valor total (`totalAmount`) em transações recorrentes, permitindo cadastrar uma compra parcelada informando o total e o número de parcelas
+- Autodesativação de recorrências ao atingir `endDate`
+
+### Corrigido
+- Pipeline de CI/CD e semantic-release agora também roda na branch `develop`, usada como staging antes do deploy automático em `main` (Render aponta pra `main`)
+
+### Em andamento (PR aberta, aguardando merge)
+- Fix da issue #41 (erro genérico ao pagar fatura): `GetCreditCardInvoiceService.totalAmount` não descontava pagamentos parciais já feitos no ciclo atual, podendo mostrar um valor de fatura maior do que o saldo real aceito por `payInvoice()`. Também trocados `new Error(...)` genéricos por erros de domínio tipados em `CreditCardAccount`, `CashAccounts`, `CheckingAccount`, `InvestmentAccount` e `BaseAccount`, que antes viravam 500 opaco em vez da mensagem de validação real
+
+---
+
 ## [0.11.0] — 2026-05-03
 
 ### Adicionado
