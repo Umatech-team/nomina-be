@@ -37,7 +37,7 @@ describe('CreateUserRequest DTO', () => {
     [{ password: 'short' }, 'password shorter than 8 chars'],
     [{ password: 'x'.repeat(256) }, 'password longer than 255 chars'],
     [{ password: '' }, 'empty password'],
-  ])('should reject when %s', (invalidFields, _label) => {
+  ])('should reject when %s', (invalidFields) => {
     expect(createUserSchema.safeParse(makeValid(invalidFields)).success).toBe(
       false,
     );

@@ -31,7 +31,6 @@ import { UpdateTransactionService } from './features/update-transaction/update-t
 import { GenerateRecurringTransactionJobController } from './jobs/create-recurring-transaction.controller';
 import { GenerateRecurringTransactionsJobService } from './jobs/create-recurring-transaction.service';
 import { CalculateNextGenerationDateService } from './services/calculate-next-generation-date.service';
-import { GenerateRecurringTransactionsService } from './services/generate-recurring-transactions.service';
 
 @Module({
   controllers: [
@@ -66,7 +65,6 @@ import { GenerateRecurringTransactionsService } from './services/generate-recurr
     FindRecurringTransactionService,
     ToggleActiveRecurringTransactionService,
     CalculateNextGenerationDateService,
-    GenerateRecurringTransactionsService,
     GenerateRecurringTransactionsJobService,
   ],
 })

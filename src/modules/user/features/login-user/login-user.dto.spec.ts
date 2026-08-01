@@ -16,7 +16,7 @@ describe('LoginUserRequest DTO', () => {
     [{ password: '' }, 'empty password'],
     [{ email: undefined }, 'missing email'],
     [{ password: undefined }, 'missing password'],
-  ])('should reject when %s', (invalidFields, _label) => {
+  ])('should reject when %s', (invalidFields) => {
     expect(loginUserSchema.safeParse(makeValid(invalidFields)).success).toBe(
       false,
     );

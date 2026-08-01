@@ -1,4 +1,5 @@
 import { AccountType } from '@constants/enums';
+import { ValidationAccountError } from '@modules/account/errors';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { BaseAccount, BaseAccountProps } from './BaseAccount';
 
@@ -16,7 +17,8 @@ export class CheckingAccount extends BaseAccount<CheckingAccountProps> {
     props: Omit<CheckingAccountProps, 'balance'> & { balance?: bigint },
     id?: string,
   ): Either<Error, CheckingAccount> {
-    if (props.name.length < 2) return left(new Error('Nome muito curto.'));
+    if (props.name.length < 2)
+      return left(new ValidationAccountError('Nome muito curto.'));
 
     return right(
       new CheckingAccount(
@@ -36,10 +38,6 @@ export class CheckingAccount extends BaseAccount<CheckingAccountProps> {
     return new CheckingAccount(props, id);
   }
 
-  get balance(): bigint {
-    return this.props.balance;
-  }
-
   get type(): string {
     return this.props.type;
   }
@@ -48,15 +46,18 @@ export class CheckingAccount extends BaseAccount<CheckingAccountProps> {
     return this.balance;
   }
 
-  public credit(amount: bigint): Either<Error, void> {
-    if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
-    this.props.balance += amount;
+  public debit(amount: bigint): Either<Error, void> {
+    if (amount <= 0n)
+      return left(new ValidationAccountError('Valor deve ser positivo.'));
+    this.props.balance -= amount;
     return right(undefined);
   }
 
-  public debit(amount: bigint): Either<Error, void> {
-    if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
-    this.props.balance -= amount;
-    return right(undefined);
+  public applyExpenseEffect(amount: bigint): Either<Error, void> {
+    return this.debit(amount);
+  }
+
+  public applyIncomeEffect(amount: bigint): Either<Error, void> {
+    return this.credit(amount);
   }
 }

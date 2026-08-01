@@ -52,7 +52,9 @@ export class GenerateRecurringTransactionsJobService {
       LOCK_TTL_SECONDS,
     );
     if (!lockAcquired) {
-      this.logger.log(`Job: lock não adquirido — outra instância já está rodando.`);
+      this.logger.log(
+        `Job: lock não adquirido — outra instância já está rodando.`,
+      );
       return right({ generatedCount: 0 });
     }
 
@@ -112,6 +114,7 @@ export class GenerateRecurringTransactionsJobService {
       }
 
       if (recurring.endDate && targetDate > recurring.endDate) {
+        recurring.deactivate();
         break;
       }
 

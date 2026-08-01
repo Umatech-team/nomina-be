@@ -1,4 +1,8 @@
 import { AccountType } from '@constants/enums';
+import {
+  InsufficientBalanceError,
+  ValidationAccountError,
+} from '@modules/account/errors';
 import { InvestmentAccount } from './InvestmentAccount';
 
 describe('InvestmentAccount entity', () => {
@@ -33,9 +37,10 @@ describe('InvestmentAccount entity', () => {
     });
 
     it('should reject negative initial balance', () => {
-      expect(
-        InvestmentAccount.create(makeProps({ balance: -1n })).isLeft(),
-      ).toBe(true);
+      const result = InvestmentAccount.create(makeProps({ balance: -1n }));
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(ValidationAccountError);
     });
 
     it('should return type INVESTMENT', () => {
@@ -68,7 +73,34 @@ describe('InvestmentAccount entity', () => {
     });
 
     it('should reject debit exceeding balance', () => {
-      expect(makeAccount(100n).debit(200n).isLeft()).toBe(true);
+      const result = makeAccount(100n).debit(200n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(InsufficientBalanceError);
+    });
+  });
+
+  describe('applyExpenseEffect()', () => {
+    it('should behave like debit()', () => {
+      const account = makeAccount(500n);
+      account.applyExpenseEffect(200n);
+      expect(account.balance).toBe(300n);
+    });
+
+    it('should reject expense exceeding balance', () => {
+      expect(makeAccount(100n).applyExpenseEffect(200n).isLeft()).toBe(true);
+    });
+  });
+
+  describe('applyIncomeEffect()', () => {
+    it('should behave like credit()', () => {
+      const account = makeAccount(500n);
+      account.applyIncomeEffect(200n);
+      expect(account.balance).toBe(700n);
+    });
+
+    it('should reject zero amount', () => {
+      expect(makeAccount().applyIncomeEffect(0n).isLeft()).toBe(true);
     });
   });
 });

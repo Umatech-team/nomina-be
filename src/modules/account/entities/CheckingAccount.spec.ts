@@ -1,4 +1,5 @@
 import { AccountType } from '@constants/enums';
+import { ValidationAccountError } from '@modules/account/errors';
 import { CheckingAccount } from './CheckingAccount';
 
 function makeProps(
@@ -36,6 +37,8 @@ describe('CheckingAccount entity', () => {
     it('should reject name with less than 2 characters', () => {
       const result = CheckingAccount.create(makeProps({ name: 'A' }));
       expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(ValidationAccountError);
     });
   });
 
@@ -48,7 +51,10 @@ describe('CheckingAccount entity', () => {
 
     it('should reject zero amount', () => {
       const account = makeAccount();
-      expect(account.credit(0n).isLeft()).toBe(true);
+      const result = account.credit(0n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(ValidationAccountError);
     });
 
     it('should reject negative amount', () => {
@@ -72,6 +78,30 @@ describe('CheckingAccount entity', () => {
     it('should reject negative amount', () => {
       const account = makeAccount();
       expect(account.debit(-10n).isLeft()).toBe(true);
+    });
+  });
+
+  describe('applyExpenseEffect()', () => {
+    it('should behave like debit()', () => {
+      const account = makeAccount();
+      account.applyExpenseEffect(200n);
+      expect(account.balance).toBe(300n);
+    });
+
+    it('should reject zero amount', () => {
+      expect(makeAccount().applyExpenseEffect(0n).isLeft()).toBe(true);
+    });
+  });
+
+  describe('applyIncomeEffect()', () => {
+    it('should behave like credit()', () => {
+      const account = makeAccount();
+      account.applyIncomeEffect(200n);
+      expect(account.balance).toBe(700n);
+    });
+
+    it('should reject negative amount', () => {
+      expect(makeAccount().applyIncomeEffect(-50n).isLeft()).toBe(true);
     });
   });
 });

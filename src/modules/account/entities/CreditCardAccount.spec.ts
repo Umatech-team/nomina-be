@@ -1,3 +1,8 @@
+import {
+  CreditLimitExceededError,
+  PaymentExceedsInvoiceBalanceError,
+  ValidationAccountError,
+} from '@modules/account/errors';
 import { CreditCard } from './CreditCardAccount';
 
 describe('CreditCard entity', () => {
@@ -47,7 +52,10 @@ describe('CreditCard entity', () => {
       [{ dueDay: 0 }, 'dueDay 0'],
       [{ dueDay: 32 }, 'dueDay 32'],
     ])('should reject %s', (props) => {
-      expect(CreditCard.create(makeProps(props)).isLeft()).toBe(true);
+      const result = CreditCard.create(makeProps(props));
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(ValidationAccountError);
     });
 
     it('should default balance to 0 when not provided', () => {
@@ -64,12 +72,18 @@ describe('CreditCard entity', () => {
     });
 
     it('should reject zero amount', () => {
-      expect(makeCard().registerCharge(0n).isLeft()).toBe(true);
+      const result = makeCard().registerCharge(0n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(ValidationAccountError);
     });
 
     it('should reject charge exceeding available limit', () => {
       const card = makeCard({ creditLimit: 1000n });
-      expect(card.registerCharge(1500n).isLeft()).toBe(true);
+      const result = card.registerCharge(1500n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(CreditLimitExceededError);
     });
 
     it('should allow any charge when creditLimit is null (unlimited)', () => {
@@ -87,13 +101,53 @@ describe('CreditCard entity', () => {
     });
 
     it('should reject zero amount', () => {
-      expect(makeCard().payInvoice(0n).isLeft()).toBe(true);
+      const result = makeCard().payInvoice(0n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(ValidationAccountError);
     });
 
     it('should reject payment exceeding current balance', () => {
       const card = makeCard();
       card.registerCharge(200n);
-      expect(card.payInvoice(500n).isLeft()).toBe(true);
+      const result = card.payInvoice(500n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(PaymentExceedsInvoiceBalanceError);
+    });
+  });
+
+  describe('applyExpenseEffect()', () => {
+    it('should behave like registerCharge() (increase balance)', () => {
+      const card = makeCard();
+      card.applyExpenseEffect(1000n);
+      expect(card.balance).toBe(1000n);
+    });
+
+    it('should reject expense exceeding available limit', () => {
+      const card = makeCard({ creditLimit: 1000n });
+      const result = card.applyExpenseEffect(1500n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(CreditLimitExceededError);
+    });
+  });
+
+  describe('applyIncomeEffect()', () => {
+    it('should behave like payInvoice() (decrease balance)', () => {
+      const card = makeCard();
+      card.registerCharge(500n);
+      card.applyIncomeEffect(500n);
+      expect(card.balance).toBe(0n);
+    });
+
+    it('should reject income exceeding current balance', () => {
+      const card = makeCard();
+      card.registerCharge(200n);
+      const result = card.applyIncomeEffect(500n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(PaymentExceedsInvoiceBalanceError);
     });
   });
 
@@ -105,7 +159,11 @@ describe('CreditCard entity', () => {
     });
 
     it('should reject zero or negative limit', () => {
-      expect(makeCard().adjustLimit(0n).isLeft()).toBe(true);
+      const zeroResult = makeCard().adjustLimit(0n);
+      expect(zeroResult.isLeft()).toBe(true);
+      if (zeroResult.isLeft())
+        expect(zeroResult.value).toBeInstanceOf(ValidationAccountError);
+
       expect(makeCard().adjustLimit(-500n).isLeft()).toBe(true);
     });
   });

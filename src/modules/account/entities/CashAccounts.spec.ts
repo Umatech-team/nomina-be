@@ -1,4 +1,8 @@
 import { AccountType } from '@constants/enums';
+import {
+  InsufficientBalanceError,
+  ValidationAccountError,
+} from '@modules/account/errors';
 import { CashAccount } from './CashAccounts';
 
 describe('CashAccount entity', () => {
@@ -34,6 +38,8 @@ describe('CashAccount entity', () => {
     it('should reject negative initial balance', () => {
       const result = CashAccount.create(makeProps({ balance: -1n }));
       expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(ValidationAccountError);
     });
 
     it('should return type CASH', () => {
@@ -54,7 +60,10 @@ describe('CashAccount entity', () => {
     });
 
     it('should reject zero amount', () => {
-      expect(makeAccount().credit(0n).isLeft()).toBe(true);
+      const result = makeAccount().credit(0n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(ValidationAccountError);
     });
 
     it('should reject negative amount', () => {
@@ -79,7 +88,35 @@ describe('CashAccount entity', () => {
 
     it('should reject debit exceeding balance', () => {
       const account = makeAccount(100n);
-      expect(account.debit(200n).isLeft()).toBe(true);
+      const result = account.debit(200n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(InsufficientBalanceError);
+    });
+  });
+
+  describe('applyExpenseEffect()', () => {
+    it('should behave like debit()', () => {
+      const account = makeAccount(500n);
+      account.applyExpenseEffect(200n);
+      expect(account.balance).toBe(300n);
+    });
+
+    it('should reject expense exceeding balance', () => {
+      const account = makeAccount(100n);
+      expect(account.applyExpenseEffect(200n).isLeft()).toBe(true);
+    });
+  });
+
+  describe('applyIncomeEffect()', () => {
+    it('should behave like credit()', () => {
+      const account = makeAccount(500n);
+      account.applyIncomeEffect(200n);
+      expect(account.balance).toBe(700n);
+    });
+
+    it('should reject zero amount', () => {
+      expect(makeAccount().applyIncomeEffect(0n).isLeft()).toBe(true);
     });
   });
 });

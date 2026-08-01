@@ -25,7 +25,7 @@ export class ConflictAccountError extends ConflictDomainError {
 }
 
 export class CreditLimitExceededError extends BusinessRuleDomainError {
-  constructor(available: number, requested: number) {
+  constructor(available: bigint, requested: bigint) {
     super(
       `Limite insuficiente. Disponível: ${available}, Requisitado: ${requested}`,
     );
@@ -41,5 +41,17 @@ export class InvalidAccountError extends BusinessRuleDomainError {
 export class ValidationAccountError extends BusinessRuleDomainError {
   constructor(reason: string) {
     super(`Erro de validação na conta: ${reason}`);
+  }
+}
+
+export class InsufficientBalanceError extends BusinessRuleDomainError {
+  constructor(reason = 'Saldo insuficiente para essa operação.') {
+    super(reason);
+  }
+}
+
+export class PaymentExceedsInvoiceBalanceError extends BusinessRuleDomainError {
+  constructor() {
+    super('O pagamento não pode exceder o valor da fatura atual.');
   }
 }

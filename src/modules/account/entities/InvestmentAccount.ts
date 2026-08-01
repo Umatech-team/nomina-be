@@ -1,4 +1,5 @@
 import { AccountType } from '@constants/enums';
+import { ValidationAccountError } from '@modules/account/errors';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { BaseAccount, BaseAccountProps } from './BaseAccount';
 
@@ -17,7 +18,9 @@ export class InvestmentAccount extends BaseAccount<InvestmentAccountProps> {
   ): Either<Error, InvestmentAccount> {
     const initialBalance = props.balance ?? 0n;
     if (initialBalance < 0n)
-      return left(new Error('Saldo inicial não pode ser negativo.'));
+      return left(
+        new ValidationAccountError('Saldo inicial não pode ser negativo.'),
+      );
 
     return right(
       new InvestmentAccount({ ...props, balance: initialBalance }, id),
@@ -31,10 +34,6 @@ export class InvestmentAccount extends BaseAccount<InvestmentAccountProps> {
     return new InvestmentAccount(props, id);
   }
 
-  get balance(): bigint {
-    return this.props.balance;
-  }
-
   get type(): string {
     return AccountType.INVESTMENT;
   }
@@ -43,20 +42,11 @@ export class InvestmentAccount extends BaseAccount<InvestmentAccountProps> {
     return this.balance;
   }
 
-  public credit(amount: bigint): Either<Error, void> {
-    if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
-    this.props.balance += amount;
-    return right(undefined);
+  public applyExpenseEffect(amount: bigint): Either<Error, void> {
+    return this.debit(amount);
   }
 
-  public debit(amount: bigint): Either<Error, void> {
-    if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
-    if (this.props.balance - amount < 0n) {
-      return left(
-        new Error('Saldo insuficiente na carteira. Operação bloqueada.'),
-      );
-    }
-    this.props.balance -= amount;
-    return right(undefined);
+  public applyIncomeEffect(amount: bigint): Either<Error, void> {
+    return this.credit(amount);
   }
 }
