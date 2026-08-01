@@ -1,4 +1,8 @@
 import { AccountType } from '@constants/enums';
+import {
+  InsufficientBalanceError,
+  ValidationAccountError,
+} from '@modules/account/errors';
 import { CashAccount } from './CashAccounts';
 
 describe('CashAccount entity', () => {
@@ -34,6 +38,8 @@ describe('CashAccount entity', () => {
     it('should reject negative initial balance', () => {
       const result = CashAccount.create(makeProps({ balance: -1n }));
       expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(ValidationAccountError);
     });
 
     it('should return type CASH', () => {
@@ -54,7 +60,10 @@ describe('CashAccount entity', () => {
     });
 
     it('should reject zero amount', () => {
-      expect(makeAccount().credit(0n).isLeft()).toBe(true);
+      const result = makeAccount().credit(0n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(ValidationAccountError);
     });
 
     it('should reject negative amount', () => {
@@ -79,7 +88,10 @@ describe('CashAccount entity', () => {
 
     it('should reject debit exceeding balance', () => {
       const account = makeAccount(100n);
-      expect(account.debit(200n).isLeft()).toBe(true);
+      const result = account.debit(200n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(InsufficientBalanceError);
     });
   });
 

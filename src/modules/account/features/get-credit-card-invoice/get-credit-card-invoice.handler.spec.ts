@@ -1,4 +1,4 @@
-import { AccountType } from '@constants/enums';
+import { AccountType, TransactionStatus } from '@constants/enums';
 import { CheckingAccount } from '@modules/account/entities/CheckingAccount';
 import { CreditCard } from '@modules/account/entities/CreditCardAccount';
 import {
@@ -6,6 +6,7 @@ import {
   AccountTypeError,
 } from '@modules/account/errors';
 import { AccountRepository } from '@modules/account/repositories/contracts/AccountRepository';
+import { Transaction } from '@modules/transaction/entities/Transaction';
 import { TransactionRepository } from '@modules/transaction/repositories/contracts/TransactionRepository';
 import {
   DateProvider,
@@ -56,6 +57,20 @@ function makeCheckingAccount(): CheckingAccount {
     },
     'acc-2',
   );
+  if (r.isLeft()) throw r.value;
+  return r.value;
+}
+
+function makeCompletedCharge(amount: bigint): Transaction {
+  const r = Transaction.create({
+    workspaceId: 'ws-1',
+    accountId: 'acc-1',
+    title: 'Compra no cartão',
+    amount,
+    date: new Date('2024-01-20'),
+    type: 'EXPENSE',
+    status: TransactionStatus.COMPLETED,
+  });
   if (r.isLeft()) throw r.value;
   return r.value;
 }
@@ -158,6 +173,30 @@ describe('GetCreditCardInvoiceService', () => {
     expect(dateProvider.calculateInvoiceCycle).toHaveBeenCalledWith(
       expect.objectContaining({ closingDay: 5, dueDay: 15 }),
     );
+  });
+
+  it('should cap totalAmount at the card current balance when a partial payment was already made this cycle', async () => {
+    // Bug reportado: duas cobranças de 5000 cada (10000 no total) nesse
+    // ciclo, mas o usuário já pagou parcialmente 3000 (a transação de
+    // pagamento não aparece na lista, pois pertence à conta de origem, não
+    // ao cartão). O saldo real da fatura é 7000 — é isso que o usuário pode
+    // efetivamente pagar, e é isso que payInvoice() valida.
+    const card = makeCreditCard();
+    card.registerCharge(10000n);
+    card.payInvoice(3000n);
+    expect(card.balance).toBe(7000n);
+
+    accountRepository.findById.mockResolvedValue(card);
+    transactionRepository.findByAccountAndDateRange.mockResolvedValue([
+      makeCompletedCharge(5000n),
+      makeCompletedCharge(5000n),
+    ]);
+
+    const result = await service.execute(makeRequest());
+    expect(result.isRight()).toBe(true);
+    if (result.isRight()) {
+      expect(result.value.totalAmount).toBe(7000);
+    }
   });
 
   it('should use closingDay=1 as fallback when account has no closingDay', async () => {
