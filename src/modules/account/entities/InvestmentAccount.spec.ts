@@ -1,4 +1,8 @@
 import { AccountType } from '@constants/enums';
+import {
+  InsufficientBalanceError,
+  ValidationAccountError,
+} from '@modules/account/errors';
 import { InvestmentAccount } from './InvestmentAccount';
 
 describe('InvestmentAccount entity', () => {
@@ -33,9 +37,10 @@ describe('InvestmentAccount entity', () => {
     });
 
     it('should reject negative initial balance', () => {
-      expect(
-        InvestmentAccount.create(makeProps({ balance: -1n })).isLeft(),
-      ).toBe(true);
+      const result = InvestmentAccount.create(makeProps({ balance: -1n }));
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(ValidationAccountError);
     });
 
     it('should return type INVESTMENT', () => {
@@ -68,7 +73,10 @@ describe('InvestmentAccount entity', () => {
     });
 
     it('should reject debit exceeding balance', () => {
-      expect(makeAccount(100n).debit(200n).isLeft()).toBe(true);
+      const result = makeAccount(100n).debit(200n);
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft())
+        expect(result.value).toBeInstanceOf(InsufficientBalanceError);
     });
   });
 

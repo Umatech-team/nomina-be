@@ -1,4 +1,5 @@
 import { AccountType } from '@constants/enums';
+import { ValidationAccountError } from '@modules/account/errors';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { BaseAccount, BaseAccountProps } from './BaseAccount';
 
@@ -17,7 +18,9 @@ export class InvestmentAccount extends BaseAccount<InvestmentAccountProps> {
   ): Either<Error, InvestmentAccount> {
     const initialBalance = props.balance ?? 0n;
     if (initialBalance < 0n)
-      return left(new Error('Saldo inicial não pode ser negativo.'));
+      return left(
+        new ValidationAccountError('Saldo inicial não pode ser negativo.'),
+      );
 
     return right(
       new InvestmentAccount({ ...props, balance: initialBalance }, id),

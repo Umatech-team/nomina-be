@@ -1,3 +1,7 @@
+import {
+  InsufficientBalanceError,
+  ValidationAccountError,
+} from '@modules/account/errors';
 import { Either, left, right } from '@shared/core/errors/Either';
 import { AggregateRoot } from '@shared/core/Entities/AggregateRoot';
 
@@ -37,7 +41,8 @@ export abstract class BaseAccount<
    * Sobrescreva quando a conta precisar de uma regra diferente.
    */
   public credit(amount: bigint): Either<Error, void> {
-    if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
+    if (amount <= 0n)
+      return left(new ValidationAccountError('Valor deve ser positivo.'));
     this.props.balance += amount;
     return right(undefined);
   }
@@ -48,10 +53,13 @@ export abstract class BaseAccount<
    * permitir saldo negativo (ex.: conta corrente) ou tiver outra regra.
    */
   public debit(amount: bigint): Either<Error, void> {
-    if (amount <= 0n) return left(new Error('Valor deve ser positivo.'));
+    if (amount <= 0n)
+      return left(new ValidationAccountError('Valor deve ser positivo.'));
     if (this.props.balance - amount < 0n) {
       return left(
-        new Error('Saldo insuficiente na carteira. Operação bloqueada.'),
+        new InsufficientBalanceError(
+          'Saldo insuficiente na carteira. Operação bloqueada.',
+        ),
       );
     }
     this.props.balance -= amount;

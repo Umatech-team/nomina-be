@@ -73,9 +73,18 @@ export class GetCreditCardInvoiceService implements Service<
         periodEnd,
       );
 
-    const totalAmount = transactions
+    const chargesTotal = transactions
       .filter((t) => t.status === TransactionStatus.COMPLETED)
       .reduce((sum, t) => sum + Number(t.amount), 0);
+
+    // O total de cobranças do período não desconta pagamentos já feitos nesse
+    // ciclo (a query acima só traz transações do próprio cartão, não a
+    // transferência de pagamento, que pertence à conta de origem). Por isso o
+    // valor exibido/pagável nunca pode ultrapassar o saldo real da fatura
+    // (account.balance), que é o que CreditCard.payInvoice() de fato valida —
+    // caso contrário o usuário via um "Total da Fatura" inflado e a tentativa
+    // de pagar o valor cheio era rejeitada por "exceder" a fatura.
+    const totalAmount = Math.min(chargesTotal, Number(account.balance));
 
     const pendingAmount = transactions
       .filter((t) => t.status === TransactionStatus.PENDING)
